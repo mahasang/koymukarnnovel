@@ -1,4 +1,5 @@
 import type { ChapterRow, ChapterStatus, GlossaryRow, Mode, NovelRow, NovelStatus } from "../types.js"
+import { truncate } from "../util/text.js"
 
 /** นิยายหนึ่งเรื่องในมุมมองผู้ดูแล (camelCase ตาม spec 7.10 · ธงเป็น boolean · แท็กเป็นอาร์เรย์) */
 export interface AdminNovelDto {
@@ -241,4 +242,129 @@ export interface NovelProgressRow {
 
 export function toNovelProgressDto(r: NovelProgressRow): NovelProgressDto {
   return { novelId: r.id, title: r.title_th || r.title, translated: r.translated, total: r.total, published: r.published }
+}
+
+// ───────────────────────── หน้าบ้านสาธารณะ (/api/public · spec 4.2) ─────────────────────────
+
+/** เรื่องย่อในการ์ดตัดที่กี่ตัวอักษร (นับเป็น code point แล้วต่อ "…") */
+export const SYNOPSIS_SHORT_LENGTH = 280
+
+/**
+ * การ์ดนิยายที่ผู้อ่านเห็น · `chapterCount`/`latestNumber`/`updatedAt` นับจากตอนที่ผู้ขอมองเห็นเท่านั้น
+ * `published` = ผู้อ่านทั่วไปเห็นเรื่องนี้หรือไม่ (ผู้อ่านทั่วไปได้ true เสมอ · false เกิดเฉพาะกับผู้ดูแลที่ดูร่าง)
+ */
+export interface PublicNovelCardDto {
+  id: number
+  title: string
+  titleTh: string
+  author: string
+  synopsisShort: string
+  tags: string[]
+  status: NovelStatus
+  featured: boolean
+  hasCover: boolean
+  /** ใช้เป็น `?v=` ของ `/covers/:id` (0 = ไม่มีปก) */
+  coverV: number
+  chapterCount: number
+  /** เลขตอนมากสุดที่เห็น (ตอนเลข 0 ก็เป็น 0) · ยังไม่มีตอนที่เห็น = null */
+  latestNumber: number | null
+  /** เวลาเผยแพร่ล่าสุดของตอนที่เห็น (UTC) · ไม่มีใช้เวลาแก้ล่าสุดของเรื่อง */
+  updatedAt: string
+  published: boolean
+}
+
+/** แถวจาก SQL การ์ดของ public.ts (`last_update` = `updatedAt` ที่คำนวณแล้ว) */
+export interface PublicNovelRow
+  extends Pick<NovelRow, "id" | "title" | "title_th" | "author" | "synopsis" | "tags" | "status" | "source_url" | "license_note" | "featured" | "published"> {
+  cover_updated_at: string | null
+  chapter_count: number
+  latest_number: number | null
+  last_update: string
+}
+
+export function toPublicNovelCardDto(r: PublicNovelRow): PublicNovelCardDto {
+  return {
+    id: r.id,
+    title: r.title,
+    titleTh: r.title_th,
+    author: r.author,
+    synopsisShort: truncate(r.synopsis, SYNOPSIS_SHORT_LENGTH),
+    tags: parseTags(r.tags),
+    status: r.status,
+    featured: r.featured === 1,
+    hasCover: r.cover_updated_at !== null,
+    coverV: coverVersion(r.cover_updated_at),
+    chapterCount: r.chapter_count,
+    latestNumber: r.latest_number,
+    updatedAt: r.last_update,
+    published: r.published === 1,
+  }
+}
+
+/** ตอนหนึ่งในสารบัญของเรื่อง (ไม่มีเนื้อหา) · `published` = ผู้อ่านทั่วไปเห็นตอนนี้หรือไม่ (เรื่องที่ซ่อน = ทุกตอนไม่เห็น) */
+export interface PublicChapterItemDto {
+  number: number
+  title: string
+  titleTh: string
+  publishedAt: string | null
+  published: boolean
+}
+
+export interface PublicChapterItemRow {
+  number: number
+  title: string
+  title_th: string
+  published_at: string | null
+  is_public: number
+}
+
+export function toPublicChapterItemDto(r: PublicChapterItemRow): PublicChapterItemDto {
+  return { number: r.number, title: r.title, titleTh: r.title_th, publishedAt: r.published_at, published: r.is_public === 1 }
+}
+
+/** หน้าเรื่อง: การ์ด + เรื่องย่อเต็ม + ลิงก์ต้นฉบับ + บันทึกสิทธิ์ + สารบัญตอนที่เห็น (เรียงเลขตอนน้อยไปมาก) */
+export interface PublicNovelDto extends PublicNovelCardDto {
+  synopsis: string
+  sourceUrl: string
+  licenseNote: string
+  chapters: PublicChapterItemDto[]
+}
+
+export function toPublicNovelDto(r: PublicNovelRow, chapters: PublicChapterItemRow[]): PublicNovelDto {
+  return {
+    ...toPublicNovelCardDto(r),
+    synopsis: r.synopsis,
+    sourceUrl: r.source_url,
+    licenseNote: r.license_note,
+    chapters: chapters.map(toPublicChapterItemDto),
+  }
+}
+
+/** หน้าอ่าน: เนื้อหาคำแปลของตอน + เลขตอนข้างเคียงที่เห็น (null = ไม่มี) */
+export interface PublicChapterPageDto {
+  novel: { id: number; title: string; titleTh: string }
+  chapter: { number: number; title: string; titleTh: string; text: string; published: boolean }
+  prev: number | null
+  next: number | null
+}
+
+export interface PublicChapterRow {
+  novel_id: number
+  novel_title: string
+  novel_title_th: string
+  chapter_id: number
+  number: number
+  title: string
+  title_th: string
+  translation: string
+  is_public: number
+}
+
+export function toPublicChapterPageDto(r: PublicChapterRow, prev: number | null, next: number | null): PublicChapterPageDto {
+  return {
+    novel: { id: r.novel_id, title: r.novel_title, titleTh: r.novel_title_th },
+    chapter: { number: r.number, title: r.title, titleTh: r.title_th, text: r.translation, published: r.is_public === 1 },
+    prev,
+    next,
+  }
 }

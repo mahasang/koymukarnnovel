@@ -5,6 +5,7 @@ import type { Config } from "./config.js"
 import { createCoversRouter } from "./covers.js"
 import type { Db } from "./db.js"
 import { createAdminRouter } from "./http/admin.js"
+import { createPublicRouter } from "./http/public.js"
 import type { Queue } from "./queue.js"
 import { securityHeaders, warnForwardedOnce } from "./security.js"
 import type { Settings } from "./settings.js"
@@ -45,9 +46,9 @@ export function createApp(deps: AppDeps): Express {
     res.type("text/plain").send("ok")
   })
 
-  // งานถัดไปเพิ่มบรรทัด mount ของตัวเองในช่วงนี้ (ต้องอยู่ก่อน 404 ของ /api):
-  //   งาน 16 /api/public (ตัวอ่านจริงต่อจากด่านอ่านอย่างเดียวนี้), งาน 17 /api/import (เมื่อมี importToken)
+  // งานถัดไปเพิ่มบรรทัด mount ของตัวเองในช่วงนี้ (ต้องอยู่ก่อน 404 ของ /api): งาน 17 /api/import (เมื่อมี importToken)
   app.use("/api/public", publicReadOnly)
+  app.use("/api/public", createPublicRouter(deps))
   app.use("/api/admin", createAdminRouter(deps))
   app.use("/covers", createCoversRouter(deps))
 
