@@ -6,6 +6,7 @@ import { createClock } from "./helpers/clock.js"
 import { withTestApp, type Client, type TestApp } from "./helpers/app.js"
 import type { FakeAi } from "./helpers/fake-ai.js"
 import { getChapter, seedChapter, seedGlossary, seedNovel } from "./helpers/seed.js"
+import { startStuckTranslation } from "./helpers/stuck.js"
 
 const THAI = /[฀-๿]/
 const API = "/api/admin"
@@ -62,23 +63,6 @@ async function until(cond: () => boolean, ms = 3000): Promise<void> {
     if (Date.now() > end) throw new Error("until: หมดเวลา")
     await new Promise((r) => setTimeout(r, 5))
   }
-}
-
-/**
- * เริ่มแปลตอนแรกของ `ids` ด้วยคิวจริงแล้วค้างกลางสตรีม (AI ปลอมหน่วง 5 วินาทีที่ยกเลิกได้ด้วย signal) คืน promise ของ `tick()` ที่ยังไม่จบ
- * ตอนถัดไปในคิวรอคิวอยู่ ใช้ทดสอบว่าการลบผ่าน HTTP ยกเลิกสตรีมจริงและคิวไปต่อได้ (Review Focus 2)
- */
-async function startStuckTranslation(t: T, ids: number[]) {
-  let enter!: () => void
-  const entered = new Promise<void>((resolve) => (enter = resolve))
-  t.ai.script.translate = () => {
-    enter()
-    return { pieces: ["กำลังแปล…"], delayMs: 5000 }
-  }
-  t.queue.enqueue(ids, { autoPublish: true })
-  const tick = t.queue.tick()
-  await entered
-  return { tick } // ห่อไว้: ถ้าคืน promise ตรงๆ ฟังก์ชัน async จะรอจนมันจบ ซึ่งต้องรอให้ถูกยกเลิกก่อน
 }
 
 /** หลังลบตอน `doomed` กลางสตรีมแล้ว: tick เดิมจบเร็ว ไม่มีแถวฟื้น ไม่เขียน usage/สรุปตอน และตอน `next` ถูกทำต่อจนเสร็จ */

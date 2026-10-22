@@ -1,4 +1,4 @@
-import type { ChapterRow, ChapterStatus, Mode, NovelRow, NovelStatus } from "../types.js"
+import type { ChapterRow, ChapterStatus, GlossaryRow, Mode, NovelRow, NovelStatus } from "../types.js"
 
 /** นิยายหนึ่งเรื่องในมุมมองผู้ดูแล (camelCase ตาม spec 7.10 · ธงเป็น boolean · แท็กเป็นอาร์เรย์) */
 export interface AdminNovelDto {
@@ -163,4 +163,40 @@ export function toAdminChapterDto(r: ChapterRow): AdminChapterDto {
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   }
+}
+
+/** คำศัพท์หนึ่งรายการในอภิธานของเรื่อง (`auto` = AI เสนอมาเองและเจ้าของยังไม่เคยแก้/ยืนยัน) */
+export interface GlossaryDto {
+  id: number
+  source: string
+  thai: string
+  note: string
+  auto: boolean
+}
+
+export function toGlossaryDto(r: GlossaryRow): GlossaryDto {
+  return { id: r.id, source: r.source, thai: r.thai, note: r.note, auto: r.auto === 1 }
+}
+
+/** ตอนที่แปลผิดพลาดในรายการของหน้าคิว (ไว้แสดงสาเหตุและปุ่มลองใหม่) */
+export interface QueueErrorDto {
+  id: number
+  novelId: number
+  /** ชื่อไทยก่อน ไม่มีค่อยใช้ชื่อเดิม */
+  novelTitle: string
+  number: number
+  error: string
+}
+
+export interface QueueErrorRow {
+  id: number
+  novel_id: number
+  number: number
+  error: string
+  title: string
+  title_th: string
+}
+
+export function toQueueErrorDto(r: QueueErrorRow): QueueErrorDto {
+  return { id: r.id, novelId: r.novel_id, novelTitle: r.title_th || r.title, number: r.number, error: r.error }
 }

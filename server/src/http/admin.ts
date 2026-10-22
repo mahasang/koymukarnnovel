@@ -4,7 +4,9 @@ import type { Config } from "../config.js"
 import { originGuard } from "../security.js"
 import { createAuthRoutes } from "./admin/auth.js"
 import { createChaptersRouter } from "./admin/chapters.js"
+import { createGlossaryRouter } from "./admin/glossary.js"
 import { createNovelsRouter } from "./admin/novels.js"
+import { createQueueRouter } from "./admin/queue.js"
 
 export { isAdminRequest } from "./admin/auth.js"
 
@@ -33,7 +35,9 @@ export function createAdminRouter(deps: AppDeps): Router {
   router.get("/me", auth.me)
   router.use(createNovelsRouter(deps))
   router.use(createChaptersRouter(deps))
-  // งาน 14–15 ต่อเส้นทางหลังบ้านของตัวเองตรงนี้ (ผ่านด่านล็อกอินและตัวอ่าน body แล้ว)
+  router.use(createGlossaryRouter(deps))
+  router.use(createQueueRouter(deps))
+  // งาน 15 ต่อเส้นทางหลังบ้านของตัวเองตรงนี้ (ผ่านด่านล็อกอินและตัวอ่าน body แล้ว)
 
   return router
 }
