@@ -4,9 +4,11 @@ import type { Config } from "../config.js"
 import { originGuard } from "../security.js"
 import { createAuthRoutes } from "./admin/auth.js"
 import { createChaptersRouter } from "./admin/chapters.js"
+import { createDashboardRouter } from "./admin/dashboard.js"
 import { createGlossaryRouter } from "./admin/glossary.js"
 import { createNovelsRouter } from "./admin/novels.js"
 import { createQueueRouter } from "./admin/queue.js"
+import { createSettingsRouter } from "./admin/settings.js"
 
 export { isAdminRequest } from "./admin/auth.js"
 
@@ -37,7 +39,9 @@ export function createAdminRouter(deps: AppDeps): Router {
   router.use(createChaptersRouter(deps))
   router.use(createGlossaryRouter(deps))
   router.use(createQueueRouter(deps))
-  // งาน 15 ต่อเส้นทางหลังบ้านของตัวเองตรงนี้ (ผ่านด่านล็อกอินและตัวอ่าน body แล้ว)
+  router.use(createDashboardRouter(deps))
+  router.use(createSettingsRouter(deps))
+  // เส้นทางหลังบ้านครบแล้ว · ช่องทางนำเข้า (/api/import) ไม่อยู่ใต้ด่านล็อกอินนี้ มีกุญแจของตัวเอง
 
   return router
 }

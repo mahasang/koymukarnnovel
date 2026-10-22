@@ -1,6 +1,6 @@
 import type { Config } from "./config.js"
 import type { Db } from "./db.js"
-import { badRequest } from "./util/errors.js"
+import { HttpError, badRequest } from "./util/errors.js"
 import { normalizeText } from "./util/text.js"
 
 export const ACCENTS = ["default", "violet", "pink", "teal", "amber", "blue"] as const
@@ -20,7 +20,7 @@ export interface SiteSettings {
 
 export interface Settings {
   get(): SiteSettings
-  /** ตรวจทั้งชุดก่อน ผิดช่องใดช่องหนึ่งก็ไม่บันทึกอะไรเลย (HttpError 400) คีย์ที่ไม่รู้จักถูกข้าม */
+  /** ตรวจทั้งชุดก่อน ผิดช่องใดช่องหนึ่งก็ไม่บันทึกอะไรเลย (HttpError 400 รหัส `invalid_field` พร้อม `{field}` = ช่องแรกที่ผิดตามลำดับ) คีย์ที่ไม่รู้จักถูกข้าม */
   update(patch: Partial<SiteSettings>): SiteSettings
   /** ค่าภายในของระบบ (เช่น queue_paused_reason) ไม่ปรากฏใน get() ที่ไม่เคยตั้งได้ "" */
   getInternal(key: string): string
@@ -127,7 +127,7 @@ export function createSettings(db: Db, cfg: Pick<Config, "translateModel" | "rec
       for (const key of KEYS) {
         if (!Object.hasOwn(patch, key) || patch[key] === undefined) continue
         const clean = CHECK[key](patch[key])
-        if (clean === undefined) throw badRequest(INVALID[key])
+        if (clean === undefined) throw new HttpError(400, INVALID[key], "invalid_field", { field: key })
         writes.push([key, serialize(key, clean)])
       }
       db.tx(() => {

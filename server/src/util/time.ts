@@ -9,3 +9,9 @@ export function nowSql(d: Date = new Date()): string {
 export function dayKey(d: Date): string {
   return new Date(d.getTime() + DAY_OFFSET_MS).toISOString().slice(0, 10)
 }
+
+/** วันเวลา UTC+7 แบบ YYYYMMDD-HHMM ไว้ตั้งชื่อไฟล์ (เรียงตามเวลาได้ด้วยการเรียงตัวอักษร) */
+export function fileStamp(d: Date): string {
+  const iso = new Date(d.getTime() + DAY_OFFSET_MS).toISOString() // 2026-10-22T08:02:03.000Z
+  return `${iso.slice(0, 10).replace(/-/g, "")}-${iso.slice(11, 16).replace(":", "")}`
+}

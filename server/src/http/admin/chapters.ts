@@ -1,6 +1,6 @@
 import { Router } from "express"
 import type { AppDeps } from "../../app.js"
-import { applyTranslation, setPublished } from "../../chapters.js"
+import { READY_TO_PUBLISH_SQL, applyTranslation, setPublished } from "../../chapters.js"
 import type { Db } from "../../db.js"
 import { HttpError, conflict, noApiKey } from "../../util/errors.js"
 import { nowSql } from "../../util/time.js"
@@ -198,7 +198,7 @@ export function createChaptersRouter(deps: AppDeps): Router {
       if (target.novelId !== null) requireNovel(db, target.novelId)
       const ids = db
         .all<{ id: number }>(
-          `SELECT id FROM chapters WHERE status = 'done' AND published = 0 AND translation <> ''${target.novelId === null ? "" : " AND novel_id = ?"}`,
+          `SELECT id FROM chapters WHERE ${READY_TO_PUBLISH_SQL}${target.novelId === null ? "" : " AND novel_id = ?"}`,
           ...(target.novelId === null ? [] : [target.novelId]),
         )
         .map((row) => row.id)

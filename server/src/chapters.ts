@@ -7,6 +7,12 @@ import type { Term } from "./types.js"
  */
 export const VISIBLE_SQL = "c.published = 1 AND c.translation <> '' AND n.published = 1"
 
+/**
+ * เงื่อนไข (ต่อท้าย WHERE ของ chapters ที่ไม่ตั้งนามแฝง) ของ "ตอนที่แปลเสร็จแล้วแต่ยังไม่เผยแพร่"
+ * ปุ่ม "เผยแพร่ทั้งหมด" ใช้ตัวเดียวกับที่ Dashboard ใช้นับ ตัวเลขที่เห็นจึงตรงกับที่ปุ่มจะเผยแพร่จริงเสมอ
+ */
+export const READY_TO_PUBLISH_SQL = "status = 'done' AND published = 0 AND translation <> ''"
+
 export interface TranslationResult {
   translation: string
   /** ใส่ให้เฉพาะเมื่อ `title_th` ของตอนยังว่าง (ชื่อที่เจ้าของตั้งเองมาก่อนเสมอ) */

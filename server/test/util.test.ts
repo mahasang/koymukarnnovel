@@ -1,7 +1,7 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
 import { MODES } from "../src/types.js"
-import { nowSql, dayKey } from "../src/util/time.js"
+import { nowSql, dayKey, fileStamp } from "../src/util/time.js"
 import { normalizeText, escapeHtml, truncate } from "../src/util/text.js"
 import { camelize } from "../src/util/camel.js"
 import { HttpError, badRequest, notFound, conflict } from "../src/util/errors.js"
@@ -19,6 +19,15 @@ test("nowSql เป็น UTC รูปแบบ YYYY-MM-DD HH:MM:SS", () => {
 test("dayKey ตัดวันตามเวลา UTC+7", () => {
   assert.equal(dayKey(new Date("2026-10-22T17:00:00Z")), "2026-10-23")
   assert.equal(dayKey(new Date("2026-10-22T16:59:59Z")), "2026-10-22")
+})
+
+test("fileStamp เป็น YYYYMMDD-HHMM ตามเวลา UTC+7 (ไว้ตั้งชื่อไฟล์สำรอง)", () => {
+  assert.equal(fileStamp(new Date("2026-10-22T01:02:03.999Z")), "20261022-0802")
+  assert.equal(fileStamp(new Date("2026-10-22T16:59:59Z")), "20261022-2359")
+  assert.equal(fileStamp(new Date("2026-10-22T17:00:00Z")), "20261023-0000")
+  assert.equal(fileStamp(new Date("2026-12-31T20:00:00Z")), "20270101-0300")
+  assert.equal(fileStamp(new Date("2026-01-05T00:05:00Z")), "20260105-0705")
+  assert.equal(fileStamp(new Date("2028-02-28T17:00:00Z")), "20280229-0000") // ปีอธิกสุรทิน
 })
 
 test("normalizeText ล้าง BOM, CRLF, NBSP และบรรทัดว่างเกิน (Review Focus 1)", () => {

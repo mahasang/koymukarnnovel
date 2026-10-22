@@ -14,6 +14,9 @@ function setup(cfg = CFG): { db: Db; settings: ReturnType<typeof createSettings>
 }
 
 const isBadRequest = (e: unknown) => e instanceof HttpError && e.status === 400
+/** ผิดที่ช่อง `field`: 400 รหัส invalid_field พร้อมชื่อช่องในข้อมูลเสริม (หน้าตั้งค่าใช้ชี้ช่องที่ผิด) และข้อความเป็นภาษาไทย */
+const isInvalidField = (field: string) => (e: unknown) =>
+  e instanceof HttpError && e.status === 400 && e.code === "invalid_field" && e.extra?.field === field && /[ก-๙]/.test(e.message)
 const rowCount = (db: Db) => db.get<{ c: number }>("SELECT COUNT(*) AS c FROM settings")!.c
 
 test("ค่าเริ่มต้น: ชื่อเว็บ สโลแกน เกี่ยวกับ ติดต่อ สี การค้นหา โมเดลจาก cfg ราคาว่าง", () => {
@@ -81,14 +84,37 @@ const INVALID: [string, Partial<Record<keyof SiteSettings, unknown>>][] = [
 for (const [label, patch] of INVALID) {
   test(`update ปฏิเสธด้วย 400: ${label}`, () => {
     const { db, settings } = setup()
-    assert.throws(() => settings.update(patch as Partial<SiteSettings>), isBadRequest)
+    assert.throws(() => settings.update(patch as Partial<SiteSettings>), isInvalidField(Object.keys(patch)[0] as string))
     assert.equal(rowCount(db), 0)
   })
 }
 
+test("update ปฏิเสธข้อความผิดพลาดต่างกันตามช่อง (ข้อความไทยเฉพาะช่อง)", () => {
+  const messages = new Map<string, string>()
+  for (const [, patch] of INVALID) {
+    const { settings } = setup()
+    const field = Object.keys(patch)[0] as string
+    try {
+      settings.update(patch as Partial<SiteSettings>)
+    } catch (e) {
+      messages.set(field, (e as Error).message)
+    }
+  }
+  assert.equal(messages.size, 9, "ครบทุกช่องของการตั้งค่า")
+  assert.equal(new Set(messages.values()).size, 9)
+})
+
+test("update ที่ไม่ได้รับออบเจ็กต์ (อาร์เรย์, null, ข้อความ, ตัวเลข) → 400 ไม่บันทึกอะไร", () => {
+  const { db, settings } = setup()
+  for (const patch of [[], null, "siteName", 5, true]) {
+    assert.throws(() => settings.update(patch as never), isBadRequest)
+  }
+  assert.equal(rowCount(db), 0)
+})
+
 test("update ทั้งก้อนหรือไม่เลย: มีค่าที่ผิดหนึ่งค่า ค่าที่ถูกในชุดเดียวกันก็ไม่ถูกบันทึก", () => {
   const { db, settings } = setup()
-  assert.throws(() => settings.update({ siteName: "ชื่อใหม่", accent: "bogus" as never }), isBadRequest)
+  assert.throws(() => settings.update({ siteName: "ชื่อใหม่", accent: "bogus" as never }), isInvalidField("accent"))
   assert.equal(settings.get().siteName, "koymukarnnovel")
   assert.equal(rowCount(db), 0)
 })

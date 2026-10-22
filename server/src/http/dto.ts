@@ -200,3 +200,45 @@ export interface QueueErrorRow {
 export function toQueueErrorDto(r: QueueErrorRow): QueueErrorDto {
   return { id: r.id, novelId: r.novel_id, novelTitle: r.title_th || r.title, number: r.number, error: r.error }
 }
+
+/** โทเคนที่ใช้ไปของโมเดลหนึ่ง รวมตามช่วงเวลา (Dashboard) */
+export interface UsageRowDto {
+  model: string
+  tokensIn: number
+  tokensOut: number
+  calls: number
+}
+
+export interface UsageRow {
+  model: string
+  tokens_in: number
+  tokens_out: number
+  calls: number
+}
+
+export function toUsageRowDto(r: UsageRow): UsageRowDto {
+  return { model: r.model, tokensIn: r.tokens_in, tokensOut: r.tokens_out, calls: r.calls }
+}
+
+/** ความคืบหน้าของเรื่องหนึ่งใน Dashboard: ตอนที่มีคำแปลแล้ว / ตอนทั้งหมด / ตอนที่เผยแพร่ */
+export interface NovelProgressDto {
+  novelId: number
+  /** ชื่อไทยก่อน ไม่มีค่อยใช้ชื่อเดิม */
+  title: string
+  translated: number
+  total: number
+  published: number
+}
+
+export interface NovelProgressRow {
+  id: number
+  title: string
+  title_th: string
+  translated: number
+  total: number
+  published: number
+}
+
+export function toNovelProgressDto(r: NovelProgressRow): NovelProgressDto {
+  return { novelId: r.id, title: r.title_th || r.title, translated: r.translated, total: r.total, published: r.published }
+}
