@@ -132,7 +132,7 @@ const adminCss = `
 const nav = (active) => {
   const it = (ic, label, key, extra = "") => `<a class="it${active === key ? " on" : ""}">${icon(ic, 19)} ${label}${extra}</a>`;
   return `<aside class="side">
-    <div class="logo"><span class="mark">99</span><span>Novel <b>99</b></span></div>
+    <div class="logo"><span class="mark">K</span><span>koymukarnnovel</span></div>
     <div class="lbl2">จัดการ</div>
     ${it("grid", "แดชบอร์ด", "dash")}
     ${it("book", "นิยาย", "novels")}

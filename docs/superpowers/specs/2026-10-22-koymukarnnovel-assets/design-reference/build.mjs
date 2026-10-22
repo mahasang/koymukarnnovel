@@ -1,4 +1,4 @@
-// สร้างภาพตัวอย่างหน้าตา (mockup) ของ Novel 99 เพื่อให้ผู้ใช้เลือกแนวทาง — ใช้ชั่วคราวใน scratchpad เท่านั้น
+// สร้างภาพตัวอย่างหน้าตา (mockup) ของ koymukarnnovel เพื่อให้ผู้ใช้เลือกแนวทาง — ใช้ชั่วคราวใน scratchpad เท่านั้น
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -276,7 +276,7 @@ function home(theme) {
   const moon = theme === "midnight" ? "moon" : "sun";
   return `<!doctype html><html lang="th" data-theme="${theme}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${fonts}${css}</style></head><body>
 <header class="top"><div class="wrap in">
-  <div class="logo"><span class="mark">99</span><span>Novel <b>99</b></span></div>
+  <div class="logo"><span class="mark">K</span><span>koymukarnnovel</span></div>
   <nav class="nav"><a class="on">หน้าแรก</a><a>นิยายทั้งหมด</a><a>อัปเดตล่าสุด</a><a>จบแล้ว</a></nav>
   <div class="search">${icon("search", 17)}<span>ค้นหาชื่อเรื่อง ผู้แต่ง หมวดหมู่…</span></div>
   <span class="iconbtn">${icon(moon, 18)}</span>
@@ -314,11 +314,11 @@ function home(theme) {
 </main>
 <footer class="foot"><div class="wrap">
   <div class="cols">
-    <div><div class="logo" style="color:var(--text);margin-bottom:12px"><span class="mark">99</span><span>Novel <b>99</b></span></div><p>คลังนิยายออนไลน์แปลไทย แปลด้วย AI และตรวจทานโดยผู้ดูแล เครดิตต้นฉบับเป็นของผู้แต่งและเจ้าของผลงาน แต่ละเรื่องมีลิงก์ไปยังต้นฉบับ</p></div>
+    <div><div class="logo" style="color:var(--text);margin-bottom:12px"><span class="mark">K</span><span>koymukarnnovel</span></div><p>คลังนิยายออนไลน์แปลไทย แปลด้วย AI และตรวจทานโดยผู้ดูแล เครดิตต้นฉบับเป็นของผู้แต่งและเจ้าของผลงาน แต่ละเรื่องมีลิงก์ไปยังต้นฉบับ</p></div>
     <div><h4>เมนู</h4><ul><li>หน้าแรก</li><li>นิยายทั้งหมด</li><li>อัปเดตล่าสุด</li></ul></div>
     <div><h4>ข้อมูล</h4><ul><li>เกี่ยวกับเว็บไซต์</li><li>ติดต่อ / แจ้งลบเนื้อหา</li><li>ที่มาและเครดิต</li></ul></div>
   </div>
-  <div class="cr">© 2026 Novel 99</div>
+  <div class="cr">© 2026 koymukarnnovel</div>
 </div></footer>
 </body></html>`;
 }

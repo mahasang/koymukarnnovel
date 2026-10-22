@@ -98,7 +98,7 @@ export function loadConfig(env: NodeJS.ProcessEnv): { config: Config; warnings: 
     port,
     publicUrl,
     trustProxy,
-    dbPath: dbPathEnv ? path.resolve(dbPathEnv) : path.join(SERVER_DIR, "data", "novel-99.db"),
+    dbPath: dbPathEnv ? path.resolve(dbPathEnv) : path.join(SERVER_DIR, "data", "koymukarnnovel.db"),
     webDist: path.join(REPO_DIR, "web", "dist"),
     adminPassword,
     sessionSecret: read(env, "SESSION_SECRET") ?? "",

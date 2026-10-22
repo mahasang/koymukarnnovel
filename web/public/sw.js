@@ -1,6 +1,6 @@
 // service worker เล็กๆ: ให้ติดตั้งเป็นแอปได้ และเปิดหน้าแอปได้แม้ออฟไลน์
 // (ข้อมูลนิยายอยู่ที่เซิร์ฟเวอร์ จึงไม่แคช /api)
-const CACHE = "novel-99-shell-v1";
+const CACHE = "koymukarnnovel-shell-v1";
 
 self.addEventListener("install", () => self.skipWaiting());
 

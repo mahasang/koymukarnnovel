@@ -20,7 +20,7 @@ test("ค่าเริ่มต้น", () => {
   assert.equal(config.recapModel, "claude-haiku-4-5-20251001")
   assert.equal(config.isLoopbackHost, true)
   assert.equal(config.hsts, false)
-  assert.ok(config.dbPath.endsWith(path.join("server", "data", "novel-99.db")), config.dbPath)
+  assert.ok(config.dbPath.endsWith(path.join("server", "data", "koymukarnnovel.db")), config.dbPath)
   assert.ok(config.webDist.endsWith(path.join("web", "dist")), config.webDist)
   assert.ok(warnings.some((w) => w.includes("หลังบ้านเปิดโดยไม่ต้องล็อกอิน")))
 })
@@ -85,8 +85,8 @@ test("PORT อยู่ในช่วง 0–65535", () => {
 })
 
 test("DB_PATH และชื่อโมเดลจาก env", () => {
-  const { config } = loadConfig({ DB_PATH: "/tmp/n99/x.db", TRANSLATE_MODEL: "m-translate", RECAP_MODEL: "m-recap", SESSION_SECRET: "s", ANTHROPIC_API_KEY: "k" })
-  assert.equal(config.dbPath, "/tmp/n99/x.db")
+  const { config } = loadConfig({ DB_PATH: "/tmp/koymukarnnovel/x.db", TRANSLATE_MODEL: "m-translate", RECAP_MODEL: "m-recap", SESSION_SECRET: "s", ANTHROPIC_API_KEY: "k" })
+  assert.equal(config.dbPath, "/tmp/koymukarnnovel/x.db")
   assert.equal(config.translateModel, "m-translate")
   assert.equal(config.recapModel, "m-recap")
   assert.equal(config.sessionSecret, "s")
