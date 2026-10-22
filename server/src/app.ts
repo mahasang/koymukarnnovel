@@ -2,6 +2,7 @@ import compression from "compression"
 import express, { type ErrorRequestHandler, type Express, type Request, type RequestHandler } from "express"
 import type { Ai } from "./ai.js"
 import type { Config } from "./config.js"
+import { createCoversRouter } from "./covers.js"
 import type { Db } from "./db.js"
 import { createAdminRouter } from "./http/admin.js"
 import type { Queue } from "./queue.js"
@@ -45,9 +46,10 @@ export function createApp(deps: AppDeps): Express {
   })
 
   // งานถัดไปเพิ่มบรรทัด mount ของตัวเองในช่วงนี้ (ต้องอยู่ก่อน 404 ของ /api):
-  //   งาน 16 /api/public (ตัวอ่านจริงต่อจากด่านอ่านอย่างเดียวนี้), งาน 17 /api/import (เมื่อมี importToken), งาน 13/16 /covers
+  //   งาน 16 /api/public (ตัวอ่านจริงต่อจากด่านอ่านอย่างเดียวนี้), งาน 17 /api/import (เมื่อมี importToken)
   app.use("/api/public", publicReadOnly)
   app.use("/api/admin", createAdminRouter(deps))
+  app.use("/covers", createCoversRouter(deps))
 
   app.use("/api", (_req, _res, next) => next(notFound("ไม่พบเส้นทาง API นี้")))
   // งาน 18: หน้าเว็บ (shell) ต่อจากตรงนี้

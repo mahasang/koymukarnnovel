@@ -1,6 +1,9 @@
 export type Mode = "translate" | "story"
 export const MODES: readonly Mode[] = ["translate", "story"]
 
+export type NovelStatus = "ongoing" | "completed"
+export const NOVEL_STATUSES: readonly NovelStatus[] = ["ongoing", "completed"]
+
 export type ChapterStatus = "draft" | "queued" | "translating" | "done" | "error"
 
 /** คำศัพท์เฉพาะที่ AI สกัดได้ (note เป็นข้อความว่างได้) */
@@ -19,7 +22,7 @@ export interface NovelRow {
   synopsis: string
   synopsis_src: string
   tags: string // JSON array ของข้อความ
-  status: "ongoing" | "completed"
+  status: NovelStatus
   source_url: string
   license_note: string
   style_note: string

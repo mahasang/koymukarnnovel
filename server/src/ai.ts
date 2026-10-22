@@ -1,6 +1,7 @@
 import Anthropic, { APIConnectionError, APIError, APIUserAbortError, AnthropicError } from "@anthropic-ai/sdk"
 import { FILL_SYSTEM, FILL_TOOL, MAX_TAG_LENGTH, MAX_TAGS, MAX_TERMS, RECAP_SYSTEM, RECAP_TOOL, buildFillUser, buildRecapUser } from "./prompts.js"
 import type { Term } from "./types.js"
+import { NO_API_KEY_MESSAGE } from "./util/errors.js"
 import { truncate } from "./util/text.js"
 
 /**
@@ -55,7 +56,7 @@ export class AiError extends Error {
 export const abortError = (): Error => new DOMException("This operation was aborted", "AbortError")
 export const isAbortError = (e: unknown): e is Error => e instanceof Error && e.name === "AbortError"
 
-export const noKeyError = (): AiError => new AiError("ยังไม่ได้ตั้งค่า ANTHROPIC_API_KEY (ใส่ในไฟล์ .env ของเซิร์ฟเวอร์ แล้วเปิดแอปใหม่)", { fatal: true })
+export const noKeyError = (): AiError => new AiError(NO_API_KEY_MESSAGE, { fatal: true })
 
 const nonFatal = (message: string): AiError => new AiError(message, { fatal: false })
 
