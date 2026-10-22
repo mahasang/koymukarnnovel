@@ -210,10 +210,15 @@ export function originGuard(o: { allowedHosts?: string[] }): RequestHandler {
 
 const LOOPBACK_HOST = /^(localhost|127\.0\.0\.1|\[::1\])(:\d{1,5})?$/i
 
+/** หัว Host ชี้มาที่เครื่องนี้เองหรือไม่ (ไม่มีหัวหรือเป็นค่าว่าง = ไม่ใช่) */
+export function isLoopbackHostHeader(host: string | undefined): boolean {
+  return LOOPBACK_HOST.test(host ?? "")
+}
+
 /** โหมดไม่มีรหัสผ่าน: หัว Host ต้องเป็น localhost / 127.0.0.1 / [::1] เท่านั้น (กัน DNS rebinding ที่ทำให้เว็บอื่นยิงเข้าเครื่องเรา) */
 export function loopbackHostOnly(): RequestHandler {
   return (req, res, next) => {
-    if (LOOPBACK_HOST.test(req.headers.host ?? "")) {
+    if (isLoopbackHostHeader(req.headers.host)) {
       next()
       return
     }
