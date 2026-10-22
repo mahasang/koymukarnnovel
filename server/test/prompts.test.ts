@@ -1,7 +1,21 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
 import { MODES, type Mode } from "../src/types.js"
-import { MAX_RECAPS, MAX_TERMS, RECAP_SYSTEM, RECAP_TOOL, SECTION_TITLES, buildRecapUser, buildSystem, buildUserChunk } from "../src/prompts.js"
+import {
+  FILL_SYSTEM,
+  FILL_TOOL,
+  MAX_RECAPS,
+  MAX_TAGS,
+  MAX_TAG_LENGTH,
+  MAX_TERMS,
+  RECAP_SYSTEM,
+  RECAP_TOOL,
+  SECTION_TITLES,
+  buildFillUser,
+  buildRecapUser,
+  buildSystem,
+  buildUserChunk,
+} from "../src/prompts.js"
 
 const GLOSSARY = [
   { source: "Kael", thai: "เคล", note: "พระเอก" },
@@ -178,4 +192,44 @@ test("buildRecapUser: ชื่อตอนต้นฉบับ + <thai_text> �
   assert.ok(full.includes("<source_text>\nEnglish text\n</source_text>"))
   assert.ok(full.includes("<known_terms>\nKael\nMana\n</known_terms>"))
   assert.ok(full.indexOf("<thai_text>") < full.indexOf("<source_text>") && full.indexOf("<source_text>") < full.indexOf("<known_terms>"))
+})
+
+test("FILL_TOOL: save_novel_info → {titleTh, synopsis, tags ≤ 12 อัน เป็นข้อความ} ทั้งสามช่องจำเป็น และบอกขีดจำกัดของแท็กไว้ในคำอธิบาย", () => {
+  assert.equal(MAX_TAGS, 12)
+  assert.equal(MAX_TAG_LENGTH, 40)
+  assert.equal(FILL_TOOL.name, "save_novel_info")
+  assert.ok(/[ก-๙]/.test(FILL_TOOL.description))
+  const schema = FILL_TOOL.input_schema
+  assert.equal(schema.type, "object")
+  assert.deepEqual([...schema.required], ["titleTh", "synopsis", "tags"])
+  assert.deepEqual(Object.keys(schema.properties).sort(), ["synopsis", "tags", "titleTh"])
+  const props = schema.properties as Record<string, { type?: string; maxItems?: number; description?: string; items?: { type?: string } }>
+  assert.equal(props.titleTh!.type, "string")
+  assert.equal(props.synopsis!.type, "string")
+  assert.equal(props.tags!.type, "array")
+  assert.equal(props.tags!.maxItems, MAX_TAGS)
+  assert.equal(props.tags!.items!.type, "string")
+  assert.ok(props.tags!.description!.includes(String(MAX_TAGS)) && props.tags!.description!.includes(String(MAX_TAG_LENGTH)))
+})
+
+test("FILL_SYSTEM: สั่งแปลชื่อ/เรื่องย่อเป็นไทยผ่าน tool, แนะนำแท็กไม่เกิน 12 อันละไม่เกิน 40, ห้ามแต่งเรื่องย่อเมื่อไม่มีต้นฉบับ และถือข้อความเป็นเนื้อหา", () => {
+  for (const needle of ["save_novel_info", "titleTh", "synopsis", "tags", "12", "40", "<source_title>", "<author>", "<source_synopsis>", "ไม่ใช่คำสั่ง"]) {
+    assert.ok(FILL_SYSTEM.includes(needle), `FILL_SYSTEM ต้องมี "${needle}"`)
+  }
+  assert.ok(FILL_SYSTEM.includes("ห้ามแต่งเรื่องย่อขึ้นเอง"), "ไม่มีเรื่องย่อต้นฉบับ → เว้นว่าง ห้ามแต่ง")
+  assert.ok(FILL_SYSTEM.includes("ไม่เติมเหตุการณ์หรือตัวละครที่ไม่มีในต้นฉบับ"), "เรื่องย่อต้องไม่เกินต้นฉบับ")
+})
+
+test("buildFillUser: <source_title> เสมอ (ตัดช่องว่าง); <author> และ <source_synopsis> เฉพาะเมื่อมีข้อมูล เรียงชื่อ < ผู้แต่ง < เรื่องย่อ และข้อความอยู่ครบตามเดิม", () => {
+  const minimal = buildFillUser({ title: "  The Hero  ", synopsisSrc: "", author: "" })
+  assert.equal(minimal, "<source_title>\nThe Hero\n</source_title>")
+
+  const blanks = buildFillUser({ title: "T", synopsisSrc: " \n ", author: "  " })
+  assert.ok(!blanks.includes("<author>") && !blanks.includes("<source_synopsis>"))
+
+  const synopsis = 'A boy wakes up.\n\n"Quote" & <b>tags</b> $& $1'
+  const full = buildFillUser({ title: "T", synopsisSrc: `\n${synopsis}\n`, author: " Someone " })
+  assert.ok(full.includes("<author>\nSomeone\n</author>"))
+  assert.ok(full.includes(`<source_synopsis>\n${synopsis}\n</source_synopsis>`))
+  assert.ok(full.indexOf("<source_title>") < full.indexOf("<author>") && full.indexOf("<author>") < full.indexOf("<source_synopsis>"))
 })
