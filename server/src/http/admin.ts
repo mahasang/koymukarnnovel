@@ -3,6 +3,7 @@ import type { AppDeps } from "../app.js"
 import type { Config } from "../config.js"
 import { originGuard } from "../security.js"
 import { createAuthRoutes } from "./admin/auth.js"
+import { createChaptersRouter } from "./admin/chapters.js"
 import { createNovelsRouter } from "./admin/novels.js"
 
 export { isAdminRequest } from "./admin/auth.js"
@@ -31,7 +32,8 @@ export function createAdminRouter(deps: AppDeps): Router {
   router.use(express.json({ limit: "8mb" }))
   router.get("/me", auth.me)
   router.use(createNovelsRouter(deps))
-  // งาน 13–15 ต่อเส้นทางหลังบ้านของตัวเองตรงนี้ (ผ่านด่านล็อกอินและตัวอ่าน body แล้ว)
+  router.use(createChaptersRouter(deps))
+  // งาน 14–15 ต่อเส้นทางหลังบ้านของตัวเองตรงนี้ (ผ่านด่านล็อกอินและตัวอ่าน body แล้ว)
 
   return router
 }

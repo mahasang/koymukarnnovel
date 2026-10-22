@@ -1,4 +1,4 @@
-import type { Mode, NovelRow, NovelStatus } from "../types.js"
+import type { ChapterRow, ChapterStatus, Mode, NovelRow, NovelStatus } from "../types.js"
 
 /** นิยายหนึ่งเรื่องในมุมมองผู้ดูแล (camelCase ตาม spec 7.10 · ธงเป็น boolean · แท็กเป็นอาร์เรย์) */
 export interface AdminNovelDto {
@@ -75,6 +75,91 @@ export function toAdminNovelDto(r: AdminNovelRow): AdminNovelDto {
     chapterCount: r.chapter_count,
     translatedCount: r.translated_count,
     publishedCount: r.published_count,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  }
+}
+
+/** ตอนหนึ่งในตารางตอนของเรื่อง (สเปก 7.10): แถวเบา ไม่มีต้นฉบับ/คำแปล เพื่อให้เรื่องที่มีหลายพันตอนยังโหลดเร็ว */
+export interface AdminChapterListDto {
+  id: number
+  number: number
+  title: string
+  titleTh: string
+  status: ChapterStatus
+  error: string
+  published: boolean
+  publishedAt: string | null
+  translatedAt: string | null
+  queueSeq: number | null
+  hasTranslation: boolean
+  /** ความยาวต้นฉบับเป็นจำนวนตัวอักษร (ไว้ประเมินค่าแปล) */
+  srcLength: number
+}
+
+/** แถวจาก `SELECT_CHAPTER_LIST` ใน admin/chapters.ts */
+export interface AdminChapterListRow
+  extends Pick<ChapterRow, "id" | "number" | "title" | "title_th" | "status" | "error" | "published" | "published_at" | "translated_at" | "queue_seq"> {
+  has_translation: number
+  src_length: number
+}
+
+export function toAdminChapterListDto(r: AdminChapterListRow): AdminChapterListDto {
+  return {
+    id: r.id,
+    number: r.number,
+    title: r.title,
+    titleTh: r.title_th,
+    status: r.status,
+    error: r.error,
+    published: r.published === 1,
+    publishedAt: r.published_at,
+    translatedAt: r.translated_at,
+    queueSeq: r.queue_seq,
+    hasTranslation: r.has_translation === 1,
+    srcLength: r.src_length,
+  }
+}
+
+/** ตอนเดียวเต็มๆ ในมุมมองผู้ดูแล (หน้าแก้ตอน): รวมต้นฉบับ คำแปล และเรื่องย่อ */
+export interface AdminChapterDto {
+  id: number
+  novelId: number
+  number: number
+  title: string
+  titleTh: string
+  sourceText: string
+  translation: string
+  /** ตอนที่ยังไม่มีเรื่องย่อ = ข้อความว่าง */
+  recap: string
+  status: ChapterStatus
+  error: string
+  published: boolean
+  publishedAt: string | null
+  translatedAt: string | null
+  queueSeq: number | null
+  autoPublish: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export function toAdminChapterDto(r: ChapterRow): AdminChapterDto {
+  return {
+    id: r.id,
+    novelId: r.novel_id,
+    number: r.number,
+    title: r.title,
+    titleTh: r.title_th,
+    sourceText: r.source_text,
+    translation: r.translation,
+    recap: r.recap ?? "",
+    status: r.status,
+    error: r.error,
+    published: r.published === 1,
+    publishedAt: r.published_at,
+    translatedAt: r.translated_at,
+    queueSeq: r.queue_seq,
+    autoPublish: r.auto_publish === 1,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   }

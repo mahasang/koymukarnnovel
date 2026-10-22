@@ -8,6 +8,7 @@ import { HttpError, noApiKey, notFound } from "../../util/errors.js"
 import { dayKey, nowSql } from "../../util/time.js"
 import { coverVersion, toAdminNovelDto, type AdminNovelRow } from "../dto.js"
 import { bool, httpUrl, idParam, invalidField, obj, oneOf, str, tags } from "../validate.js"
+import { NOVEL, existingNovelId } from "./lookup.js"
 
 /** ชื่อฟิลด์ที่ผู้ดูแลเห็นในข้อความผิดพลาด (ชื่อไทย + ชื่อฟิลด์ในคำขอ) */
 const LABEL = {
@@ -75,8 +76,6 @@ function readFields(body: Record<string, unknown>, fields: readonly Field[]): Pa
   return out as Partial<NovelInput>
 }
 
-const NOVEL = "นิยายเรื่องนี้"
-
 /** นิยายพร้อมปก (เฉพาะเวลาแก้ปก ไม่ดึงรูป) และจำนวนตอนแต่ละแบบ · ต่อท้ายด้วย `WHERE`/`ORDER BY` */
 const SELECT_NOVEL = `
   SELECT n.*, cv.updated_at AS cover_updated_at,
@@ -95,13 +94,6 @@ export function createNovelsRouter(deps: AppDeps): Router {
     if (row === undefined) throw notFound(`ไม่พบ${NOVEL}`)
     return row
   }
-  /** รหัสในพาธที่ต้องมีเรื่องนั้นอยู่จริง (ตรวจก่อนตรวจ body เสมอ) */
-  const novelId = (param: unknown): number => {
-    const id = idParam(param, NOVEL)
-    if (db.get("SELECT 1 AS found FROM novels WHERE id = ?", id) === undefined) throw notFound(`ไม่พบ${NOVEL}`)
-    return id
-  }
-
   /** เรื่องแนะนำมีได้เรื่องเดียว: เรียกในธุรกรรมเดียวกับที่ตั้ง `featured` ของ `id` */
   const unfeatureOthers = (id: number, now: string): void => {
     db.run("UPDATE novels SET featured = 0, updated_at = ? WHERE featured = 1 AND id <> ?", now, id)
@@ -161,7 +153,7 @@ export function createNovelsRouter(deps: AppDeps): Router {
   })
 
   router.patch("/novels/:id", (req, res) => {
-    const id = novelId(req.params.id)
+    const id = existingNovelId(db, req.params.id)
     const body = obj(req.body)
     const changes = readFields(body, FIELDS.filter((f) => Object.hasOwn(body, f)))
     const fields = Object.keys(changes) as Field[]
@@ -181,7 +173,7 @@ export function createNovelsRouter(deps: AppDeps): Router {
   })
 
   router.delete("/novels/:id", (req, res) => {
-    const id = novelId(req.params.id)
+    const id = existingNovelId(db, req.params.id)
     // ตอนที่กำลังแปลอยู่ต้องถูกยกเลิกก่อนลบ ไม่งั้นสตรีมที่ค้างจะเขียนผลกลับมาให้ตอนที่ไม่มีแล้ว
     queue.cancelIfCurrent(db.all<{ id: number }>("SELECT id FROM chapters WHERE novel_id = ?", id).map((c) => c.id))
     db.run("DELETE FROM novels WHERE id = ?", id) // ตอน อภิธาน และปกตามไปด้วย (ON DELETE CASCADE) ยอดอ่านเก็บไว้
@@ -189,7 +181,7 @@ export function createNovelsRouter(deps: AppDeps): Router {
   })
 
   router.put("/novels/:id/cover", (req, res) => {
-    const id = novelId(req.params.id)
+    const id = existingNovelId(db, req.params.id)
     const { data } = obj(req.body)
     if (typeof data !== "string") throw invalidField("ฟิลด์ data ต้องเป็นข้อความ base64 ของไฟล์รูป")
     const bytes = Buffer.from(data, "base64")
@@ -216,7 +208,7 @@ export function createNovelsRouter(deps: AppDeps): Router {
   })
 
   router.delete("/novels/:id/cover", (req, res) => {
-    const id = novelId(req.params.id)
+    const id = existingNovelId(db, req.params.id)
     db.tx(() => {
       // ไม่มีปกให้ลบ → ไม่มีอะไรเปลี่ยน จึงไม่ขยับเวลาแก้ไขของเรื่อง
       if (db.run("DELETE FROM covers WHERE novel_id = ?", id).changes > 0) touch(id, nowSql(deps.now()))
