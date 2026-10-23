@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { bool, httpUrl, idParam, int, numberParam, obj, oneOf, str, tags } from "../src/http/validate.js"
+import { bool, httpUrl, idParam, int, numberParam, obj, oneOf, parseIdParam, parseNumberParam, str, tags } from "../src/http/validate.js"
 import { HttpError } from "../src/util/errors.js"
 
 const THAI = /[฀-๿]/
@@ -259,4 +259,21 @@ test("numberParam: รูปแบบอื่นทุกแบบ (ว่า�
 test("numberParam: ข้อความที่ถามถึงสิ่งที่ไม่พบมาจากพารามิเตอร์ what (ไม่ใช่ข้อความตายตัว)", () => {
   assert.equal(rejects(() => numberParam("x", "ตอนที่ระบุ"), { status: 404, code: "not_found" }).message, "ไม่พบตอนที่ระบุ")
   assert.equal(rejects(() => numberParam("x", "หน้านั้น"), { status: 404, code: "not_found" }).message, "ไม่พบหน้านั้น")
+})
+
+// ═════════════════════════ parseIdParam / parseNumberParam (ตัวเดียวกับข้างบนแต่ไม่ throw) ═════════════════════════
+
+test("parseIdParam: ค่าที่ idParam รับ → ตัวเลขเดียวกัน · ค่าที่ idParam ปฏิเสธทุกแบบ → null (ไม่ throw)", () => {
+  for (const v of ["1", "42", "9007199254740991"]) assert.equal(parseIdParam(v), idParam(v, "x"))
+  for (const v of ["0", "-1", "1.5", "007", "+7", "1e3", "0x10", " 1", "1 ", "", "abc", "1a", "９", "9007199254740992", "9".repeat(400), undefined, null, 1, ["1"]]) {
+    assert.equal(parseIdParam(v), null, String(v))
+  }
+})
+
+test("parseNumberParam: ค่าที่ numberParam รับ (รวม 0) → ตัวเลขเดียวกัน · ค่าที่ numberParam ปฏิเสธทุกแบบ → null (ไม่ throw)", () => {
+  for (const v of ["0", "7", "10", "120", "9007199254740991"]) assert.equal(parseNumberParam(v), numberParam(v, "x"))
+  assert.equal(parseNumberParam("9".repeat(400)), Infinity, "เลขยาวเกินที่ JS แทนได้ไม่ถูกกันแยก (ไม่ตรงตอนไหนเอง)")
+  for (const v of ["", "00", "01", "-1", "-0", "1.5", "1.", ".5", "1e3", "0x1", "+1", " 1", "1 ", "1\n", "abc", "1a", "๑", "１", undefined, null, 5, 0, ["1"]]) {
+    assert.equal(parseNumberParam(v), null, String(v))
+  }
 })

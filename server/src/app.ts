@@ -7,6 +7,7 @@ import type { Db } from "./db.js"
 import { createAdminRouter } from "./http/admin.js"
 import { createImportRouter } from "./http/import.js"
 import { createPublicRouter } from "./http/public.js"
+import { createShellRouter } from "./http/shell.js"
 import type { Queue } from "./queue.js"
 import { securityHeaders, warnForwardedOnce } from "./security.js"
 import type { Settings } from "./settings.js"
@@ -56,7 +57,8 @@ export function createApp(deps: AppDeps): Express {
   app.use("/covers", createCoversRouter(deps))
 
   app.use("/api", (_req, _res, next) => next(notFound("ไม่พบเส้นทาง API นี้")))
-  // งาน 18: หน้าเว็บ (shell) ต่อจากตรงนี้
+  // หน้าเว็บ (SPA shell) อยู่ท้ายสุด ต่อจาก API ทุกเส้น: ที่ไม่ใช่ API และไม่มีอยู่จริงจบที่ shell 404
+  app.use(createShellRouter(deps))
 
   app.use(errorHandler(log))
   return app
