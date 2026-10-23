@@ -5,6 +5,7 @@ export type NovelStatus = "ongoing" | "completed"
 export const NOVEL_STATUSES: readonly NovelStatus[] = ["ongoing", "completed"]
 
 export type ChapterStatus = "draft" | "queued" | "translating" | "done" | "error"
+export const CHAPTER_STATUSES: readonly ChapterStatus[] = ["draft", "queued", "translating", "done", "error"]
 
 /** คำศัพท์เฉพาะที่ AI สกัดได้ (note เป็นข้อความว่างได้) */
 export interface Term {

@@ -1,3 +1,4 @@
+import type { ChapterContext } from "../context.js"
 import type { ChapterRow, ChapterStatus, GlossaryRow, Mode, NovelRow, NovelStatus } from "../types.js"
 import { truncate } from "../util/text.js"
 
@@ -366,5 +367,50 @@ export function toPublicChapterPageDto(r: PublicChapterRow, prev: number | null,
     chapter: { number: r.number, title: r.title, titleTh: r.title_th, text: r.translation, published: r.is_public === 1 },
     prev,
     next,
+  }
+}
+
+// ───────────────────────── ช่องทางนำเข้า (/api/import) ─────────────────────────
+// คำตอบที่ผู้แปลภายนอกถือโทเค็นอ่านได้ — เฉพาะที่ต้องใช้แปลให้ตรงกับระบบ ไม่มีข้อมูลหลังบ้านอื่น (spec 9.6)
+
+/** ตอนหนึ่งในรายการแบบเบา (ไว้หาว่าตอนไหนยังรอแปล) · `chars` = ความยาวต้นฉบับ */
+export interface ImportChapterItemDto {
+  number: number
+  title: string
+  status: ChapterStatus
+  hasTranslation: boolean
+  chars: number
+  published: boolean
+}
+
+export interface ImportChapterItemRow {
+  number: number
+  title: string
+  status: ChapterStatus
+  has_translation: number
+  chars: number
+  published: number
+}
+
+export function toImportChapterItemDto(r: ImportChapterItemRow): ImportChapterItemDto {
+  return { number: r.number, title: r.title, status: r.status, hasTranslation: r.has_translation === 1, chars: r.chars, published: r.published === 1 }
+}
+
+/** โจทย์ของตอน: ต้นฉบับ + บริบทชุดเดียวกับที่คิวแปลใช้ (`buildContext`) · ไม่ส่งคำแปลเดิมกลับ บอกแค่ว่ามีหรือยัง */
+export interface ImportBriefDto {
+  novel: { id: number; title: string; titleTh: string; mode: Mode; styleNote: string }
+  chapter: { number: number; title: string; sourceText: string; status: ChapterStatus; hasTranslation: boolean }
+  glossary: { source: string; thai: string; note: string }[]
+  recaps: { number: number; recap: string }[]
+  systemPrompt: string
+}
+
+export function toImportBriefDto(c: ChapterContext): ImportBriefDto {
+  return {
+    novel: { id: c.novel.id, title: c.novel.title, titleTh: c.novel.title_th, mode: c.novel.mode, styleNote: c.novel.style_note },
+    chapter: { number: c.chapter.number, title: c.chapter.title, sourceText: c.chapter.source_text, status: c.chapter.status, hasTranslation: c.chapter.translation !== "" },
+    glossary: c.glossary.map((g) => ({ source: g.source, thai: g.thai, note: g.note })),
+    recaps: c.recaps.map((r) => ({ number: r.number, recap: r.recap })),
+    systemPrompt: c.system,
   }
 }

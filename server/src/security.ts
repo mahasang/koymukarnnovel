@@ -1,5 +1,6 @@
 import net from "node:net"
 import type { Request, RequestHandler } from "express"
+import { HttpError } from "./util/errors.js"
 import type { Logger } from "./util/log.js"
 
 /** ตรงกับ Global Constraints ของแผน — สคริปต์ห้าม inline; `unsafe-inline` เฉพาะสไตล์เพราะ React ใส่ style attribute */
@@ -157,6 +158,12 @@ export function securityHeaders(o: { hsts: boolean }): RequestHandler {
   }
 }
 
+/** คำตอบที่ห้ามเก็บแคชที่ไหนเลย (หลังบ้านและช่องทางนำเข้า: มีต้นฉบับ/ร่างที่ยังไม่เผยแพร่) */
+export const noStore: RequestHandler = (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store")
+  next()
+}
+
 // ───────────────────────── ด่านตรวจคำขอ ─────────────────────────
 
 const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"])
@@ -182,8 +189,20 @@ const isJsonContentType = (contentType: string | undefined): boolean =>
   contentType?.split(";", 1)[0]?.trim().toLowerCase() === "application/json"
 
 /**
+ * คำขอที่มี body ต้องเป็น application/json เท่านั้น ไม่ใช่ → 415 (ฟอร์มข้ามเว็บส่ง JSON ไม่ได้ และตัวอ่าน JSON ของ Express จะข้ามชนิดอื่นเงียบๆ)
+ * ไม่ดูเมธอด: คำขอที่ไม่มี body (GET ทั่วไป) ผ่านเสมอ
+ */
+export const jsonBodyOnly: RequestHandler = (req, res, next) => {
+  if (hasBody(req) && !isJsonContentType(req.headers["content-type"])) {
+    res.status(415).json({ error: "ต้องส่งข้อมูลเป็น JSON (Content-Type: application/json) เท่านั้น", code: "unsupported_media_type" })
+    return
+  }
+  next()
+}
+
+/**
  * กัน CSRF: POST/PUT/PATCH/DELETE ที่มีหัว Origin ต้องเป็นโฮสต์เดียวกับหัว Host (หรืออยู่ใน `allowedHosts` เช่น โดเมนสาธารณะเมื่อ proxy เขียน Host ใหม่)
- * ไม่มี Origin = ไม่ใช่เบราว์เซอร์ (curl / สคริปต์) ผ่านได้; และถ้ามี body ต้องเป็น application/json (ฟอร์มข้ามเว็บส่ง JSON ไม่ได้)
+ * ไม่มี Origin = ไม่ใช่เบราว์เซอร์ (curl / สคริปต์) ผ่านได้; และถ้ามี body ต้องเป็น application/json (`jsonBodyOnly`)
  */
 export function originGuard(o: { allowedHosts?: string[] }): RequestHandler {
   const allowedHosts = new Set((o.allowedHosts ?? []).map((host) => host.toLowerCase()))
@@ -200,11 +219,7 @@ export function originGuard(o: { allowedHosts?: string[] }): RequestHandler {
       })
       return
     }
-    if (hasBody(req) && !isJsonContentType(req.headers["content-type"])) {
-      res.status(415).json({ error: "ต้องส่งข้อมูลเป็น JSON (Content-Type: application/json) เท่านั้น", code: "unsupported_media_type" })
-      return
-    }
-    next()
+    jsonBodyOnly(req, res, next)
   }
 }
 
@@ -266,6 +281,26 @@ function normalizeAddress(address: string): string {
 /** คีย์ของผู้เรียกสำหรับตัวจำกัด: `req.ip` (ตาม `trust proxy`) → ที่อยู่ซ็อกเก็ต → "unknown" แล้วปรับรูปให้ที่อยู่เดียวกันได้คีย์เดียว */
 export function clientIp(req: Request): string {
   return normalizeAddress(req.ip ?? req.socket.remoteAddress ?? "unknown")
+}
+
+/**
+ * ด่านจำกัดอัตราต่อผู้เรียก (นับตาม `clientIp`): เกินโควตา → 429 ข้อความไทย + หัว Retry-After + `retryAfterSec` ใน JSON
+ * ตัวจำกัดเป็นของผู้เรียก (สร้างด้วย `createRateLimiter` พร้อมนาฬิกาของแอป) แต่ละเส้นทางกำหนดโควตาของตัวเอง
+ */
+export function rateLimited(limiter: RateLimiter): RequestHandler {
+  return (req, res, next) => {
+    const hit = limiter.hit(clientIp(req))
+    if (hit.allowed) {
+      next()
+      return
+    }
+    res.setHeader("Retry-After", String(hit.retryAfterSec))
+    next(
+      new HttpError(429, `มีคำขอเข้ามาถี่เกินไป รอสักครู่แล้วลองใหม่ได้ในอีก ${hit.retryAfterSec} วินาที`, "rate_limited", {
+        retryAfterSec: hit.retryAfterSec,
+      }),
+    )
+  }
 }
 
 const PROXY_HEADERS = ["x-forwarded-for", "forwarded", "x-real-ip"] as const

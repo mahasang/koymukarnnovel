@@ -1,8 +1,8 @@
 import { Router, type RequestHandler, type Response } from "express"
 import type { AppDeps } from "../app.js"
 import { VISIBLE_SQL } from "../chapters.js"
-import { clientIp, createRateLimiter } from "../security.js"
-import { HttpError, notFound } from "../util/errors.js"
+import { clientIp, createRateLimiter, rateLimited } from "../security.js"
+import { notFound } from "../util/errors.js"
 import { isAdminRequest } from "./admin/auth.js"
 import {
   toPublicChapterPageDto,
@@ -12,7 +12,7 @@ import {
   type PublicChapterRow,
   type PublicNovelRow,
 } from "./dto.js"
-import { idParam } from "./validate.js"
+import { idParam, numberParam } from "./validate.js"
 
 const RATE_WINDOW_MS = 60_000
 const RATE_MAX = 120
@@ -71,14 +71,6 @@ const neighborsSql = (scope: Scope): string => `
          (SELECT MIN(c.number) FROM chapters c JOIN novels n ON n.id = c.novel_id
           WHERE c.novel_id = ? AND c.number > ? AND ${scope.chapter}) AS next`
 
-const CHAPTER_NUMBER = /^(?:0|[1-9]\d*)$/
-
-/** เลขตอนในพาธ: จำนวนเต็มไม่ติดลบรูปแบบมาตรฐาน (ตอนเลข 0 มีได้) รูปแบบอื่นตอบเหมือน "ไม่มีตอนนี้" · เลขยาวจนเกินที่ JS แทนได้ก็แค่ไม่ตรงตอนไหน (SQLite ไม่ throw) */
-function chapterNumber(v: unknown): number {
-  if (typeof v === "string" && CHAPTER_NUMBER.test(v)) return Number(v)
-  throw notFound(`ไม่พบ${CHAPTER}`)
-}
-
 /**
  * `/api/public` (GET อย่างเดียว · ด่าน 405 อยู่ใน `createApp` ก่อนถึงที่นี่): จำกัดอัตรา → ดูว่าผู้ขอเป็นผู้ดูแลหรือไม่ → เส้นทางอ่านข้อมูล
  * ไม่มีเส้นทางใดเรียก Claude และไม่รับ body · ผู้ดูแลได้ `private, no-store` ทุกคำตอบ (ร่างต้องไม่ติดแคชของใคร) ผู้อ่านทั่วไปได้ `no-cache` + ETag
@@ -91,20 +83,6 @@ export function createPublicRouter(deps: AppDeps): Router {
   // นาฬิกาเดียวกับของแอป (เทสต์เลื่อนเวลาได้) · ตารางของตัวจำกัดกวาดรายการหมดอายุเองเป็นระยะ
   const limiter = createRateLimiter({ windowMs: RATE_WINDOW_MS, max: RATE_MAX, now: () => deps.now().getTime() })
 
-  const rateLimit: RequestHandler = (req, res, next) => {
-    const hit = limiter.hit(clientIp(req))
-    if (hit.allowed) {
-      next()
-      return
-    }
-    res.setHeader("Retry-After", String(hit.retryAfterSec))
-    next(
-      new HttpError(429, `มีคำขอเข้ามาถี่เกินไป รอสักครู่แล้วลองใหม่ได้ในอีก ${hit.retryAfterSec} วินาที`, "rate_limited", {
-        retryAfterSec: hit.retryAfterSec,
-      }),
-    )
-  }
-
   const identify: RequestHandler = (req, res, next) => {
     const admin = isAdminRequest(deps, req)
     res.locals.admin = admin
@@ -113,7 +91,7 @@ export function createPublicRouter(deps: AppDeps): Router {
   }
   const adminOf = (res: Response): boolean => res.locals.admin === true
 
-  router.use(rateLimit)
+  router.use(rateLimited(limiter))
   router.use(identify)
 
   router.get("/site", (_req, res) => {
@@ -145,7 +123,7 @@ export function createPublicRouter(deps: AppDeps): Router {
     const admin = adminOf(res)
     const scope = scopeOf(admin)
     const novelId = idParam(req.params.id, CHAPTER)
-    const number = chapterNumber(req.params.number)
+    const number = numberParam(req.params.number, CHAPTER)
     const chapter = db.get<PublicChapterRow>(chapterSql(scope), novelId, number)
     if (chapter === undefined) throw notFound(`ไม่พบ${CHAPTER}`)
     const near = db.get<{ prev: number | null; next: number | null }>(neighborsSql(scope), novelId, number, novelId, number)

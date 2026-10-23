@@ -5,6 +5,7 @@ import type { Config } from "./config.js"
 import { createCoversRouter } from "./covers.js"
 import type { Db } from "./db.js"
 import { createAdminRouter } from "./http/admin.js"
+import { createImportRouter } from "./http/import.js"
 import { createPublicRouter } from "./http/public.js"
 import type { Queue } from "./queue.js"
 import { securityHeaders, warnForwardedOnce } from "./security.js"
@@ -46,10 +47,12 @@ export function createApp(deps: AppDeps): Express {
     res.type("text/plain").send("ok")
   })
 
-  // งานถัดไปเพิ่มบรรทัด mount ของตัวเองในช่วงนี้ (ต้องอยู่ก่อน 404 ของ /api): งาน 17 /api/import (เมื่อมี importToken)
+  // เส้นทาง API ทุกเส้นต้องอยู่ก่อน 404 ของ /api ข้างล่าง
   app.use("/api/public", publicReadOnly)
   app.use("/api/public", createPublicRouter(deps))
   app.use("/api/admin", createAdminRouter(deps))
+  // ช่องทางนำเข้ามีโทเค็นของตัวเอง (ไม่ผ่านล็อกอินหลังบ้าน) · ปิดอยู่ (ไม่ตั้ง IMPORT_TOKEN หรือสั้นเกินไป) = ไม่ mount ตกไป 404 ของ /api เหมือนไม่มีอยู่
+  if (config.importToken !== null) app.use("/api/import", createImportRouter(deps))
   app.use("/covers", createCoversRouter(deps))
 
   app.use("/api", (_req, _res, next) => next(notFound("ไม่พบเส้นทาง API นี้")))

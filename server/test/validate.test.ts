@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { bool, httpUrl, idParam, int, obj, oneOf, str, tags } from "../src/http/validate.js"
+import { bool, httpUrl, idParam, int, numberParam, obj, oneOf, str, tags } from "../src/http/validate.js"
 import { HttpError } from "../src/util/errors.js"
 
 const THAI = /[฀-๿]/
@@ -239,4 +239,24 @@ test("idParam: รูปแบบอื่นทุกแบบ (ศูนย์
   for (const v of ["0", "-1", "1.5", "007", "+7", "1e3", "0x10", " 1", "1 ", "", "abc", "1a", "９", "9007199254740992", "9".repeat(400), undefined, null, 1, ["1"]]) {
     rejects(() => idParam(v, "ตอนนี้"), { status: 404, code: "not_found", mention: ["ตอนนี้"] })
   }
+})
+
+// ═════════════════════════ numberParam ═════════════════════════
+
+test("numberParam: จำนวนเต็มไม่ติดลบรูปแบบมาตรฐานผ่าน — ตอนเลข 0 มีได้ (ต่างจาก idParam)", () => {
+  assert.equal(numberParam("0", "ตอนนี้"), 0)
+  assert.equal(numberParam("7", "ตอนนี้"), 7)
+  assert.equal(numberParam("10", "ตอนนี้"), 10)
+  assert.equal(numberParam("120", "ตอนนี้"), 120)
+  assert.equal(numberParam("9007199254740991", "ตอนนี้"), Number.MAX_SAFE_INTEGER)
+})
+
+test("numberParam: รูปแบบอื่นทุกแบบ (ว่าง ศูนย์นำหน้า ติดลบ ทศนิยม เลขยกกำลัง ฐานสิบหก เครื่องหมายบวก ช่องว่าง ตัวเลขไทย/เต็มความกว้าง ไม่ใช่ข้อความ) → 404 not_found บอกว่าไม่พบอะไร", () => {
+  const bad: unknown[] = ["", "00", "01", "007", "-1", "-0", "1.5", "1.", ".5", "1e3", "0x1", "+1", " 1", "1 ", "1\n", "abc", "1a", "๑", "１", "1๑", "1１", "1٣", undefined, null, 5, 0, ["1"], { toString: () => "1" }]
+  for (const v of bad) rejects(() => numberParam(v, "ตอนนี้"), { status: 404, code: "not_found", mention: ["ตอนนี้"] })
+})
+
+test("numberParam: ข้อความที่ถามถึงสิ่งที่ไม่พบมาจากพารามิเตอร์ what (ไม่ใช่ข้อความตายตัว)", () => {
+  assert.equal(rejects(() => numberParam("x", "ตอนที่ระบุ"), { status: 404, code: "not_found" }).message, "ไม่พบตอนที่ระบุ")
+  assert.equal(rejects(() => numberParam("x", "หน้านั้น"), { status: 404, code: "not_found" }).message, "ไม่พบหน้านั้น")
 })

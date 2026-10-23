@@ -745,6 +745,7 @@ test("ตัวจำกัดอัตรา: คำขอที่ 121 ภา�
       assert.equal(blocked.status, 429)
       assert.equal(blocked.headers.get("retry-after"), "60")
       assert.match(blocked.json.error, THAI)
+      assert.match(blocked.json.error, /60 วินาที/)
       assert.equal(blocked.json.code, "rate_limited")
       assert.equal(blocked.json.retryAfterSec, 60)
 
@@ -755,6 +756,7 @@ test("ตัวจำกัดอัตรา: คำขอที่ 121 ภา�
       assert.equal(still.status, 429)
       assert.equal(still.headers.get("retry-after"), "1")
       assert.equal(still.json.retryAfterSec, 1)
+      assert.match(still.json.error, /1 วินาที/)
 
       clock.advance(1_000)
       assert.equal((await hit()).status, 200, "ครบ 60 วินาทีนับใหม่")

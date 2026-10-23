@@ -1,7 +1,7 @@
-import express, { Router, type RequestHandler } from "express"
+import express, { Router } from "express"
 import type { AppDeps } from "../app.js"
 import type { Config } from "../config.js"
-import { originGuard } from "../security.js"
+import { noStore, originGuard } from "../security.js"
 import { createAuthRoutes } from "./admin/auth.js"
 import { createChaptersRouter } from "./admin/chapters.js"
 import { createDashboardRouter } from "./admin/dashboard.js"
@@ -11,11 +11,6 @@ import { createQueueRouter } from "./admin/queue.js"
 import { createSettingsRouter } from "./admin/settings.js"
 
 export { isAdminRequest } from "./admin/auth.js"
-
-const noStore: RequestHandler = (_req, res, next) => {
-  res.setHeader("Cache-Control", "no-store")
-  next()
-}
 
 /** โดเมนสาธารณะ (จาก PUBLIC_URL) ที่ยอมรับเป็น Origin ได้แม้ reverse proxy เขียนหัว Host ใหม่ */
 const publicHosts = (config: Config): string[] => (config.publicUrl === null ? [] : [new URL(config.publicUrl).host])

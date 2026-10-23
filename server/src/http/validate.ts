@@ -106,3 +106,14 @@ export function idParam(v: unknown, what: string): number {
   }
   throw notFound(`ไม่พบ${what}`)
 }
+
+const NUMBER_PARAM = /^(?:0|[1-9]\d*)$/
+
+/**
+ * เลขตอนในพาธ (`/chapters/:number`): จำนวนเต็มไม่ติดลบรูปแบบมาตรฐานเท่านั้น (ตอนเลข 0 มีได้) รูปแบบอื่นทั้งหมดตอบเหมือน "ไม่มีตอนนั้น" (404)
+ * เลขยาวจนเกินที่ JS แทนได้ไม่ต้องกันแยก: ตอนที่มีอยู่จริงเป็นจำนวนเต็มปลอดภัยเสมอ ค่าที่ใหญ่เกินจึงแค่ไม่ตรงตอนไหน (SQLite ผูกค่าแล้วไม่ throw)
+ */
+export function numberParam(v: unknown, what: string): number {
+  if (typeof v === "string" && NUMBER_PARAM.test(v)) return Number(v)
+  throw notFound(`ไม่พบ${what}`)
+}
