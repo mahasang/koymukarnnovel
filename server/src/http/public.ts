@@ -11,6 +11,7 @@ import {
   type PublicChapterItemRow,
   type PublicChapterRow,
   type PublicNovelRow,
+  type PublicSiteDto,
 } from "./dto.js"
 import { idParam, numberParam } from "./validate.js"
 
@@ -96,7 +97,7 @@ export function createPublicRouter(deps: AppDeps): Router {
 
   router.get("/site", (_req, res) => {
     const s = settings.get()
-    res.json({
+    const site: PublicSiteDto = {
       siteName: s.siteName,
       tagline: s.tagline,
       aboutText: s.aboutText,
@@ -104,7 +105,8 @@ export function createPublicRouter(deps: AppDeps): Router {
       accent: s.accent,
       indexable: s.indexable,
       isAdmin: adminOf(res),
-    })
+    }
+    res.json(site)
   })
 
   router.get("/novels", (_req, res) => {

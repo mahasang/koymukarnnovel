@@ -1,4 +1,5 @@
 import type { ChapterContext } from "../context.js"
+import type { AccentId } from "../settings.js"
 import type { ChapterRow, ChapterStatus, GlossaryRow, Mode, NovelRow, NovelStatus } from "../types.js"
 import { truncate } from "../util/text.js"
 
@@ -339,6 +340,20 @@ export function toPublicNovelDto(r: PublicNovelRow, chapters: PublicChapterItemR
     licenseNote: r.license_note,
     chapters: chapters.map(toPublicChapterItemDto),
   }
+}
+
+/**
+ * `GET /api/public/site`: ค่าตั้งของเว็บที่ผู้อ่านเห็น (ไม่รวมค่าภายในอย่างโมเดล/ราคา) + `isAdmin` ให้หน้าเว็บรู้ว่าผู้เปิดอยู่ล็อกอินหลังบ้านไว้ไหม
+ * หน้าเว็บประกาศชนิดนี้ซ้ำไว้ที่ `web/src/lib/types.ts` — `e2e/web-contract.ts` ตรวจตอน typecheck ว่าสองฝั่งยังตรงกัน
+ */
+export interface PublicSiteDto {
+  siteName: string
+  tagline: string
+  aboutText: string
+  contactText: string
+  accent: AccentId
+  indexable: boolean
+  isAdmin: boolean
 }
 
 /** หน้าอ่าน: เนื้อหาคำแปลของตอน + เลขตอนข้างเคียงที่เห็น (null = ไม่มี) */
