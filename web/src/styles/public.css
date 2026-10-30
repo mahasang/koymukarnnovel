@@ -419,6 +419,10 @@
   .rcard:hover {
     border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
   }
+
+  .ch-row:hover {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  }
 }
 
 .card:hover h3 {
@@ -1082,6 +1086,357 @@
   font-weight: 500;
 }
 
+/* ---------- หน้าเรื่อง ---------- */
+
+.novel {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  width: 100%;
+  max-width: 960px;
+  margin-inline: auto;
+}
+
+.nv-head {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 34px;
+  align-items: start;
+}
+
+.nv-cover {
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.nv-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nv-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 38px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.nv-orig {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.nv-author {
+  margin-top: 10px;
+  color: color-mix(in srgb, var(--text) 82%, transparent);
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.nv-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 12px;
+}
+
+.nv-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nv-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.nv-sec {
+  min-width: 0;
+}
+
+.nv-h {
+  scroll-margin-top: calc(var(--header-h) + 16px);
+  margin-bottom: 14px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.nv-count {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 16px;
+}
+
+/* เรื่องย่อพับที่ 5 บรรทัด (ค่าเดียวกับ SYNOPSIS_LINES) — ขึ้นบรรทัดตามที่เจ้าของพิมพ์ ตัดคำยาวติดกัน */
+.nv-syn {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  color: color-mix(in srgb, var(--text) 88%, transparent);
+  font-size: 16.5px;
+  line-height: 1.8;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.nv-syn.open {
+  display: block;
+  overflow: visible;
+}
+
+.nv-more {
+  min-height: 40px;
+  margin-top: 12px;
+  padding-inline: 18px;
+  font-size: 14.5px;
+}
+
+.credit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.credit .nv-h {
+  margin-bottom: 0;
+}
+
+.credit-list {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.credit-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.credit-row dt {
+  color: var(--muted);
+  font-size: 14.5px;
+}
+
+.credit-row dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.credit-row a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.credit-license {
+  white-space: pre-line;
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 40%, var(--line));
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--accent-2);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.credit-report {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14.5px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* รายการตอน: ทั้งแถวเป็นลิงก์เดียว (พื้นที่กดสูง ≥ 52px) */
+.ch-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  margin-bottom: 14px;
+}
+
+.ch-orders {
+  margin-bottom: 0;
+}
+
+.ch-jump {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ch-jump label {
+  color: var(--muted);
+  font-size: 14.5px;
+  white-space: nowrap;
+}
+
+.ch-jump input {
+  width: 96px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14.5px;
+}
+
+.ch-jump input[aria-invalid="true"] {
+  border-color: var(--accent-2);
+}
+
+.ch-jump .btn {
+  min-height: 40px;
+  padding-inline: 18px;
+  font-size: 14.5px;
+}
+
+.ch-err {
+  margin-bottom: 12px;
+  color: var(--accent-2);
+  font-size: 14.5px;
+}
+
+.ch-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ch-row {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.ch-row.last {
+  border-color: var(--accent);
+}
+
+.ch-row.jump {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.ch-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 10px 16px;
+}
+
+.ch-num {
+  flex: none;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.ch-title {
+  display: -webkit-box;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: color-mix(in srgb, var(--text) 82%, transparent);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.ch-meta {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.ch-date {
+  font-variant-numeric: tabular-nums;
+}
+
+.ch-tag {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.ch-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.ch-pager .btn {
+  min-height: 44px;
+  padding-inline: 18px;
+  font-size: 14.5px;
+}
+
+.ch-page {
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.ch-empty {
+  padding: 28px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
 /* ---------- จอเล็กลง ---------- */
 
 @media (max-width: 1099px) {
@@ -1096,6 +1451,15 @@
 }
 
 @media (max-width: 959px) {
+  .nv-head {
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 26px;
+  }
+
+  .nv-title {
+    font-size: 32px;
+  }
+
   /* แท็บเล็ตแนวตั้ง (720–959px) ใส่เมนูไม่พอเมื่อมีปุ่มหลังบ้าน → ซ่อนเมนูเหมือนมือถือ (ลิงก์เดียวกันอยู่ท้ายเว็บ) แล้วให้ช่องค้นหากินที่ที่เหลือ */
   .nav {
     display: none;
@@ -1141,6 +1505,36 @@
 
   .wrap {
     padding-inline: 18px;
+  }
+
+  .nv-head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .nv-cover {
+    width: 168px;
+    margin-inline: auto;
+  }
+
+  .nv-title {
+    font-size: 28px;
+  }
+
+  .nv-cta .btn {
+    flex: 1 1 220px;
+  }
+
+  .ch-bar {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+  }
+
+  .ch-jump input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
   }
 
   .search {
@@ -1227,6 +1621,43 @@
 @media (max-width: 519px) {
   .wrap {
     padding-inline: 16px;
+  }
+
+  .novel {
+    gap: 28px;
+  }
+
+  .credit {
+    padding: 18px 16px;
+  }
+
+  .credit-row {
+    grid-template-columns: 92px minmax(0, 1fr);
+  }
+
+  .ch-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+  }
+
+  .ch-num {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .ch-meta {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .ch-title {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .ch-pager .btn {
+    padding-inline: 12px;
   }
 
   .row {

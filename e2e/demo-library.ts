@@ -26,6 +26,8 @@ interface Spec {
   hue: number
   synopsis?: string
   published?: boolean
+  /** ลิงก์ต้นฉบับ — ใช้ได้เฉพาะโดเมนสำรอง example.org (RFC 2606) */
+  sourceUrl?: string
 }
 
 const HOUR = 3600_000
@@ -50,7 +52,7 @@ const NAMED: Spec[] = [
   },
   { title: "Paper Kites Over Harbor Nine", titleTh: "ว่าวกระดาษเหนือท่าเรือเก้า", author: "ลูซี่ เกรย์", tags: ["ชีวิตประจำวัน", "เด็ก"], status: "completed", chapters: 10, hoursAgo: 10 * 24, cover: "png", hue: 170 },
   { title: "Sunday Detective Club", titleTh: "ชมรมนักสืบวันอาทิตย์", author: "ปีเตอร์ นาคาโมโตะ", tags: ["สืบสวน", "ตลก"], status: "ongoing", chapters: 7, hoursAgo: 12 * 24, cover: "png", hue: 45 },
-  { title: "Glass Season", titleTh: "ฤดูกระจก", author: "อานา เดอลา", tags: ["ดราม่า", "โรแมนติก"], status: "completed", chapters: 20, hoursAgo: 20 * 24, cover: null, hue: 330 },
+  { title: "Glass Season", titleTh: "ฤดูกระจก", author: "อานา เดอลา", tags: ["ดราม่า", "โรแมนติก"], status: "completed", chapters: 120, hoursAgo: 20 * 24, cover: null, hue: 330, sourceUrl: "https://example.org/fiction/glass-season" },
   { title: "Thirty-One Doors", titleTh: "ประตูสามสิบเอ็ดบาน", author: "คาร์ล ฟอสส์", tags: ["ลึกลับ", "ปริศนา"], status: "ongoing", chapters: 8, hoursAgo: 25 * 24, cover: "corrupt", hue: 0 },
   { title: "Embers of the Tin Crown", titleTh: "ถ่านไฟแห่งมงกุฎดีบุก", author: "เรเชล โอคอนเนอร์", tags: ["แฟนตาซี", "สงคราม"], status: "ongoing", chapters: 5, hoursAgo: 30 * 24, cover: "png", hue: 10 },
   { title: "Rainy Day Ramen", titleTh: "ราเมนวันฝนตก", author: "ยูกิ ซาโตะ", tags: ["อาหาร", "อบอุ่น"], status: "completed", chapters: 14, hoursAgo: 45 * 24, cover: null, hue: 200 },
@@ -145,7 +147,7 @@ export function seedLibrary(db: Db, now: string, hero: HeroChoice = "demo"): { n
       const id = db.run(
         `INSERT INTO novels (title, title_th, author, mode, style_note, published, synopsis, synopsis_src, tags, status,
                              source_url, license_note, featured, created_at, updated_at)
-         VALUES (?, ?, ?, 'translate', '', ?, ?, '', ?, ?, '', 'นิยายตัวอย่างที่เขียนขึ้นเองเพื่อทดสอบระบบ', ?, ?, ?)`,
+         VALUES (?, ?, ?, 'translate', '', ?, ?, '', ?, ?, ?, 'นิยายตัวอย่างที่เขียนขึ้นเองเพื่อทดสอบระบบ', ?, ?, ?)`,
         s.title,
         s.titleTh,
         s.author,
@@ -153,6 +155,7 @@ export function seedLibrary(db: Db, now: string, hero: HeroChoice = "demo"): { n
         s.synopsis ?? `เรื่องสมมติสำหรับทดสอบหน้าตาของชั้นหนังสือ (${s.title}) ข้อความนี้ไม่ใช่เนื้อหาของงานจริงใดๆ`,
         JSON.stringify(s.tags),
         s.status,
+        s.sourceUrl ?? "",
         hero === "cover" && s.title === "Moonlit Courier" ? 1 : 0,
         created,
         last,

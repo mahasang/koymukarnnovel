@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { readdirSync, readFileSync } from "node:fs"
 import { describe, test } from "node:test"
 import { fileURLToPath } from "node:url"
+import { SYNOPSIS_LINES } from "../components/Synopsis"
 import { parseCss, type CssRule } from "../testing/css"
 
 /**
@@ -728,6 +729,266 @@ describe("หน้าแรก: แถบตัวกรองและปุ�
   test("ช่องเลือกเรียงแตะง่าย (สูง ≥ 40px) และแท็กชิปในแถบไม่เว้นล่างซ้ำสองชั้น", () => {
     assert.ok(Number.parseInt(declOf(".sort select", "min-height") ?? "0", 10) >= 40)
     assert.equal(declOf(".lib-bar .chips", "margin-bottom"), "0")
+  })
+})
+
+// ───────────────────────── หน้าเรื่อง: โครงที่เบราว์เซอร์เป็นคนวาด (ตรึงไว้กันแก้พลาด) ─────────────────────────
+// เช่นเดียวกับหน้าแรก: ค่าความสวยล้วนๆ (ระยะห่าง ขนาดตัวอักษร มุมโค้ง เงา) ไม่ตรึง — ตรวจด้วยตาจากภาพจริง
+
+describe("หน้าเรื่อง: โครงหน้าและเรื่องย่อ", () => {
+  test("เนื้อหาหน้าเรื่องเป็นคอลัมน์เดียวกว้างไม่เกิน 960px จัดกลาง (บรรทัดเรื่องย่อไม่ยาวเกินอ่าน)", () => {
+    assert.equal(declOf(".novel", "display"), "flex")
+    assert.equal(declOf(".novel", "flex-direction"), "column")
+    assert.equal(declOf(".novel", "max-width"), "960px")
+    assert.equal(declOf(".novel", "width"), "100%")
+    assert.equal(declOf(".novel", "margin-inline"), "auto")
+  })
+
+  test("หัวเรื่อง: ปก | ข้อมูล สองคอลัมน์ที่คอลัมน์ข้อมูลหดได้ (minmax(0, 1fr)) — ชื่อ 80 ตัวอักษรไม่ดันหน้าให้ล้น; จอ ≤ 719 คอลัมน์เดียวและปกกว้างพอดีจัดกลาง", () => {
+    for (const width of [1280, 1099, 959]) {
+      assert.match(at(".nv-head", "grid-template-columns", width) ?? "", /^\d+px minmax\(0, 1fr\)$/, `ที่ ${width}px`)
+    }
+    for (const width of [719, 519, 359]) assert.equal(at(".nv-head", "grid-template-columns", width), "minmax(0, 1fr)", `ที่ ${width}px`)
+    assert.ok(px(/^(\d+px)/.exec(at(".nv-head", "grid-template-columns", 959) ?? "")?.[1]) < px(/^(\d+px)/.exec(at(".nv-head", "grid-template-columns", 1280) ?? "")?.[1]), "แท็บเล็ตปกเล็กลง")
+    assert.equal(declOf(".nv-head", "align-items"), "start", "ปกไม่ถูกยืดตามความสูงของคอลัมน์ข้อมูล")
+    assert.equal(declOf(".nv-info", "min-width"), "0")
+    assert.ok(px(at(".nv-cover", "width", 719)) <= 200)
+    assert.equal(at(".nv-cover", "margin-inline", 719), "auto")
+    assert.equal(at(".nv-cover", "width", 1280), undefined, "จอกว้างความกว้างปกมาจากคอลัมน์")
+  })
+
+  test("ชื่อและบรรทัดข้อมูลตัดคำยาวติดกันได้ · ป้าย/แท็ก/ปุ่มห่อบรรทัด", () => {
+    for (const selector of [".nv-title", ".nv-orig", ".nv-author", ".nv-h", ".nv-syn", ".credit-row dd"]) assert.equal(declOf(selector, "overflow-wrap"), "anywhere", selector)
+    for (const selector of [".nv-facts", ".nv-tags", ".nv-cta"]) {
+      assert.equal(declOf(selector, "display"), "flex", selector)
+      assert.equal(declOf(selector, "flex-wrap"), "wrap", selector)
+    }
+    assert.equal(declOf(".nv-facts", "align-items"), "center")
+  })
+
+  test("บนมือถือปุ่มอ่านซ้อนเป็นแถวเต็มความกว้าง: สองปุ่มรวมช่องไฟกว้างกว่าพื้นที่ของจอ 360px", () => {
+    const basis = px(/^1 1 (\d+px)$/.exec(at(".nv-cta .btn", "flex", 719) ?? "")?.[1])
+    const content = 360 - 2 * px(at(".wrap", "padding-inline", 359))
+    assert.ok(2 * basis + px(declOf(".nv-cta", "gap")) > content, `2×${basis}+gap ต้องกว้างกว่า ${content}`)
+    assert.ok(basis <= content)
+    assert.equal(at(".nv-cta .btn", "flex", 1280), undefined)
+  })
+
+  test("เรื่องย่อพับ 5 บรรทัด (ค่าเดียวกับ SYNOPSIS_LINES) ด้วยกล่อง webkit; ขึ้นบรรทัดตามที่พิมพ์; ขยายแล้วไม่ตัด", () => {
+    assert.equal(declOf(".nv-syn", "-webkit-line-clamp"), String(SYNOPSIS_LINES))
+    assert.equal(declOf(".nv-syn", "display"), "-webkit-box")
+    assert.equal(declOf(".nv-syn", "-webkit-box-orient"), "vertical")
+    assert.equal(declOf(".nv-syn", "overflow"), "hidden")
+    assert.equal(declOf(".nv-syn", "white-space"), "pre-line")
+    assert.equal(declOf(".nv-syn.open", "display"), "block", "display: block ยกเลิกการตัดบรรทัด")
+    assert.equal(declOf(".nv-syn.open", "overflow"), "visible")
+  })
+
+  test("ปุ่ม 'อ่านเพิ่ม' กดง่าย (สูง ≥ 40px) · หัวข้อที่เลื่อนมาถึงไม่ถูกแถบบนบัง", () => {
+    assert.ok(px(declOf(".nv-more", "min-height")) >= 40)
+    assert.match(declOf(".nv-h", "scroll-margin-top") ?? "", /var\(--header-h\)/)
+  })
+})
+
+describe("หน้าเรื่อง: กล่องเครดิต", () => {
+  test("แถวเครดิต: ป้าย | ค่า สองคอลัมน์ที่ค่าหดได้ ทุกจุดตัด (ลิงก์ต้นฉบับยาวไม่ดันกล่องล้น)", () => {
+    for (const width of [1280, 959, 719, 519, 359]) {
+      assert.match(at(".credit-row", "grid-template-columns", width) ?? "", /^\d+px minmax\(0, 1fr\)$/, `ที่ ${width}px`)
+    }
+    assert.equal(declOf(".credit-row dd", "min-width"), "0")
+    assert.ok(px(/^(\d+px)/.exec(at(".credit-row", "grid-template-columns", 519) ?? "")?.[1]) < px(/^(\d+px)/.exec(at(".credit-row", "grid-template-columns", 1280) ?? "")?.[1]))
+    assert.equal(declOf(".credit-list", "width"), "100%", "รายการเต็มความกว้างกล่อง แม้กล่องจัดชิดซ้าย (align-items: flex-start)")
+    assert.equal(declOf(".credit", "align-items"), "flex-start")
+  })
+
+  test("บันทึกสิทธิ์ขึ้นบรรทัดตามที่เจ้าของพิมพ์", () => {
+    assert.equal(declOf(".credit-license", "white-space"), "pre-line")
+  })
+
+  test("สีป้าย AI และลิงก์ใช้โทเค็นที่ผ่านเกณฑ์ตัดกันบนพื้นกล่อง (accent-2 บน surface-2, accent บน surface)", () => {
+    assert.equal(declOf(".ai-badge", "color"), "var(--accent-2)")
+    assert.equal(declOf(".ai-badge", "background"), "var(--surface-2)")
+    assert.equal(declOf(".credit", "background"), "var(--surface)")
+    assert.equal(declOf(".credit-row a", "color"), "var(--accent)")
+    assert.equal(declOf(".credit-report", "color"), "var(--accent)")
+  })
+
+  test("ลิงก์ในกล่องเครดิตขีดเส้นใต้ (ไม่พึ่งสีอย่างเดียว) และ 'แจ้งลบเนื้อหา' กดง่าย (สูง ≥ 40px)", () => {
+    assert.equal(declOf(".credit-row a", "text-decoration"), "underline")
+    assert.equal(declOf(".credit-report", "text-decoration"), "underline")
+    assert.ok(px(declOf(".credit-report", "min-height")) >= 40)
+    assert.equal(declOf(".credit-report", "display"), "inline-flex")
+  })
+})
+
+describe("หน้าเรื่อง: รายการตอน", () => {
+  test("รายการเป็นกริดคอลัมน์เดียวไม่มีจุดนำหน้าและไม่มีระยะขอบของ ol", () => {
+    assert.equal(declOf(".ch-list", "display"), "grid")
+    assert.equal(declOf(".ch-list", "list-style"), "none")
+    assert.equal(declOf(".ch-list", "margin"), "0")
+    assert.equal(declOf(".ch-list", "padding"), "0")
+  })
+
+  test("ทั้งแถวเป็นลิงก์ที่กดง่าย (สูง ≥ 44px) ทุกจุดตัด", () => {
+    for (const width of [1280, 959, 719, 519, 359]) assert.ok(px(at(".ch-link", "min-height", width)) >= 44, `ที่ ${width}px`)
+    assert.equal(declOf(".ch-link", "display"), "flex")
+    assert.equal(declOf(".ch-link", "align-items"), "center")
+  })
+
+  test("ชื่อตอนหดได้และตัดที่ 2 บรรทัด; เลขตอนกับข้อมูลท้ายแถวไม่ถูกบีบ", () => {
+    assert.equal(declOf(".ch-title", "flex"), "1")
+    assert.equal(declOf(".ch-title", "min-width"), "0")
+    assert.equal(declOf(".ch-title", "-webkit-line-clamp"), "2")
+    assert.equal(declOf(".ch-title", "overflow-wrap"), "anywhere")
+    assert.equal(declOf(".ch-num", "flex"), "none")
+    assert.equal(declOf(".ch-meta", "flex"), "none")
+    assert.equal(declOf(".ch-meta", "white-space"), "nowrap")
+    assert.equal(declOf(".ch-meta", "margin-left"), "auto")
+  })
+
+  test("จอ ≤ 519: แถวเป็นกริด 2 คอลัมน์ — เลขตอนซ้ายบน ข้อมูลขวาบน ชื่อตอนเต็มความกว้างแถวที่สอง (ไม่ไปตกคอลัมน์ขวา)", () => {
+    assert.equal(declOf(".ch-link", "display", "(max-width: 519px)"), "grid")
+    assert.equal(declOf(".ch-link", "grid-template-columns", "(max-width: 519px)"), "minmax(0, 1fr) auto")
+    assert.equal(declOf(".ch-num", "grid-column", "(max-width: 519px)"), "1")
+    assert.equal(declOf(".ch-num", "grid-row", "(max-width: 519px)"), "1")
+    assert.equal(declOf(".ch-meta", "grid-column", "(max-width: 519px)"), "2")
+    assert.equal(declOf(".ch-meta", "grid-row", "(max-width: 519px)"), "1")
+    assert.equal(declOf(".ch-title", "grid-column", "(max-width: 519px)"), "1 / -1")
+    assert.equal(declOf(".ch-title", "grid-row", "(max-width: 519px)"), "2")
+    assert.equal(declOf(".ch-link", "display", "(max-width: 719px)"), undefined, "ระหว่าง 520–719 ยังเป็นแถวเดียว")
+  })
+
+  test("ตอนที่อ่านล่าสุดมีกรอบสี accent + ป้ายข้อความ; ตอนที่กระโดดไปหามีเส้นขอบนอกสี accent-2 (คนละแบบกัน ซ้อนกันได้)", () => {
+    assert.equal(declOf(".ch-row.last", "border-color"), "var(--accent)")
+    assert.match(declOf(".ch-row.jump", "outline") ?? "", /^\d+px solid var\(--accent-2\)$/)
+    assert.ok(px(declOf(".ch-row.jump", "outline-offset")) >= 1, "เส้นขอบนอกไม่ชนกรอบแถว")
+    assert.equal(declOf(".ch-tag", "background"), "var(--accent)")
+    assert.equal(declOf(".ch-tag", "color"), "var(--accent-ink)")
+  })
+
+  test("วางเมาส์ไฮไลต์แถวเฉพาะอุปกรณ์ที่มีเมาส์ (hover: hover) — จอสัมผัสไม่ค้างสถานะ hover", () => {
+    assert.ok(declOf(".ch-row:hover", "border-color", "(hover: hover)"))
+    assert.equal(rulesFor(".ch-row:hover").length, 0)
+  })
+
+  test("แถบเครื่องมือห่อบรรทัด จัดสองฝั่ง; จอ ≤ 719 ซ้อนเป็นแถวเต็มและช่องกรอกยืดได้โดยไม่ล้น", () => {
+    assert.equal(declOf(".ch-bar", "display"), "flex")
+    assert.equal(declOf(".ch-bar", "flex-wrap"), "wrap")
+    assert.equal(declOf(".ch-bar", "justify-content"), "space-between")
+    assert.equal(declOf(".ch-bar", "flex-direction", "(max-width: 719px)"), "column")
+    assert.equal(declOf(".ch-bar", "align-items", "(max-width: 719px)"), "stretch")
+    // column + wrap = แถวเดียวที่กว้างเท่า max-content ของช่องไปตอน (≈330px) → ล้นจอ 320px; column ต้องไม่ wrap เพื่อให้กว้างเท่าคอนเทนเนอร์และช่องกรอกหดได้
+    assert.equal(declOf(".ch-bar", "flex-wrap", "(max-width: 719px)"), "nowrap")
+    assert.equal(declOf(".ch-jump", "display"), "flex")
+    assert.equal(declOf(".ch-jump", "align-items"), "center")
+    assert.equal(declOf(".ch-jump input", "flex", "(max-width: 719px)"), "1")
+    assert.equal(declOf(".ch-jump input", "min-width", "(max-width: 719px)"), "0")
+    assert.equal(declOf(".ch-jump input", "width", "(max-width: 719px)"), "auto")
+    assert.equal(declOf(".ch-jump label", "white-space"), "nowrap")
+  })
+
+  test("ช่องกรอกเลขตอนและปุ่ม 'ไป' กดง่าย (สูง ≥ 40px) · สีตัวอักษรคู่กับสีพื้นจากธีม · ช่องที่ผิดเปลี่ยนสีขอบ", () => {
+    assert.ok(px(declOf(".ch-jump input", "min-height")) >= 40)
+    assert.ok(px(declOf(".ch-jump .btn", "min-height")) >= 40)
+    assert.equal(declOf(".ch-jump input", "color"), "var(--text)")
+    assert.equal(declOf(".ch-jump input", "background"), "var(--surface)")
+    assert.equal(declOf('.ch-jump input[aria-invalid="true"]', "border-color"), "var(--accent-2)")
+    assert.equal(declOf(".ch-err", "color"), "var(--accent-2)")
+  })
+
+  test("ตัวแบ่งหน้า: ปุ่มซ้าย-ข้อความกลาง-ปุ่มขวา ปุ่มกดง่าย (สูง ≥ 44px) ข้อความกลางจัดกึ่งกลาง", () => {
+    assert.equal(declOf(".ch-pager", "display"), "flex")
+    assert.equal(declOf(".ch-pager", "justify-content"), "space-between")
+    assert.equal(declOf(".ch-pager", "align-items"), "center")
+    assert.ok(px(declOf(".ch-pager .btn", "min-height")) >= 44)
+    assert.equal(declOf(".ch-page", "text-align"), "center")
+  })
+
+  test("วันที่ในแถวเรียงเลขกว้างเท่ากัน (ตัวเลขตรงแนว)", () => {
+    assert.equal(declOf(".ch-date", "font-variant-numeric"), "tabular-nums")
+  })
+})
+
+describe("หน้าเรื่อง: โครงที่ค่าอื่นพึ่งอยู่และขนาดที่ต้องอ่านออก", () => {
+  const NOVEL_RULE = /^\.(novel\b|nv-|credit|ai-badge|ch-)/
+  const novelRules = rules.filter((rule) => rule.selectors.some((selector) => NOVEL_RULE.test(selector)))
+
+  test("ชนิดการจัดวางของแต่ละกล่อง (ไม่เช่นนั้นค่า gap/grid-template/align ที่ตรึงไว้ไม่มีผล)", () => {
+    const layouts: [string, string][] = [
+      [".novel", "flex"],
+      [".nv-head", "grid"],
+      [".nv-info", "flex"],
+      [".nv-facts", "flex"],
+      [".nv-tags", "flex"],
+      [".nv-cta", "flex"],
+      [".credit", "flex"],
+      [".credit-list", "grid"],
+      [".credit-row", "grid"],
+      [".credit-row a", "inline-flex"],
+      [".ai-badge", "inline-flex"],
+      [".credit-report", "inline-flex"],
+      [".ch-list", "grid"],
+      [".ch-link", "flex"],
+      [".ch-meta", "inline-flex"],
+      [".ch-pager", "flex"],
+      [".ch-title", "-webkit-box"],
+    ]
+    for (const [selector, display] of layouts) assert.equal(declOf(selector, "display"), display, selector)
+    for (const selector of [".novel", ".nv-info", ".credit"]) assert.equal(declOf(selector, "flex-direction"), "column", selector)
+    assert.equal(declOf(".ch-title", "-webkit-box-orient"), "vertical")
+    assert.equal(declOf(".ch-title", "overflow"), "hidden")
+  })
+
+  test("ปกตัดตามมุมโค้ง · ส่วนต่างๆ หดได้ (min-width: 0) เพื่อไม่ดันหน้าให้ล้นแนวนอน", () => {
+    assert.equal(declOf(".nv-cover", "overflow"), "hidden")
+    assert.equal(declOf(".nv-sec", "min-width"), "0")
+    assert.equal(declOf(".nv-info", "min-width"), "0")
+    assert.equal(declOf(".credit-row dd", "min-width"), "0")
+    assert.equal(declOf(".ch-title", "min-width"), "0")
+  })
+
+  test("จัดกึ่งกลางแนวตั้งในแถวที่มีไอคอน/ป้ายข้างข้อความ · ข้อความว่างจัดกลาง · ช่องกรอกเลขตอนกว้างพอพิมพ์ 5–6 หลัก", () => {
+    for (const selector of [".nv-facts", ".ch-bar", ".ch-jump", ".ch-link", ".ch-meta", ".ch-pager", ".credit-row a", ".ai-badge", ".credit-report"]) {
+      assert.equal(declOf(selector, "align-items"), "center", selector)
+    }
+    assert.equal(declOf(".ch-empty", "text-align"), "center")
+    assert.ok(px(declOf(".ch-jump input", "width")) >= 80)
+  })
+
+  test("กรอบที่ทำให้เห็นขอบเขตของช่องกรอก แถวตอน กล่องเครดิต ป้าย AI และกล่องว่างยังอยู่", () => {
+    for (const selector of [".credit", ".ai-badge", ".ch-jump input", ".ch-row"]) assert.match(declOf(selector, "border") ?? "", /^1px solid /, selector)
+    assert.match(declOf(".ch-empty", "border") ?? "", /^1px dashed /)
+  })
+
+  test("ข้อความรองใช้สี --muted (ลำดับความสำคัญของข้อความ ไม่ใช่สีเดียวกับเนื้อหา)", () => {
+    for (const selector of [".nv-orig", ".nv-count", ".credit-row dt", ".ch-jump label", ".ch-meta", ".ch-page", ".ch-empty"]) {
+      assert.equal(declOf(selector, "color"), "var(--muted)", selector)
+    }
+  })
+
+  test("ตัวอักษรทุกกฎของหน้านี้อ่านออก (ทุกจุด ≥ 12px) เนื้อหา/ชื่อ/ปุ่มกด ≥ 14px", () => {
+    let checked = 0
+    for (const rule of novelRules) {
+      const size = rule.decls["font-size"]
+      if (size === undefined) continue
+      checked += 1
+      assert.ok(px(size) >= 12, `${rule.selectors.join(",")} ${size}`)
+    }
+    assert.ok(checked >= 20, `ตรวจ font-size ${checked} กฎ`)
+    for (const selector of [".nv-title", ".nv-orig", ".nv-author", ".nv-h", ".nv-syn", ".nv-more", ".credit-row dt", ".credit-report", ".ch-jump label", ".ch-jump input", ".ch-jump .btn", ".ch-err", ".ch-num", ".ch-title", ".ch-pager .btn", ".ch-page"]) {
+      assert.ok(px(declOf(selector, "font-size")) >= 14, selector)
+    }
+  })
+
+  test("ช่องไฟ: ทุกกล่องที่จัดวางด้วย gap มีช่องไฟจริง · ตัวควบคุมที่กดได้ห่างกัน ≥ 8px (กดพลาดยาก)", () => {
+    for (const rule of novelRules) {
+      const gap = rule.decls.gap
+      if (gap === undefined) continue
+      for (const part of gap.split(/\s+/)) assert.ok(px(part) > 0, `${rule.selectors.join(",")} ${rule.media ?? ""} ${gap}`)
+    }
+    for (const selector of [".nv-cta", ".ch-jump", ".ch-list", ".ch-pager", ".ch-bar", ".nv-tags"]) {
+      for (const part of (declOf(selector, "gap") ?? "").split(/\s+/)) assert.ok(px(part) >= 8, selector)
+    }
   })
 })
 

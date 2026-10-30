@@ -156,7 +156,18 @@ describe("seedLibrary", () => {
   test("ไม่ใส่ความลับ/ข้อมูลจริง: ข้อความทุกช่องที่ใส่ไม่มีรูปแบบคีย์ ลิงก์ภายนอก หรืออีเมล", () => {
     const db = freshDb()
     seedLibrary(db, NOW)
-    const text = JSON.stringify([db.all("SELECT * FROM novels WHERE title <> ?", DEMO_TITLE), db.all("SELECT title, title_th, source_text, translation FROM chapters")])
+    // ลิงก์ต้นฉบับ (source_url) ตรวจแยกในเทสต์ถัดไป: ใช้ได้เฉพาะโดเมนสำรองของ RFC 2606
+    const text = JSON.stringify([db.all("SELECT title, title_th, author, tags, synopsis, license_note FROM novels WHERE title <> ?", DEMO_TITLE), db.all("SELECT title, title_th, source_text, translation FROM chapters")])
     assert.doesNotMatch(text, /sk-ant|https?:\/\/|@[a-z0-9-]+\.[a-z]{2,}/i)
+  })
+
+  test("หน้าเรื่องมีของให้ตรวจ: เรื่องที่มีมากกว่า 100 ตอน (รายการตอนแบ่งหน้า) และลิงก์ต้นฉบับที่ใช้โดเมนสำรอง example.org เท่านั้น", () => {
+    const db = freshDb()
+    seedLibrary(db, NOW)
+    const counts = db.all<{ n: number }>("SELECT COUNT(*) AS n FROM chapters GROUP BY novel_id").map((row) => row.n)
+    assert.ok(counts.some((n) => n > 100), "ต้องมีเรื่องที่มีมากกว่า 100 ตอน")
+    const urls = db.all<{ source_url: string }>("SELECT source_url FROM novels WHERE source_url <> ''")
+    assert.ok(urls.length >= 1, "ต้องมีเรื่องที่มีลิงก์ต้นฉบับ")
+    for (const { source_url } of urls) assert.match(source_url, /^https:\/\/example\.org\//)
   })
 })
