@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
-import { isNew, resumePercent, thaiDate, timeAgo } from "./format"
+import { isNew, parseSqlTime, resumePercent, thaiDate, timeAgo } from "./format"
 
 /** `YYYY-MM-DD HH:MM:SS` ที่เซิร์ฟเวอร์ส่งมาเป็นเวลา UTC เสมอ (ไม่ใช่เวลาของเครื่องผู้อ่าน) — เทสต์ทั้งหมดสร้างเวลาปัจจุบันด้วย Date.UTC ไม่พึ่งเขตเวลาของเครื่องที่รัน */
 
@@ -234,5 +234,18 @@ describe("timeAgo", () => {
     const sql = (ms: number) => new Date(ms).toISOString().slice(0, 19).replace("T", " ")
     assert.equal(timeAgo(sql(Date.now() - 10 * 60 * 1000 - 5000)), "10 นาทีที่แล้ว")
     assert.equal(timeAgo(sql(Date.now() - 5 * 60 * 60 * 1000 - 5000)), "5 ชั่วโมงที่แล้ว")
+  })
+})
+
+describe("parseSqlTime", () => {
+  test("เวลา SQL (UTC) → มิลลิวินาทีจาก epoch", () => {
+    assert.equal(parseSqlTime("2026-10-22 12:00:00"), Date.UTC(2026, 9, 22, 12, 0, 0))
+    assert.equal(parseSqlTime("1970-01-01 00:00:00"), 0)
+  })
+
+  test("รูปแบบผิดหรือวันที่ไม่มีจริง → null", () => {
+    for (const bad of ["", "2026-10-22", "2026-10-22T12:00:00Z", "2026-02-30 00:00:00", "2026-10-22 24:00:00", "0026-10-22 00:00:00", "nope"]) {
+      assert.equal(parseSqlTime(bad), null, JSON.stringify(bad))
+    }
   })
 })

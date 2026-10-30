@@ -11,7 +11,7 @@ const THAI_OFFSET = 7 * HOUR
 const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
 
 /** เวลา SQL (UTC) → มิลลิวินาทีจาก epoch; รูปแบบผิดหรือวันที่ไม่มีจริง (30 ก.พ., 24:00:00, เดือน 13) → null */
-function parseSqlTime(sql: string): number | null {
+export function parseSqlTime(sql: string): number | null {
   const match = SQL_TIME.exec(sql)
   if (match === null) return null
   const [year, month, day, hour, minute, second] = match.slice(1).map(Number)

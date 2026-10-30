@@ -156,6 +156,22 @@ describe("e2e/shot.mjs: ถ่ายภาพจริง", { concurrency: 2 }, 
     })
   })
 
+  test("หน้าที่มีปกใต้จอ (รูป loading=\"lazy\" ที่ยังไม่เคยโหลด) ไม่ทำให้ค้าง: ถ่ายหน้าแรกของชั้นหนังสือ 30 เรื่องได้ทั้งหน้า ปกครบ ไม่มี HTTP error", { skip: SKIP_BROWSER }, async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "koymukarnnovel-shot-out-"))
+    try {
+      const file = path.join(dir, "library.jpg")
+      const result = await runShot(["/", "1280", "midnight", "--out", file], { E2E_LIBRARY: "full" })
+      assert.equal(result.code, 0, `${result.out}\n${result.err}`)
+      assert.ok(isJpeg(file))
+      const { width, height } = jpegSize(file)
+      assert.equal(width, 1280)
+      assert.ok(height > 2200, `ภาพต้องยาวทั้งหน้า (ได้ ${height}px) — ถ้าสั้นแปลว่าชั้นหนังสือไม่ถูกแสดง`)
+      assert.doesNotMatch(result.err, /HTTP \d{3}|requestfailed|pageerror|console\./)
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
   test("เส้นทาง / ตั้งชื่อไฟล์ว่า home · กว้างต่ำสุด 280 ถ่ายได้", { skip: SKIP_BROWSER }, async () => {
     await runWithDefaultName(["/", "280", "paper"], "home-280-paper.jpg", 280, () => {})
   })

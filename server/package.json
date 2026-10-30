@@ -10,7 +10,7 @@
     "build": "tsc",
     "start": "node --disable-warning=ExperimentalWarning dist/index.js",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
-    "test": "node --disable-warning=ExperimentalWarning --import tsx --test \"test/**/*.test.ts\"",
+    "test": "node --disable-warning=ExperimentalWarning --import tsx --test \"test/**/*.test.ts\" \"../e2e/*.test.ts\"",
     "seed:demo": "tsx --disable-warning=ExperimentalWarning src/seed.ts"
   },
   "dependencies": {

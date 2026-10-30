@@ -72,8 +72,8 @@ const globalKeyframes = new Set([...read("./base.css").matchAll(/@keyframes\s+([
 
 /** ใช้ในโค้ดแต่ไม่มีสไตล์ของตัวเอง (ตัวยึดโครงสร้างให้ CSS/เทสต์อ้างถึง) */
 const STRUCTURAL = ["foot-brand", "state-empty", "skeleton", "switch-label", "sk-card"]
-/** มีสไตล์แล้วแต่ยังไม่มีคอมโพเนนต์ใช้ — สงวนไว้ให้หน้าถัดไป (งาน 24: แถวชิปกรอง, ปุ่มเต็มแถว) */
-const RESERVED = ["chips", "full"]
+/** มีสไตล์แล้วแต่ยังไม่มีคอมโพเนนต์ใช้ — สงวนไว้ให้หน้าถัดไป (ปุ่มเต็มแถว: ปุ่มบนหน้าเรื่อง/ท้ายตอน) */
+const RESERVED = ["full"]
 /** คลาสที่ประกอบตอนรันจากแม่แบบ `skeleton-${variant}` (variant = grid | lines) */
 const SKELETON_VARIANTS = ["skeleton-grid", "skeleton-lines"]
 
@@ -148,7 +148,7 @@ describe("กติกาสีที่ tokens.css กำหนดไว้ถ�
   })
 
   test("พื้นที่ระบายด้วย --accent / --accent-2 ใช้ข้อความสี --accent-ink", () => {
-    const NO_TEXT = [".switch.on .switch-track"] // แค่ราง ไม่มีข้อความข้างใน
+    const NO_TEXT = [".switch.on .switch-track", ".bar i"] // แค่ราง/แถบเติม ไม่มีข้อความข้างใน
     const painted = rules.filter((rule) => usesAccent(rule.decls.background) || usesAccent(rule.decls["background-color"]))
     assert.ok(painted.length >= 6, `พบ ${painted.length} กฎ`)
     for (const rule of painted) {
@@ -159,7 +159,9 @@ describe("กติกาสีที่ tokens.css กำหนดไว้ถ�
 
   test("ข้อความสีตายตัว (#fff, rgba, ชื่อสี) มีเฉพาะบนปก/ป้ายซ้อนปกที่พื้นไม่ขึ้นกับธีม", () => {
     const OVER_COVER_ART = [".cv-title", ".b-ep", ".b-done"]
-    const hardCoded = rules.filter((rule) => rule.decls.color !== undefined && !rule.decls.color.startsWith("var(") && rule.decls.color !== "inherit")
+    // สีที่ผสมจากตัวแปรของธีม (color-mix(… var(--text) …)) ตามธีมเสมอ ไม่ใช่สีตายตัว
+    const themed = (color: string) => color.startsWith("var(") || color === "inherit" || (color.startsWith("color-mix(") && color.includes("var(--"))
+    const hardCoded = rules.filter((rule) => rule.decls.color !== undefined && !themed(rule.decls.color))
     assert.deepEqual(
       hardCoded.flatMap((rule) => rule.selectors).sort(),
       [...OVER_COVER_ART].sort(),
@@ -497,6 +499,235 @@ describe("ตำแหน่ง ขนาด และการตัดขอ�
       .map((value) => value.split(" ")[0])
     assert.ok(used.length > 0)
     for (const name of used) assert.ok(keyframes.has(name) || globalKeyframes.has(name), `ไม่มี @keyframes ${name}`)
+  })
+})
+
+// ───────────────────────── หน้าแรก: โครงที่เบราว์เซอร์เป็นคนวาด (ตรึงไว้กันแก้พลาด) ─────────────────────────
+// ค่าความสวยล้วนๆ (ระยะห่าง ขนาดตัวอักษร มุมโค้ง สี) ไม่ตรึง — ตรวจด้วยตาจากภาพจริง; ที่ตรึงคือค่าที่ถ้าผิดแล้วหน้าพัง/ล้น/ซ้อนผิดชั้น
+
+const maxWidthOf = (media: string | null) => (media === null ? Number.POSITIVE_INFINITY : Number(/max-width: (\d+)px/.exec(media)?.[1] ?? Number.NaN))
+/** ค่าที่ใช้จริงที่ความกว้างหน้าจอ `width` (กฎ media หลังชนะกฎก่อนตามลำดับในไฟล์ ซึ่งเรียงจากกว้างไปแคบ) */
+const at = (selector: string, property: string, width: number): string | undefined =>
+  rules
+    .filter((rule) => rule.selectors.includes(selector) && maxWidthOf(rule.media) >= width)
+    .map((rule) => rule.decls[property])
+    .filter((value): value is string => value !== undefined)
+    .at(-1)
+const px = (value: string | undefined): number => {
+  const match = /^(-?\d+(?:\.\d+)?)px$/.exec(value ?? "")
+  assert.ok(match, `ต้องเป็นหน่วย px: ${value}`)
+  return Number(match[1])
+}
+
+describe("หน้าแรก: โครง Hero และการซ้อนชั้น", () => {
+  test("หน้านี้เรียงเป็นคอลัมน์เดียวต่อกัน (.home flex column)", () => {
+    assert.equal(declOf(".home", "display"), "flex")
+    assert.equal(declOf(".home", "flex-direction"), "column")
+  })
+
+  test("Hero เป็นกรอบอ้างอิงตำแหน่งที่ตัดส่วนที่ล้น (พื้นหลังเบลอขยายเกินกรอบต้องไม่โผล่ออกมา)", () => {
+    assert.equal(declOf(".hero", "position"), "relative")
+    assert.equal(declOf(".hero", "overflow"), "hidden")
+    assert.equal(declOf(".hero", "display"), "flex")
+    assert.equal(declOf(".hero", "align-items"), "center")
+  })
+
+  test("ชั้นซ้อน: พื้นหลังเบลอ และฉากเฟด วางเต็มกรอบ (absolute); เนื้อหา (.hero-body) เป็น relative และอยู่หลังสุดใน DOM จึงอยู่บนสุด", () => {
+    for (const layer of [".hero-bg", ".hero-shade"]) assert.equal(declOf(layer, "position"), "absolute", layer)
+    assert.equal(declOf(".hero-shade", "inset"), "0")
+    assert.equal(declOf(".hero-body", "position"), "relative")
+    assert.equal(declOf(".hero-body", "width"), "100%")
+    assert.equal(declOf(".hero-bg", "overflow"), "hidden")
+    assert.match(declOf(".hero-bg", "filter") ?? "", /^blur\(\d+px\)/, "พื้นหลังเป็นปกเบลอ")
+    assert.match(declOf(".hero-bg", "transform") ?? "", /^scale\(1\.\d+\)$/, "ขยายเล็กน้อยให้ขอบเบลอไม่โผล่")
+    // ปกในพื้นหลังจัดกลางแนวตั้ง
+    assert.equal(declOf(".hero-bg .cv", "position"), "absolute")
+    assert.equal(declOf(".hero-bg .cv", "top"), "50%")
+    assert.equal(declOf(".hero-bg .cv", "transform"), "translateY(-50%)")
+  })
+
+  test("ฉากเฟดใช้สีพื้นของธีม (ตามธีมทุกธีม) ทั้งแนวนอนและแนวตั้ง — ไม่ฝังสีตายตัว", () => {
+    const background = declOf(".hero-shade", "background") ?? ""
+    assert.match(background, /linear-gradient\(90deg/)
+    assert.match(background, /linear-gradient\(0deg/)
+    assert.doesNotMatch(background, /#[0-9a-f]{3,8}\b|rgba?\(/i)
+    assert.ok((background.match(/var\(--bg\)|var\(--bg\) \d+%/g) ?? []).length >= 3)
+  })
+
+  test("Hero สองคอลัมน์ (ข้อความ | โปสเตอร์) กว้างเท่าโปสเตอร์ทุกจุดตัด; จอ ≤ 719 คอลัมน์เดียวและซ่อนโปสเตอร์", () => {
+    for (const width of [1280, 1099, 959]) {
+      const columns = at(".hero-body", "grid-template-columns", width) ?? ""
+      assert.equal(columns, `minmax(0, 1fr) ${at(".poster", "width", width)}`, `ที่ ${width}px`)
+    }
+    for (const width of [719, 519, 359]) {
+      assert.equal(at(".hero-body", "grid-template-columns", width), "minmax(0, 1fr)", `ที่ ${width}px`)
+      assert.equal(at(".poster", "display", width), "none", `ที่ ${width}px`)
+    }
+    for (const width of [1280, 1099, 959]) assert.notEqual(at(".poster", "display", width), "none", `ที่ ${width}px`)
+    assert.equal(declOf(".hero-text", "min-width"), "0", "ชื่อเรื่องยาวต้องไม่ดันคอลัมน์ให้กว้างเกินกรอบ")
+    assert.equal(declOf(".hero-title", "overflow-wrap"), "anywhere")
+  })
+
+  test("โปสเตอร์เอียงและตัดขอบตามมุมโค้ง", () => {
+    assert.match(declOf(".poster", "transform") ?? "", /^rotate\(\d+(\.\d+)?deg\)$/)
+    assert.equal(declOf(".poster", "overflow"), "hidden")
+    assert.equal(declOf(".poster", "justify-self"), "center")
+  })
+
+  test("เรื่องย่อบน Hero ตัดที่ 3 บรรทัด (spec 6.1) ด้วยกล่อง webkit", () => {
+    assert.equal(declOf(".hero-syn", "-webkit-line-clamp"), "3")
+    assert.equal(declOf(".hero-syn", "display"), "-webkit-box")
+    assert.equal(declOf(".hero-syn", "-webkit-box-orient"), "vertical")
+    assert.equal(declOf(".hero-syn", "overflow"), "hidden")
+  })
+
+  test("พื้นหลังเบลอยื่นออกนอกกรอบมากกว่ารัศมีเบลอ (ขอบที่จางจากการเบลอถูก .hero ตัดทิ้ง ไม่เห็นเป็นเส้นโปร่งใส)", () => {
+    const blur = Number(/^blur\((\d+)px\)/.exec(declOf(".hero-bg", "filter") ?? "")?.[1])
+    assert.ok(blur > 0)
+    assert.ok(-px(declOf(".hero-bg", "inset")) >= blur, `inset ${declOf(".hero-bg", "inset")} ต้องยื่นออกอย่างน้อย ${blur}px`)
+  })
+
+  test("คอนเทนเนอร์ที่ใช้ flex-wrap / align-items ต้องเป็น flex จริง (ไม่เช่นนั้นค่าที่ตรึงไว้ไม่มีผล)", () => {
+    for (const [selector, display] of [
+      [".hero-facts", "flex"],
+      [".hero-cta", "flex"],
+      [".hero-tag", "inline-flex"],
+      [".pill", "inline-flex"],
+      [".go", "inline-flex"],
+      [".sort", "inline-flex"],
+    ] as const) {
+      assert.equal(declOf(selector, "display"), display, selector)
+    }
+    for (const selector of [".hero-facts", ".hero-tag", ".pill", ".go", ".sort"]) assert.equal(declOf(selector, "align-items"), "center", selector)
+  })
+
+  test("ลิงก์ \"อ่านต่อ\" ในการ์ดไม่ยืดเต็มความกว้างการ์ด (พื้นที่กดเท่าตัวลิงก์)", () => {
+    assert.equal(declOf(".go", "align-self"), "flex-start")
+  })
+
+  test("เรื่องย่อบน Hero ตัดคำยาวติดกัน (overflow-wrap) ไม่ให้ดันเกินกรอบ", () => {
+    assert.equal(declOf(".hero-syn", "overflow-wrap"), "anywhere")
+  })
+
+  test("ป้ายสถานะเด่นกว่าป้ายทั่วไปด้วยสีเสริม --accent-2 (คู่สีนี้ผ่านเกณฑ์ตัดกันใน tokens.test.ts)", () => {
+    assert.equal(declOf(".pill.st", "color"), "var(--accent-2)")
+    assert.equal(declOf(".pill", "color"), "var(--muted)")
+  })
+
+  test("ข้อมูลใต้ชื่อ (ป้าย/ปุ่ม) ห่อบรรทัดได้ — จอแคบไม่ล้น", () => {
+    assert.equal(declOf(".hero-facts", "flex-wrap"), "wrap")
+    assert.equal(declOf(".hero-cta", "flex-wrap"), "wrap")
+    assert.equal(declOf(".pill", "overflow-wrap"), "anywhere")
+    assert.equal(declOf(".hero-sub", "overflow-wrap"), "anywhere")
+  })
+
+  test("ป้ายหัวการ์ดและป้ายสถานะ: พื้นทึบ (ไม่โปร่งใสบนปกเบลอ) ตัวอักษรยังอ่านออก", () => {
+    assert.equal(declOf(".hero-tag", "background"), "var(--surface)")
+    assert.equal(declOf(".pill", "background"), "var(--surface-2)")
+  })
+})
+
+describe("หน้าแรก: อ่านต่อจากที่ค้างไว้", () => {
+  test("การ์ดอ่านต่อ 3 คอลัมน์บนจอกว้าง แล้วเป็นคอลัมน์เดียวตั้งแต่ ≤ 959", () => {
+    assert.equal(declOf(".resume", "display"), "grid")
+    assert.equal(declOf(".resume", "grid-template-columns"), "repeat(3, minmax(0, 1fr))")
+    assert.equal(declOf(".resume", "grid-template-columns", "(max-width: 959px)"), "minmax(0, 1fr)")
+  })
+
+  test("ปกเล็กไม่ถูกบีบและไม่ยืด; ข้อความหดได้ (ชื่อยาวไม่ดันการ์ดให้ล้น)", () => {
+    assert.equal(declOf(".rcard", "display"), "flex")
+    assert.equal(declOf(".rcard", "min-width"), "0")
+    assert.equal(declOf(".rcard-th", "flex"), "none")
+    assert.match(declOf(".rcard-th", "width") ?? "", /^\d+px$/)
+    assert.equal(declOf(".rcard-th", "align-self"), "flex-start")
+    assert.equal(declOf(".rcard-th", "overflow"), "hidden")
+    assert.equal(declOf(".rcard-tx", "flex"), "1")
+    assert.equal(declOf(".rcard-tx", "min-width"), "0")
+    assert.equal(declOf(".rcard-tx", "flex-direction"), "column")
+    assert.equal(declOf(".rcard h3", "-webkit-line-clamp"), "2")
+    assert.equal(declOf(".rcard h3", "overflow-wrap"), "anywhere")
+  })
+
+  test("แถบความคืบหน้า: รางมีความสูงและตัดส่วนเกิน; แท่งเต็มความสูงของราง (ความกว้างมาจาก style ในโค้ด)", () => {
+    assert.ok(Number.parseInt(declOf(".bar", "height") ?? "0", 10) >= 4)
+    assert.equal(declOf(".bar", "overflow"), "hidden")
+    assert.equal(declOf(".bar", "margin-top"), "auto", "ดันแถบลงล่างสุดของการ์ด ให้แนวเดียวกันเมื่อชื่อยาวสั้นต่างกัน")
+    assert.equal(declOf(".bar i", "display"), "block")
+    assert.equal(declOf(".bar i", "height"), "100%")
+    assert.equal(declOf(".bar i", "width"), undefined, "ความกว้างต้องมาจาก inline style ตามเปอร์เซ็นต์ ไม่ใช่ CSS")
+  })
+})
+
+describe("หน้าแรก: แถว 'อัปเดตล่าสุด' เลื่อนข้าง", () => {
+  const WIDTHS = [1280, 1099, 959, 719, 519, 359] as const
+
+  test("เป็นแถวเดียวที่เลื่อนแนวนอนได้และการ์ดไม่หด (flex: none) พร้อมจุดหยุดเลื่อนที่ต้นการ์ด", () => {
+    assert.equal(declOf(".row", "display"), "flex")
+    assert.equal(declOf(".row", "overflow-x"), "auto")
+    assert.match(declOf(".row", "scroll-snap-type") ?? "", /^x (proximity|mandatory)$/)
+    assert.equal(declOf(".row > .card", "flex"), "none")
+    assert.equal(declOf(".row > .card", "scroll-snap-align"), "start")
+  })
+
+  test("ขอบแถวเลื่อนตรงกับขอบหน้า: margin ติดลบ = ขอบข้างของ .wrap, padding และ scroll-padding เท่ากัน (การ์ดแรกชิดแนวหัวข้อ ไม่ทำให้หน้าล้น) ทุกจุดตัด", () => {
+    for (const width of WIDTHS) {
+      const gutter = px(at(".wrap", "padding-inline", width))
+      assert.equal(px(at(".row", "margin-inline", width)), -gutter, `margin-inline ที่ ${width}px`)
+      assert.equal(px(at(".row", "padding-inline", width) ?? at(".row", "padding", width)?.split(" ")[1]), gutter, `padding-inline ที่ ${width}px`)
+      assert.equal(px(at(".row", "scroll-padding-inline", width)), gutter, `scroll-padding-inline ที่ ${width}px`)
+    }
+  })
+
+  test("ความกว้างการ์ดในแถว: จอ ≥ 720 เท่าช่องของตาราง (6/4 คอลัมน์ เว้นช่องไฟเท่ากัน — แนวตรงกับตารางด้านล่าง); จอเล็กเห็นการ์ดสุดท้ายโผล่ครึ่งใบให้รู้ว่าเลื่อนได้", () => {
+    const columnsOf = (width: number) => Number(/^repeat\((\d+), /.exec(at(".grid", "grid-template-columns", width) ?? "")?.[1])
+    const cardWidth = (width: number) => {
+      const match = /^calc\(\(100% - (\d+(?:\.\d+)?)px\) \/ (\d+(?:\.\d+)?)\)$/.exec(at(".row > .card", "width", width) ?? "")
+      assert.ok(match, `ความกว้างการ์ดที่ ${width}px: ${at(".row > .card", "width", width)}`)
+      return { gaps: Number(match[1]), count: Number(match[2]) }
+    }
+    const rowGap = (width: number) => px(at(".row", "gap", width))
+    const gridGap = (width: number) => px((at(".grid", "gap", width) ?? "").split(" ").at(-1))
+    for (const width of [1280, 1099, 959]) {
+      const { gaps, count } = cardWidth(width)
+      assert.equal(count, columnsOf(width), `จำนวนการ์ดที่เห็น = จำนวนคอลัมน์ ที่ ${width}px`)
+      assert.equal(rowGap(width), gridGap(width), `ช่องไฟแถว = ช่องไฟตาราง ที่ ${width}px`)
+      assert.equal(gaps, rowGap(width) * (count - 1), `ช่องไฟรวม ที่ ${width}px`)
+    }
+    for (const width of [719, 519, 359]) {
+      const { gaps, count } = cardWidth(width)
+      assert.ok(count % 1 !== 0 && count < columnsOf(width) + 1 && count > columnsOf(width) - 1, `จอเล็ก: เห็นการ์ดเศษส่วน ที่ ${width}px (ได้ ${count} ช่อง; ตาราง ${columnsOf(width)} คอลัมน์)`)
+      assert.equal(gaps, rowGap(width) * (Math.ceil(count) - 1), `ช่องไฟรวม ที่ ${width}px`)
+    }
+  })
+
+  test("แถวเลื่อนตัดแนวตั้งด้วย (overflow-x ≠ visible บังคับ overflow-y) จึงต้องเผื่อที่ให้เงา/การยกของการ์ด: padding บน ≥ 4px, ล่าง ≥ 16px และดึง margin-bottom ติดลบคืนไม่เกินที่เผื่อ (ระยะห่างถึงส่วนถัดไปไม่ติดลบ)", () => {
+    const [top, , bottom] = (declOf(".row", "padding") ?? "").split(" ")
+    assert.ok(px(top) >= 4, `padding บน ${top}`)
+    assert.ok(px(bottom) >= 16, `padding ล่าง ${bottom}`)
+    const pull = px(declOf(".row", "margin-bottom"))
+    assert.ok(pull <= 0, "margin-bottom ไม่เป็นบวก")
+    assert.ok(-pull <= px(bottom), "ดึงคืนได้ไม่เกินที่ padding ล่างเผื่อไว้")
+  })
+})
+
+describe("หน้าแรก: แถบตัวกรองและปุ่มแสดงเพิ่ม", () => {
+  test("แถบกรองห่อบรรทัดได้ จัดสองฝั่ง; ปุ่มเรียงไม่ตัดคำ; ปุ่มแสดงเพิ่มอยู่กลางหน้า", () => {
+    assert.equal(declOf(".lib-bar", "display"), "flex")
+    assert.equal(declOf(".lib-bar", "flex-wrap"), "wrap")
+    assert.equal(declOf(".lib-bar", "justify-content"), "space-between")
+    assert.equal(declOf(".sort-label", "white-space"), "nowrap")
+    assert.equal(declOf(".more", "display"), "flex")
+    assert.equal(declOf(".more", "justify-content"), "center")
+  })
+
+  test("ช่องเลือกเรียงกำหนดสีตัวอักษรคู่กับสีพื้นเองจากธีม (select ของระบบไม่ตามธีมมืด)", () => {
+    assert.equal(declOf(".sort select", "color"), "var(--text)")
+    assert.equal(declOf(".sort select", "background"), "var(--surface)")
+  })
+
+  test("ช่องเลือกเรียงแตะง่าย (สูง ≥ 40px) และแท็กชิปในแถบไม่เว้นล่างซ้ำสองชั้น", () => {
+    assert.ok(Number.parseInt(declOf(".sort select", "min-height") ?? "0", 10) >= 40)
+    assert.equal(declOf(".lib-bar .chips", "margin-bottom"), "0")
   })
 })
 

@@ -157,7 +157,16 @@ async function main() {
     await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {})
     await page.evaluate(async () => {
       await document.fonts.ready
-      await Promise.all([...document.images].map((img) => img.decode().catch(() => {})))
+      // รูป loading="lazy" ไม่เริ่มโหลดจนกว่าจะเลื่อนใกล้ถึง (decode() ของรูปที่ยังไม่โหลดรอไปเรื่อยๆ จนหน้าค้าง): เลื่อนผ่านทั้งหน้าทีละจอแล้วกลับขึ้นบน
+      // (behavior "instant" กัน scroll-behavior: smooth ของหน้าทำให้ภาพถ่ายตอนยังเลื่อนไม่เสร็จ)
+      const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+      for (let y = 0; y < document.documentElement.scrollHeight; y += window.innerHeight) {
+        window.scrollTo({ top: y, behavior: "instant" })
+        await wait(80)
+      }
+      window.scrollTo({ top: 0, behavior: "instant" })
+      // รูปที่เสีย/ช้าไม่ควรกั้นภาพถ่ายเกิน 5 วินาที (decode ของรูปเสียจะ reject อยู่แล้ว)
+      await Promise.all([...document.images].map((img) => Promise.race([img.decode().catch(() => {}), wait(5000)])))
     })
     const size = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }))
     if (size.scroll > size.client) notes.push(`แถบเลื่อนแนวนอน: scrollWidth ${size.scroll} > ความกว้างหน้าจอ ${size.client}`)

@@ -24,7 +24,8 @@ const MACHINE_ENV = {
 
 function e2eEnv(extra: Record<string, string> = {}): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, ...MACHINE_ENV, ...extra }
-  if (extra.E2E_ADMIN_PASSWORD === undefined) delete env.E2E_ADMIN_PASSWORD
+  // ค่าของเครื่องผู้รันที่ไม่ได้ขอมาในเทสต์นี้ต้องไม่รั่วเข้ามา (E2E_LIBRARY=full ที่เผลอ export ไว้จะทำให้เทสต์ที่นับ "หนึ่งเรื่อง" พังแบบงงๆ)
+  for (const key of ["E2E_ADMIN_PASSWORD", "E2E_LIBRARY", "E2E_HERO"]) if (extra[key] === undefined) delete env[key]
   return env
 }
 
@@ -104,6 +105,65 @@ describe("e2e/server.ts", { concurrency: 3 }, () => {
       assert.equal((await login(url, "e2e-admin-password")).status, 200)
       assert.equal((await login(url, "something-else")).status, 401)
     })
+  })
+
+  test("E2E_LIBRARY=full → ชั้นหนังสือตัวอย่าง: ผู้อ่านเห็นเกิน 24 เรื่อง (ไม่มีเรื่องร่าง) ปกที่มี/ไม่มี/เสียตอบถูกต้อง ผู้ดูแลเห็นเรื่องร่างด้วย", async () => {
+    await using(spawnNode(["../e2e/server.ts"], e2eEnv({ E2E_LIBRARY: "full", E2E_ADMIN_PASSWORD: "pw-for-e2e-test" })), async (_child, url) => {
+      type Card = { id: number; title: string; featured: boolean; hasCover: boolean; coverV: number; published: boolean; chapterCount: number; latestNumber: number | null }
+      const list = (await (await fetch(`${url}/api/public/novels`)).json()) as Card[]
+      assert.ok(list.length > 24 + 3, `ผู้อ่านเห็น ${list.length} เรื่อง`)
+      assert.ok(list.every((n) => n.published))
+      assert.equal(list.some((n) => /draft/i.test(n.title)), false, "เรื่องร่างต้องไม่โผล่ให้ผู้อ่าน")
+      assert.deepEqual(list.filter((n) => n.featured).map((n) => n.title), ["Ledger of the Lantern Tide"])
+      assert.ok(list.some((n) => n.chapterCount === 0 && n.latestNumber === null), "ต้องมีเรื่องที่ยังไม่มีตอน")
+
+      const withCover = list.find((n) => n.hasCover)!
+      const ok = await fetch(`${url}/covers/${withCover.id}?v=${withCover.coverV}`)
+      assert.equal(ok.status, 200)
+      assert.equal(ok.headers.get("content-type"), "image/png")
+      assert.deepEqual(Buffer.from(await ok.arrayBuffer()).subarray(0, 8), Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+      const none = list.find((n) => !n.hasCover)!
+      assert.equal((await fetch(`${url}/covers/${none.id}`)).status, 404)
+      const corrupt = list.find((n) => n.title === "Thirty-One Doors")!
+      const bad = await fetch(`${url}/covers/${corrupt.id}?v=${corrupt.coverV}`)
+      assert.equal(bad.status, 200) // เซิร์ฟเวอร์ส่งให้ (ตรวจแค่ลายเซ็น) — ตัวพังอยู่ที่เบราว์เซอร์ถอดรหัสไม่ได้ ซึ่งเป็นสิ่งที่ตั้งใจทดสอบ
+      assert.ok((await bad.arrayBuffer()).byteLength < 100)
+
+      const cookie = (await login(url, "pw-for-e2e-test")).headers.getSetCookie()[0].split(";")[0]
+      const admin = (await (await fetch(`${url}/api/admin/novels`, { headers: { cookie } })).json()) as { title: string; published: boolean }[]
+      assert.equal(admin.length, list.length + 1)
+      assert.deepEqual(admin.filter((n) => !n.published).map((n) => n.title), ["The Salt Road (draft)"])
+    })
+  })
+
+  test("E2E_HERO: cover → เรื่องแนะนำคือเรื่องที่มีปก · none → ไม่มีเรื่องแนะนำเลย", async () => {
+    type Card = { title: string; featured: boolean; hasCover: boolean }
+    const featured = async (hero: string): Promise<Card[]> =>
+      using(spawnNode(["../e2e/server.ts"], e2eEnv({ E2E_LIBRARY: "full", E2E_HERO: hero })), async (_child, url) => {
+        const list = (await (await fetch(`${url}/api/public/novels`)).json()) as Card[]
+        return list.filter((n) => n.featured)
+      })
+    const [cover, none] = await Promise.all([featured("cover"), featured("none")])
+    assert.deepEqual(cover.map((n) => [n.title, n.hasCover]), [["Moonlit Courier", true]])
+    assert.deepEqual(none, [])
+  })
+
+  test("E2E_LIBRARY / E2E_HERO ค่าที่ไม่รู้จัก หรือ E2E_HERO ที่ไม่มี E2E_LIBRARY=full → ไม่เปิดเซิร์ฟเวอร์ exit 1 พร้อมข้อความบอกสาเหตุ", async () => {
+    const run = async (extra: Record<string, string>, message: RegExp): Promise<void> => {
+      const child = spawnNode(["../e2e/server.ts"], e2eEnv(extra))
+      try {
+        assert.equal(await within(child.exited, 20_000, "จบการทำงาน"), 1, `${child.out()}\n${child.err()}`)
+        assert.doesNotMatch(child.out(), /READY/)
+        assert.match(child.out() + child.err(), message)
+      } finally {
+        await stop(child)
+      }
+    }
+    await Promise.all([
+      run({ E2E_LIBRARY: "yes" }, /E2E_LIBRARY ต้องเป็น "full"/),
+      run({ E2E_LIBRARY: "full", E2E_HERO: "banner" }, /E2E_HERO ต้องเป็นหนึ่งใน demo, cover, none/),
+      run({ E2E_HERO: "none" }, /ใช้ได้เฉพาะเมื่อตั้ง E2E_LIBRARY=full/),
+    ])
   })
 
   test("SIGTERM → ปิดเรียบร้อย exit 0 และลบโฟลเดอร์ฐานข้อมูลชั่วคราวทิ้ง", { skip: WINDOWS && "Windows ไม่มีสัญญาณ POSIX จริง" }, async () => {
