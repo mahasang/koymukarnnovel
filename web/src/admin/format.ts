@@ -27,3 +27,10 @@ export function queueSummary(state: QueueState | null, offline = false): string 
   }
   return state.waitingTotal > 0 ? `รอคิว ${state.waitingTotal} ตอน` : "คิวว่าง"
 }
+
+const COUNT_FORMAT = new Intl.NumberFormat("en-US")
+
+/** จำนวนเต็มแบ่งหลักพันด้วยจุลภาค "12,345" (ตายตัว ไม่ขึ้นกับภาษาของเครื่อง) · ค่าที่ใช้ไม่ได้ (NaN, อินฟินิตี้) → "0" */
+export function formatCount(value: number): string {
+  return Number.isFinite(value) ? COUNT_FORMAT.format(Math.round(value)) : "0"
+}

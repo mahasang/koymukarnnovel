@@ -138,7 +138,7 @@ describe("ตัวแปร CSS และสี", () => {
         assert.equal(literal.test(value), false, `${rule.selectors.join(", ")} { ${property}: ${value} }`)
       }
     }
-    for (const name of ["--ad-danger", "--ad-danger-ink", "--ad-danger-text", "--ad-scrim"]) assert.ok(rulesFor(":root").some((rule) => rule.decls[name] !== undefined), name)
+    for (const name of ["--ad-danger", "--ad-danger-ink", "--ad-danger-text", "--ad-warn-text", "--ad-ok-text", "--ad-scrim"]) assert.ok(rulesFor(":root").some((rule) => rule.decls[name] !== undefined), name)
   })
 
   test("color ของทุกกฎมาจาก var() / inherit / color-mix ของตัวแปร", () => {
@@ -228,6 +228,45 @@ describe("สีแดงของหลังบ้านผ่านควา�
       const candidates = [themeAccent, ...accents.map((a) => decl(`html[data-accent="${a}"]`, dark ? "--a-dark" : "--a-light"))]
       const tint = candidates.map((accent) => mix(accent, pct, surfaces(theme).surface))
       for (const bg of tint) assert.ok(contrast(adminToken("--ad-danger-text", theme), bg) >= 4.5, `${theme}: แดงบน ${bg} = ${contrast(adminToken("--ad-danger-text", theme), bg).toFixed(2)}`)
+    }
+  })
+
+  test("ข้อความเตือน (--ad-warn-text) และสำเร็จ (--ad-ok-text) ผ่าน ≥ 4.5:1 บนพื้นธีมทุกแบบ และบนพื้นป้ายที่ผสมสีนั้นเอง 14% กับ --surface", () => {
+    for (const token of ["--ad-warn-text", "--ad-ok-text", "--ad-danger-text"]) {
+      for (const theme of THEMES) {
+        const color = adminToken(token, theme)
+        const s = surfaces(theme)
+        for (const [name, bg] of Object.entries({ bg: s.bg, bg2: s.bg2, surface: s.surface, surface2: s.surface2 })) assert.ok(contrast(color, bg) >= 4.5, `${token} ${theme}: ${color} บน ${name} ${bg} = ${contrast(color, bg).toFixed(2)}`)
+        const pill = mix(color, 14, s.surface)
+        assert.ok(contrast(color, pill) >= 4.5, `${token} ${theme}: ${color} บนป้าย ${pill} = ${contrast(color, pill).toFixed(2)}`)
+      }
+    }
+    // พื้นป้ายในโค้ดผสมที่ 14% จริง (ตัวเลขที่เทสต์ข้างบนใช้ต้องตรงกับ CSS)
+    for (const tone of ["warn", "ok", "fail"]) assert.match(declOf(`.ad-pill[data-tone="${tone}"]`, "background") ?? "", /^color-mix\(in srgb, var\(--ad-(?:warn|ok|danger)-text\) 14%, var\(--surface\)\)$/, tone)
+    assert.match(declOf(".ad-retry", "background") ?? "", /^color-mix\(in srgb, var\(--ad-danger-text\) 14%, var\(--surface\)\)$/)
+  })
+
+  test("ธีมสว่างใช้สีเตือน/สำเร็จเข้ม ธีมมืดใช้สีอ่อน (เหมือนสีแดง) และธีมที่เป็นชนิดเดียวกันได้สีเดียวกัน", () => {
+    for (const token of ["--ad-warn-text", "--ad-ok-text"]) {
+      assert.notEqual(adminToken(token, "paper"), adminToken(token, "midnight"))
+      assert.equal(adminToken(token, "paper"), adminToken(token, "sepia"))
+      assert.equal(adminToken(token, "midnight"), adminToken(token, "black"))
+    }
+  })
+
+  test("ข้อความในรายการ \"เริ่มต้นใช้งาน\" ที่เน้นสี (พื้น = accent 12% ผสม --surface): ตัวหนังสือสี --text ผ่านทุกธีม × ทุกชุด accent", () => {
+    assert.match(declOf('.ad-onboard-item[data-state="warn"]', "background") ?? "", /^color-mix\(in srgb, var\(--accent\) 12%, var\(--surface\)\)$/)
+    assert.equal(declOf('.ad-onboard-item[data-state="warn"] .ad-onboard-hint', "color"), "var(--text)")
+    const accents = ["violet", "pink", "teal", "amber", "blue"]
+    for (const theme of THEMES) {
+      const dark = theme === "midnight" || theme === "black"
+      const selector = theme === "midnight" ? ":root" : `html[data-theme="${theme}"]`
+      const themeAccent = /var\(--a(?:-dark|-light), (#[0-9a-f]{6})\)/i.exec(decl(selector, "--accent"))![1]!
+      const candidates = [themeAccent, ...accents.map((a) => decl(`html[data-accent="${a}"]`, dark ? "--a-dark" : "--a-light"))]
+      for (const accent of candidates) {
+        const bg = mix(accent, 12, surfaces(theme).surface)
+        assert.ok(contrast(decl(selector, "--text"), bg) >= 4.5, `${theme}: --text บน ${bg}`)
+      }
     }
   })
 
@@ -377,5 +416,93 @@ describe("โครงหน้า: เมนูข้าง 248px ↔ แถบ
     assert.equal(declOf(".ad-login", "place-items"), "center")
     assert.equal(declOf(".ad-login-card", "max-width"), "400px")
     assert.equal(declOf(".ad-login-card", "width"), "100%")
+  })
+})
+
+// ───────────────────────── แดชบอร์ด ─────────────────────────
+
+describe("แดชบอร์ด: โครงหน้าและส่วนที่โค้ดพึ่งพา", () => {
+  test("ป้ายสถานะมีสไตล์ครบทุก data-tone ที่โค้ดใช้ (ok / fail / warn / idle) — พิมพ์ผิดแล้วป้ายจะกลายเป็นสีกลางๆ เงียบๆ", () => {
+    const dashboard = read("../admin/Dashboard.tsx")
+    const logic = read("../admin/dashboard-logic.ts")
+    const literal = [...dashboard.matchAll(/data-tone="(\w+)"/g)].map((m) => m[1]!)
+    const fromStatus = [...logic.matchAll(/tone: "(\w+)"/g)].map((m) => m[1]!)
+    assert.ok(literal.includes("warn") && fromStatus.includes("ok") && fromStatus.includes("fail") && fromStatus.includes("idle"))
+    for (const tone of new Set([...fromStatus, "warn"])) assert.equal(rulesFor(`.ad-pill[data-tone="${tone}"]`).length, 1, tone)
+    assert.equal(rulesFor('.ad-onboard-item[data-state="warn"]').length, 1)
+    for (const state of ["done", "warn"]) assert.equal(rulesFor(`.ad-onboard-item[data-state="${state}"] .ad-onboard-mark`).length, 1, state)
+    assert.equal(rulesFor('.ad-stat[data-tone="fail"]').length, 1)
+  })
+
+  test("การ์ดตัวเลขเรียงตัวเองตามความกว้าง (auto-fit) และการ์ดตอนผิดพลาดใช้สีแดงของหลังบ้าน", () => {
+    assert.match(declOf(".ad-stats", "grid-template-columns") ?? "", /^repeat\(auto-fit, minmax\(\d+px, 1fr\)\)$/)
+    assert.equal(declOf('.ad-stat[data-tone="fail"] .ad-stat-value', "color"), "var(--ad-danger-text)")
+    assert.equal(declOf(".ad-stat-value", "font-family"), "var(--font-ui)")
+  })
+
+  test("จอกว้าง: คิว (กว้างกว่า) + กราฟ แล้วความคืบหน้า + การใช้ AI · จอแคบเรียงเป็นคอลัมน์เดียว", () => {
+    assert.match(declOf(".ad-dash-top", "grid-template-columns") ?? "", /^minmax\(0, 1\.\d+fr\) minmax\(0, 1fr\)$/)
+    assert.equal(declOf(".ad-dash-row", "grid-template-columns"), "repeat(2, minmax(0, 1fr))")
+    assert.equal(declOf(".ad-dash-row", "grid-template-columns", MOBILE), "minmax(0, 1fr)")
+    assert.equal(declOf(".ad-dash-top", "grid-template-columns", MOBILE), "minmax(0, 1fr)")
+    assert.equal(declOf(".ad-ph-actions", "width", MOBILE), "100%")
+    // แผงต้องหดได้ในตาราง (ไม่ให้ตารางการใช้ AI ดันหน้ากว้างเกินจอ)
+    assert.equal(declOf(".ad-panel", "min-width"), "0")
+  })
+
+  test("จอแคบ: ป้าย \"ควรทำก่อนเผยแพร่\" ลงไปบรรทัดของตัวเองใต้ข้อความ (ไม่นั่งข้างๆ จนข้อความถูกบีบเหลือคำเดียวต่อบรรทัด)", () => {
+    // เจอจากภาพจริงที่ 390px: แถวแบบ flex ยัดป้ายที่ห้ามตัดบรรทัดไว้ข้างข้อความ ข้อความเหลือกว้างราว 60px
+    assert.equal(declOf(".ad-onboard-link", "display"), "flex")
+    assert.equal(declOf(".ad-onboard-link", "display", MOBILE), "grid")
+    assert.equal(declOf(".ad-onboard-link", "grid-template-columns", MOBILE), "32px minmax(0, 1fr) auto")
+    const pill = ".ad-onboard-link > .ad-pill"
+    assert.equal(declOf(pill, "grid-row", MOBILE), "2")
+    assert.equal(declOf(pill, "grid-column", MOBILE), "2 / 4")
+    assert.equal(declOf(pill, "justify-self", MOBILE), "start")
+    // คอลัมน์แรกต้องกว้างเท่าวงกลมเลขข้อ ไม่งั้นข้อความเยื้องไม่ตรงกับแถวอื่น
+    assert.equal(declOf(".ad-onboard-mark", "width"), "32px")
+  })
+
+  test("กล่องข้อความที่ไหล: เลื่อนในกล่องได้ (สูงจำกัด + overflow-y: auto) เพื่อให้เลื่อนลงท้ายสุดเองได้ และขึ้นบรรทัดตามข้อความจริง", () => {
+    assert.equal(declOf(".ad-live", "overflow-y"), "auto")
+    assert.match(declOf(".ad-live", "max-height") ?? "", /^\d+px$/)
+    assert.equal(declOf(".ad-live", "white-space"), "pre-wrap")
+    assert.equal(declOf(".ad-live", "overflow-wrap"), "anywhere")
+    assert.match(declOf(".ad-live", "border-left") ?? "", /var\(--accent\)/)
+  })
+
+  test("วงหมุนของตอนที่กำลังแปลมี keyframes ชื่อเดียวกับที่ใช้ (animation ชี้ไปที่ว่างเปล่าไม่หมุน)", () => {
+    const name = /^ad-spin\b/.exec(declOf(".ad-spin", "animation") ?? "")
+    assert.ok(name, declOf(".ad-spin", "animation"))
+    assert.match(adminCss, /@keyframes ad-spin\s*\{/)
+  })
+
+  test("ตารางการใช้ AI เลื่อนแนวนอนในกรอบของมันเอง (จอแคบ) และกราฟยอดอ่านมีความสูงและวางเป็นบล็อก", () => {
+    assert.equal(declOf(".ad-scroll", "overflow-x"), "auto")
+    assert.equal(declOf(".ad-table", "white-space"), "nowrap")
+    assert.equal(declOf(".ad-chart-svg", "display"), "block")
+    assert.equal(declOf(".ad-chart-svg", "width"), "100%")
+    assert.match(declOf(".ad-chart-svg", "height") ?? "", /^\d+px$/)
+    assert.equal(declOf(".ad-chart-days", "display"), "grid")
+    assert.equal(declOf(".ad-bar", "fill"), "url(#ad-bar-fill)")
+    assert.match(read("../admin/chart.tsx"), /id="ad-bar-fill"/)
+  })
+
+  test("ปุ่มลองใหม่และปุ่มปิดข้อความแตะง่าย (สูง ≥ 36px) และปุ่มลองใหม่ใช้สีแดงเดียวกับป้ายผิดพลาด", () => {
+    assert.ok(parseInt(declOf(".ad-retry", "min-height") ?? "0") >= 36)
+    assert.ok(parseInt(declOf(".ad-notice-close", "width") ?? "0") >= 36)
+    assert.ok(parseInt(declOf(".ad-notice-close", "height") ?? "0") >= 36)
+    assert.equal(declOf(".ad-retry", "color"), declOf('.ad-pill[data-tone="fail"]', "color"))
+  })
+
+  test("แถบความคืบหน้า: รางจางๆ ไล่สี accent และไม่ล้นรางตอนค่า 100%", () => {
+    assert.match(declOf(".ad-meter-fill", "background") ?? "", /^linear-gradient\(90deg, var\(--accent\), var\(--accent-2\)\)$/)
+    assert.equal(declOf(".ad-meter", "overflow"), "hidden")
+    assert.equal(declOf(".ad-meter-fill", "height"), "100%")
+  })
+
+  test("ข้อความแจ้งผลเผยแพร่ใช้สีสำเร็จของหลังบ้าน ไม่ใช้สี accent เป็นตัวอักษร", () => {
+    assert.match(declOf(".ad-notice", "background") ?? "", /var\(--ad-ok-text\)/)
+    assert.equal(declOf(".ad-notice", "color"), "var(--text)")
   })
 })

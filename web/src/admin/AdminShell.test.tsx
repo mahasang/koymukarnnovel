@@ -106,7 +106,6 @@ describe("AdminShellView", () => {
 
   test("ทุกเส้นทางที่ยังเป็นที่ว่าง: หัวเรื่องตรงหน้านั้น + ข้อความ \"ยังไม่พร้อมใช้งาน\" (ขั้นถัดไปแทนที่ทีละหน้า)", () => {
     const titles: [string, string][] = [
-      ["/admin", "แดชบอร์ด"],
       ["/admin/novels", "นิยาย"],
       ["/admin/novels/new", "เพิ่มนิยายใหม่"],
       ["/admin/novels/7", "จัดการนิยาย"],
@@ -119,6 +118,14 @@ describe("AdminShellView", () => {
       assert.equal(text(one(root, "h1")), title, path)
       assert.equal(text(one(root, ".state-title")), "หน้านี้ยังไม่พร้อมใช้งาน", path)
     }
+  })
+
+  test("/admin เป็นแดชบอร์ดจริง (ไม่ใช่ที่ว่าง): หัวหน้า + ปุ่มลัด + โครงจำลองระหว่างรอข้อมูล", () => {
+    const root = at(ready, "/admin")
+    assert.equal(text(one(root, "h1")), "แดชบอร์ด")
+    assert.equal(all(root, ".state-title").length, 0)
+    assert.deepEqual(all(one(root, "div.ad-ph-actions"), "a").map((a) => a.attrs.href), ["/admin/add", "/admin/novels/new"])
+    assert.equal(all(one(root, "main.ad-main"), ".skeleton").length, 1)
   })
 
   test("โหมดไม่มีรหัสผ่านส่งต่อให้โครง (ไม่มีปุ่มออกจากระบบ)", () => {

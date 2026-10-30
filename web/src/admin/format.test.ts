@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
-import { STATUS_LABEL, queueSummary, retryWaitPhrase } from "./format"
+import { STATUS_LABEL, formatCount, queueSummary, retryWaitPhrase } from "./format"
 import type { ChapterStatus, QueueState } from "./types"
 
 const state = (over: Partial<QueueState> = {}): QueueState => ({
@@ -72,5 +72,22 @@ describe("queueSummary: ขอบ \"มีตอนรอ\" (1 ตอนก็�
     assert.equal(queueSummary(state({ paused: true, waitingTotal: 1 })), "คิวหยุดอยู่ · ค้าง 1 ตอน")
     assert.equal(queueSummary(state({ current, waitingTotal: 1 })), "กำลังแปลตอนที่ 12 · รอ 1 ตอน")
     assert.equal(queueSummary(state({ waitingTotal: 1 })), "รอคิว 1 ตอน")
+  })
+})
+
+describe("formatCount", () => {
+  test("แบ่งหลักพันด้วยจุลภาค และปัดเศษ", () => {
+    assert.equal(formatCount(0), "0")
+    assert.equal(formatCount(999), "999")
+    assert.equal(formatCount(1000), "1,000")
+    assert.equal(formatCount(1234567), "1,234,567")
+    assert.equal(formatCount(2.6), "3")
+    assert.equal(formatCount(1.4), "1") // ปัดตามค่าใกล้สุด ไม่ใช่ปัดขึ้น/ลงเสมอ
+    assert.equal(formatCount(1999.5), "2,000")
+  })
+
+  test("ค่าที่ใช้ไม่ได้ → 0", () => {
+    assert.equal(formatCount(Number.NaN), "0")
+    assert.equal(formatCount(Number.POSITIVE_INFINITY), "0")
   })
 })

@@ -12,6 +12,7 @@ import type { ApiError } from "../lib/api"
 import { useDocumentTitle } from "../lib/useDocumentTitle"
 import { useFetch } from "../lib/useFetch"
 import { admin } from "./adminApi"
+import { Dashboard } from "./Dashboard"
 import { AdminLayout } from "./Layout"
 import { Login } from "./Login"
 import { QueueProvider } from "./QueueContext"
@@ -68,7 +69,7 @@ function AdminNotFound() {
 
 /** เส้นทางสัมพัทธ์กับ `/admin` (`handle.page` ไว้ให้เทสต์อ่านว่าตรงหน้าไหน) */
 export const adminRoutes: RouteObject[] = [
-  { index: true, element: <ComingSoon title="แดชบอร์ด" />, handle: { page: "dashboard" } },
+  { index: true, element: <Dashboard />, handle: { page: "dashboard" } },
   { path: "novels", element: <ComingSoon title="นิยาย" />, handle: { page: "novels" } },
   { path: "novels/new", element: <ComingSoon title="เพิ่มนิยายใหม่" />, handle: { page: "novel-new" } },
   { path: "novels/:id", element: <ComingSoon title="จัดการนิยาย" />, handle: { page: "novel" } },
