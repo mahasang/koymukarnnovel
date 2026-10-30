@@ -149,7 +149,7 @@ describe("กติกาสีที่ tokens.css กำหนดไว้ถ�
   })
 
   test("พื้นที่ระบายด้วย --accent / --accent-2 ใช้ข้อความสี --accent-ink", () => {
-    const NO_TEXT = [".switch.on .switch-track", ".bar i"] // แค่ราง/แถบเติม ไม่มีข้อความข้างใน
+    const NO_TEXT = [".switch.on .switch-track", ".bar i", ".rb-fill"] // แค่ราง/แถบเติม ไม่มีข้อความข้างใน
     const painted = rules.filter((rule) => usesAccent(rule.decls.background) || usesAccent(rule.decls["background-color"]))
     assert.ok(painted.length >= 6, `พบ ${painted.length} กฎ`)
     for (const rule of painted) {
@@ -992,6 +992,186 @@ describe("หน้าเรื่อง: โครงที่ค่าอื�
   })
 })
 
+// ───────────────────────── หน้าอ่าน ─────────────────────────
+
+describe("หน้าอ่าน: คอลัมน์ข้อความ ไฮไลต์ และเส้นคั่นฉาก", () => {
+  test("คอลัมน์ ~680px กึ่งกลางจอ · บรรทัดห่าง 1.9 · ฟอนต์ตามที่ผู้อ่านเลือก (spec 6.3)", () => {
+    assert.equal(declOf(".rd-main", "max-width"), "680px")
+    assert.equal(declOf(".rd-main", "margin-inline"), "auto")
+    assert.equal(declOf(".rd", "line-height"), "1.9")
+    assert.equal(declOf(".rd", "font-family"), "var(--font-body)")
+    assert.equal(declOf(".rd-serif", "font-family"), "var(--font-serif)")
+  })
+
+  test("ย่อหน้าคงบรรทัดใหม่ในย่อหน้า (pre-line) และตัดคำยาวที่ไม่มีช่องว่าง (URL) ไม่ให้ดันหน้าล้นจอ", () => {
+    assert.equal(declOf(".rd-p", "white-space"), "pre-line")
+    assert.equal(declOf(".rd-p", "overflow-wrap"), "anywhere")
+    assert.equal(declOf(".rd-heading", "overflow-wrap"), "anywhere")
+  })
+
+  test("ไฮไลต์ตอนอ่านออกเสียงยื่นออกนอกตัวอักษรโดยตัวอักษรไม่ขยับ: padding ข้างเท่ากับ margin ติดลบ และ .speaking ไม่แตะระยะ/เส้นขอบ", () => {
+    const margin = /^0 (-\d+)px \d/.exec(declOf(".rd-p", "margin") ?? "")
+    const padding = /^\d+px (\d+)px$/.exec(declOf(".rd-p", "padding") ?? "")
+    assert.ok(margin && padding, `${declOf(".rd-p", "margin")} / ${declOf(".rd-p", "padding")}`)
+    assert.equal(Number(margin[1]) + Number(padding[1]), 0)
+    const speaking = rulesFor(".rd-p.speaking")
+    assert.equal(speaking.length, 1)
+    for (const property of Object.keys(speaking[0].decls)) assert.ok(["background", "box-shadow"].includes(property), property)
+  })
+
+  test("ช่องไฟข้างของเนื้อหา ≥ ส่วนที่ไฮไลต์ยื่นออก ทุกขนาดจอ (ไม่ล้นแนวนอน)", () => {
+    const bleed = Number(/-(\d+)px/.exec(declOf(".rd-p", "margin") ?? "")?.[1])
+    const desktop = /^\d+px (\d+)px \d+px$/.exec(declOf(".rd-main", "padding") ?? "")
+    assert.ok(desktop, declOf(".rd-main", "padding"))
+    assert.ok(Number(desktop[1]) >= bleed)
+    assert.ok(px(declOf(".rd-main", "padding-inline", "(max-width: 519px)")) >= bleed)
+  })
+
+  test("พื้นไฮไลต์เป็น --surface-2 (ความต่างสีกับข้อความผ่านตามตาราง tokens) ขอบซ้ายสี accent ไม่ใช้พื้นสี accent ใต้ข้อความ", () => {
+    assert.equal(declOf(".rd-p.speaking", "background"), "var(--surface-2)")
+    assert.match(declOf(".rd-p.speaking", "box-shadow") ?? "", /var\(--accent\)$/)
+  })
+
+  test("เนื้อหาไม่เริ่มใต้แถบบน (padding บน) ทุกขนาดจอ · ย่อหน้าไม่ใช้ scroll-margin ตายตัว (การเลื่อนตามเสียงวัดจากแถบบนจริงใน Reader.tsx)", () => {
+    assert.equal(declOf(".rd-p", "scroll-margin-top"), undefined)
+    assert.ok(px(/^(\d+px)/.exec(declOf(".rd-main", "padding") ?? "")?.[1]) >= 80)
+    assert.ok(px(declOf(".rd-main", "padding-top", "(max-width: 719px)")) >= 80)
+  })
+
+  test("เส้นคั่นฉาก: แถวกลางจอ จุดกลมสามจุดมีสีและขนาด", () => {
+    assert.equal(declOf(".rd-scene", "display"), "flex")
+    assert.equal(declOf(".rd-scene", "justify-content"), "center")
+    assert.equal(declOf(".rd-scene i", "border-radius"), "50%")
+    assert.equal(declOf(".rd-scene i", "width"), declOf(".rd-scene i", "height"))
+    assert.ok(px(declOf(".rd-scene i", "width")) >= 4)
+    assert.equal(declOf(".rd-scene i", "background"), "var(--muted)")
+  })
+
+  test("ปุ่มท้ายตอน: สามคอลัมน์เท่ากัน · จอแคบ ≤ 519 เหลือสองคอลัมน์และ 'ถัดไป' ขึ้นก่อนเต็มแถว · ปุ่มที่ไม่มีตอนทางนั้นจางและกดไม่ได้", () => {
+    assert.equal(declOf(".rd-nav", "display"), "grid")
+    assert.equal(declOf(".rd-nav", "grid-template-columns"), "repeat(3, minmax(0, 1fr))")
+    assert.equal(declOf(".rd-nav", "grid-template-columns", "(max-width: 519px)"), "repeat(2, minmax(0, 1fr))")
+    assert.equal(declOf(".rd-next", "grid-column", "(max-width: 519px)"), "1 / -1")
+    assert.equal(declOf(".rd-next", "order", "(max-width: 519px)"), "-1")
+    assert.ok(Number(declOf(".rd-nav .off", "opacity")) < 1)
+    assert.equal(declOf(".rd-nav .off", "cursor"), "default")
+    assert.equal(declOf(".rd-prev", "min-width"), "0")
+  })
+
+  test("ตัวอักษรของหน้าอ่านทุกกฎ ≥ 12px; ชื่อเรื่องบนแถบ ≥ 14px", () => {
+    const readerRules = rules.filter((rule) => rule.selectors.some((selector) => /^\.(rd|rb|rs)\b|^\.rd-|^\.rb-|^\.rs-/.test(selector)))
+    let checked = 0
+    for (const rule of readerRules) {
+      const size = rule.decls["font-size"]
+      if (size === undefined || size.endsWith("em")) continue
+      checked += 1
+      assert.ok(px(size) >= 12, `${rule.selectors.join(",")} ${size}`)
+    }
+    assert.ok(checked >= 8, `ตรวจ ${checked} กฎ`)
+    assert.ok(px(declOf(".rb-novel", "font-size")) >= 14)
+  })
+})
+
+describe("หน้าอ่าน: แถบบนและแผงตั้งค่า", () => {
+  test("แถบบนตรึงบนสุดเต็มความกว้าง ลอยเหนือเนื้อหา แต่ใต้ฉากมืด/แผงตั้งค่า และใต้ลิงก์ข้ามเนื้อหา", () => {
+    for (const [property, value] of [
+      ["position", "fixed"],
+      ["top", "0"],
+      ["left", "0"],
+      ["right", "0"],
+    ])
+      assert.equal(declOf(".rb", property), value, property)
+    const bar = Number(declOf(".rb", "z-index"))
+    const scrim = Number(declOf(".rs-scrim", "z-index", "(max-width: 719px)"))
+    const panel = Number(declOf(".rs", "z-index"))
+    assert.ok(bar > 0 && bar < scrim && scrim < panel && panel < Number(declOf(".skip-link", "z-index")), `${bar} ${scrim} ${panel}`)
+  })
+
+  test("ซ่อนแถบ = เลื่อนขึ้นพ้นจอ + visibility: hidden (Tab ไม่เข้าไปโฟกัสปุ่มที่มองไม่เห็น) โดยหน่วง visibility ให้เลื่อนจบก่อน", () => {
+    assert.equal(declOf(".rb.hidden", "transform"), "translateY(-100%)")
+    assert.equal(declOf(".rb.hidden", "visibility"), "hidden")
+    assert.match(declOf(".rb.hidden", "transition") ?? "", /visibility 0s linear 0\.25s/)
+    assert.match(declOf(".rb", "transition") ?? "", /^transform 0\.25s/)
+  })
+
+  test("เส้นความคืบหน้าห้อยใต้แถบ 3px และ visibility: visible — แถบซ่อนแล้วเส้นยังเกาะขอบบนของจอ", () => {
+    assert.equal(declOf(".rb-progress", "position"), "absolute")
+    assert.equal(declOf(".rb-progress", "bottom"), "-3px")
+    assert.equal(declOf(".rb-progress", "height"), "3px")
+    assert.equal(declOf(".rb-progress", "visibility"), "visible")
+    assert.equal(declOf(".rb-fill", "display"), "block")
+    assert.equal(declOf(".rb-fill", "height"), "100%")
+  })
+
+  test("แถวในแถบ: ชื่อเรื่องหดและตัดด้วย … ได้ (ปุ่มไม่ถูกบีบ) ปุ่มทุกอันกดได้ง่าย (≥ 40px)", () => {
+    assert.equal(declOf(".rb-info", "min-width"), "0")
+    assert.equal(declOf(".rb-info", "flex"), "1 1 auto")
+    assert.equal(declOf(".rb-actions", "flex"), "none")
+    assert.equal(declOf(".rb-novel", "overflow"), "hidden")
+    assert.equal(declOf(".rb-novel", "text-overflow"), "ellipsis")
+    assert.equal(declOf(".rb-novel", "white-space"), "nowrap")
+    assert.ok(px(declOf(".iconbtn", "width")) >= 40 && px(declOf(".iconbtn", "height")) >= 40)
+    assert.equal(declOf(".rb-row", "display"), "flex")
+    assert.equal(declOf(".rb-row", "align-items"), "center")
+  })
+
+  test("แถวควบคุมเสียงตัดบรรทัดได้บนจอแคบ · แถบเลื่อนความเร็วหดได้", () => {
+    assert.equal(declOf(".rb-player", "flex-wrap"), "wrap")
+    assert.equal(declOf(".rb-rate", "min-width"), "0")
+    assert.equal(declOf(".rb-range", "min-width"), "0")
+    assert.equal(declOf(".rb-rate-value", "font-variant-numeric"), "tabular-nums")
+  })
+
+  test("ปุ่มเล่น/หยุดทาสี accent ต้องใช้ข้อความสี --accent-ink", () => {
+    assert.equal(declOf(".iconbtn.rb-play", "background"), "var(--accent)")
+    assert.equal(declOf(".iconbtn.rb-play", "color"), "var(--accent-ink)")
+  })
+
+  test("จอกว้าง: แผงเป็นป๊อปโอเวอร์ตรึงใต้แถบบน กว้างไม่เกิน 360 เลื่อนในตัวได้ถ้าสูงเกินจอ · ฉากมืดซ่อนอยู่", () => {
+    assert.equal(declOf(".rs", "position"), "fixed")
+    assert.ok(px(declOf(".rs", "width")) <= 360)
+    assert.equal(declOf(".rs", "overflow-y"), "auto")
+    assert.match(declOf(".rs", "max-height") ?? "", /^calc\(100d?vh - \d+px\)$/)
+    assert.ok(px(declOf(".rs", "top")) >= 60)
+    assert.equal(declOf(".rs-scrim", "display"), "none")
+  })
+
+  test("จอแคบ ≤ 719: แผงเป็นแผ่นล่างเต็มความกว้างชิดขอบล่าง มุมบนโค้ง สูงไม่เกิน 82% ของจอ มีฉากมืดคลุมทั้งจอ", () => {
+    const m = "(max-width: 719px)"
+    assert.equal(declOf(".rs", "top", m), "auto")
+    for (const edge of ["right", "bottom", "left"]) assert.equal(declOf(".rs", edge, m), "0", edge)
+    assert.equal(declOf(".rs", "width", m), "auto")
+    assert.match(declOf(".rs", "border-radius", m) ?? "", /^\d+px \d+px 0 0$/)
+    assert.match(declOf(".rs", "max-height", m) ?? "", /^82d?vh$/)
+    assert.equal(declOf(".rs-scrim", "display", m), "block")
+    assert.equal(declOf(".rs-scrim", "position", m), "fixed")
+    assert.equal(declOf(".rs-scrim", "inset", m), "0")
+  })
+
+  test("ตัวเลือกในแผงกดง่าย (สูง ≥ 44px) และแถบเลื่อนขนาดตัวอักษรหดได้ในแถว", () => {
+    assert.ok(px(declOf(".rs-opt", "min-height")) >= 44)
+    assert.equal(declOf(".rs-range", "min-width"), "0")
+    assert.equal(declOf(".rs-opt.on", "border-color"), "var(--accent)")
+    assert.equal(declOf(".rs-options", "flex-wrap"), "wrap")
+  })
+
+  test("ปุ่มฟอนต์แสดงตัวอย่างด้วยฟอนต์ของมันเอง", () => {
+    assert.equal(declOf('.rs-font[data-f="sarabun"]', "font-family"), "var(--font-body)")
+    assert.equal(declOf('.rs-font[data-f="serif"]', "font-family"), "var(--font-serif)")
+  })
+
+  test("ตัวหมายสีธีมตรงกับค่าจริงใน tokens.css (พื้น --bg และ accent เริ่มต้นของธีม) ไม่ล่องลอยไปจากธีมจริง", () => {
+    const tokens = parseCss(read("./tokens.css"))
+    const hex = /#[0-9a-fA-F]{6}\b/
+    for (const theme of ["midnight", "paper", "sepia", "black"]) {
+      const block = tokens.find((rule) => rule.selectors.includes(`html[data-theme="${theme}"]`) && rule.media === null)
+      assert.ok(block, theme)
+      assert.equal(declOf(`.rs-theme[data-t="${theme}"]`, "--sw-bg"), block.decls["--bg"], `${theme} bg`)
+      assert.equal(declOf(`.rs-theme[data-t="${theme}"]`, "--sw-ac"), hex.exec(block.decls["--accent"] ?? "")?.[0], `${theme} accent`)
+    }
+  })
+})
+
 // ───────────────────────── รูปแบบไฟล์ ─────────────────────────
 
 describe("รูปแบบไฟล์", () => {
@@ -1016,5 +1196,70 @@ describe("รูปแบบไฟล์", () => {
 
   test("ไม่มี !important (สไตล์ซ้อนกันด้วยลำดับ ไม่ใช่การบังคับ)", () => {
     assert.doesNotMatch(publicCss, /!important/)
+  })
+})
+
+// ───────────────────────── หน้าอ่าน: ค่าที่กระทบการใช้งานจริง ─────────────────────────
+// mutation พบว่าเดิมไม่ได้ตรึงไว้ (ถ้าหายไป: แถบโปร่งใสทับตัวอักษร, เส้นความคืบหน้ามองไม่เห็น, แผงไม่มีพื้น, สวิตช์สถานะไม่เปลี่ยนสี ฯลฯ)
+// ค่าความสวยล้วนๆ ที่เหลือ (ระยะห่าง มุมโค้ง ขนาดอักษร) ตรวจด้วยตา
+
+describe("หน้าอ่าน: ค่าที่กระทบการใช้งานจริง", () => {
+  test("แถบบนมีพื้นหลังจริง (ไม่โปร่งใสทับตัวอักษรตอนเลื่อน) และเส้นขอบล่าง", () => {
+    assert.match(declOf(".rb", "background") ?? "", /var\(--bg\)/)
+    assert.match(declOf(".rb", "border-bottom") ?? "", /var\(--line\)/)
+  })
+
+  test("เส้นความคืบหน้ากางเต็มความกว้างแถบ และตัวเติมมีสี accent", () => {
+    assert.equal(declOf(".rb-progress", "left"), "0")
+    assert.equal(declOf(".rb-progress", "right"), "0")
+    assert.match(declOf(".rb-fill", "background") ?? "", /var\(--accent\)/)
+  })
+
+  test("โครงแถว: ชื่อเรื่อง/ตอนซ้อนเป็นแนวตั้ง · ปุ่มเรียงแนวนอน · แถวควบคุมเสียงและแถบความเร็วเป็น flex", () => {
+    assert.equal(declOf(".rb-info", "display"), "flex")
+    assert.equal(declOf(".rb-info", "flex-direction"), "column")
+    for (const selector of [".rb-actions", ".rb-player", ".rb-rate"]) assert.equal(declOf(selector, "display"), "flex", selector)
+  })
+
+  test("ปุ่มที่เปิด/ทำงานอยู่ (.iconbtn.on) เปลี่ยนสีเป็น accent ให้เห็นสถานะ", () => {
+    assert.equal(declOf(".iconbtn.on", "color"), "var(--accent)")
+    assert.equal(declOf(".iconbtn.on", "border-color"), "var(--accent)")
+  })
+
+  test("แถบบน แถวควบคุมเสียง และแผงตั้งค่าเรียงตามคอลัมน์เดียวกับเนื้อหาเว็บ (กว้างสุดเท่า .wrap · ขอบในซ้าย-ขวา 16)", () => {
+    const column = declOf(".wrap", "max-width")
+    assert.equal(column, "1160px")
+    assert.equal(declOf(".rb-row", "max-width"), column)
+    assert.equal(declOf(".rb-player", "max-width"), column)
+    assert.equal(declOf(".rb-row", "margin-inline"), "auto")
+    assert.equal(declOf(".rb-player", "margin-inline"), "auto")
+    assert.match(declOf(".rb-row", "padding") ?? "", /^\d+(px)? 16px$/)
+    assert.match(declOf(".rb-player", "padding") ?? "", /^\d+(px)? 16px \d+px$/)
+    assert.equal(declOf(".rs", "right"), "max(16px, calc((100vw - 1160px) / 2 + 16px))")
+  })
+
+  test("แผงตั้งค่ามีพื้นและสีตัวอักษรของตัวเอง ขอบ เงา และไม่สูงเกินจอ", () => {
+    assert.equal(declOf(".rs", "background"), "var(--surface)")
+    assert.equal(declOf(".rs", "color"), "var(--text)")
+    assert.match(declOf(".rs", "border") ?? "", /var\(--line\)/)
+    assert.equal(declOf(".rs", "box-shadow"), "var(--shadow)")
+    assert.match(declOf(".rs", "max-height") ?? "", /100d?vh/)
+    assert.equal(declOf(".rs", "overflow-y"), "auto")
+  })
+
+  test("จอแคบ: แผ่นล่างสูงไม่เกิน 82% ของจอ เว้นขอบล่างของ iPhone และฉากมืดมีสีจริง", () => {
+    assert.match(declOf(".rs", "max-height", "(max-width: 719px)") ?? "", /^82d?vh$/)
+    assert.match(declOf(".rs", "padding-bottom", "(max-width: 719px)") ?? "", /env\(safe-area-inset-bottom\)/)
+    assert.match(declOf(".rs-scrim", "background", "(max-width: 719px)") ?? "", /^rgba\(0, 0, 0, 0\.\d+\)$/)
+  })
+
+  test("ปุ่มธีมมีตัวอย่างสีมองเห็นได้ (วงกลมขนาดพอ ใช้ตัวแปรของธีมนั้น) หัวแผงมีปุ่มปิดชิดขวา แถบขนาดตัวอักษรเรียงแถวเดียว", () => {
+    assert.ok(px(declOf(".rs-swatch", "width")) >= 14 && px(declOf(".rs-swatch", "height")) >= 14)
+    assert.equal(declOf(".rs-swatch", "border-radius"), "50%")
+    assert.match(declOf(".rs-swatch", "background") ?? "", /var\(--sw-bg\).*var\(--sw-ac\)/)
+    assert.equal(declOf(".rs-head", "display"), "flex")
+    assert.equal(declOf(".rs-head", "justify-content"), "space-between")
+    assert.equal(declOf(".rs-size", "display"), "flex")
+    assert.equal(declOf(".rs-size", "align-items"), "center")
   })
 })

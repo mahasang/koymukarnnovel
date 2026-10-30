@@ -1437,6 +1437,378 @@
   text-align: center;
 }
 
+/* ---------- หน้าอ่าน (/novel/:id/:number — อยู่นอก Layout) ---------- */
+
+.reader {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* แถบบน: ตรึงบนสุด · ซ่อนด้วยการเลื่อนขึ้นพ้นจอ + visibility (ไม่ให้ Tab ไปโฟกัสปุ่มที่มองไม่เห็น) */
+.rb {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition: transform 0.25s ease;
+}
+
+.rb.hidden {
+  transform: translateY(-100%);
+  visibility: hidden;
+  transition:
+    transform 0.25s ease,
+    visibility 0s linear 0.25s;
+}
+
+/* เส้นความคืบหน้าห้อยใต้แถบ 3px — แถบซ่อนแล้วเหลือเส้นนี้เกาะขอบบนของจอ (visible ชนะ hidden ของแม่) */
+.rb-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 3px;
+  background: color-mix(in srgb, var(--line) 70%, transparent);
+  visibility: visible;
+}
+
+.rb-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.15s linear;
+}
+
+.rb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 1160px;
+  margin-inline: auto;
+  padding: 8px 16px;
+}
+
+.rb-info {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.rb-novel {
+  overflow: hidden;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rb-chapter {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.rb-actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+.iconbtn.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* แถวควบคุมเสียงอ่าน (ขณะฟัง) */
+.rb-player {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: 1160px;
+  margin-inline: auto;
+  padding: 0 16px 10px;
+}
+
+.iconbtn.rb-play {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.rb-rate {
+  display: flex;
+  flex: 1 1 200px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rb-rate-label {
+  flex: none;
+}
+
+.rb-range {
+  flex: 1 1 80px;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.rb-rate-value {
+  flex: none;
+  min-width: 3.4ch;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* เนื้อหาตอน: คอลัมน์ ~680px · บรรทัดห่าง 1.9 · ย่อหน้าจากบรรทัดว่าง (บรรทัดใหม่ในย่อหน้าคงไว้ด้วย pre-line) */
+.rd-main {
+  max-width: 680px;
+  margin-inline: auto;
+  padding: 92px 20px 64px;
+}
+
+.rd {
+  font-family: var(--font-body);
+  line-height: 1.9;
+}
+
+.rd-serif {
+  font-family: var(--font-serif);
+}
+
+.rd-heading {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.35em;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.rd-draft {
+  margin-top: 12px;
+}
+
+.rd-text {
+  margin-top: 28px;
+}
+
+/* ช่องไฟข้าง 12px มีไว้ให้ไฮไลต์ตอนอ่านออกเสียงยื่นออกนอกตัวอักษร โดยตัวอักษรไม่ขยับ (margin ติดลบหักล้างกับ padding) */
+.rd-p {
+  margin: 0 -12px 1.1em;
+  padding: 2px 12px;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.rd-p.speaking {
+  background: var(--surface-2);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.rd-scene {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 1.8em 0;
+}
+
+.rd-scene i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.rd-empty {
+  padding: 40px 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.rd-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 48px;
+}
+
+.rd-nav .btn {
+  padding-inline: 12px;
+  text-align: center;
+}
+
+.rd-prev,
+.rd-toc,
+.rd-next {
+  min-width: 0;
+}
+
+.rd-nav .off {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* แผงตั้งค่า: จอกว้างเป็นป๊อปโอเวอร์ใต้แถบบน (ชิดขอบขวาของคอลัมน์แถบบน) · จอแคบเป็นแผ่นล่าง (ดูส่วนจอเล็กลง) */
+.rs-scrim {
+  display: none;
+}
+
+.rs {
+  position: fixed;
+  top: 66px;
+  right: max(16px, calc((100vw - 1160px) / 2 + 16px));
+  z-index: 40;
+  width: 340px;
+  max-height: calc(100vh - 90px);
+  max-height: calc(100dvh - 90px);
+  padding: 16px 18px 6px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.rs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.rs-title {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.rs-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.rs-label {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 13.5px;
+}
+
+.rs-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rs-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14.5px;
+  cursor: pointer;
+}
+
+.rs-opt:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.rs-opt.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ตัวหมายสีธีม: ครึ่งบนสีพื้น ครึ่งล่างสี accent เริ่มต้นของธีม (ค่าตรงกับ tokens.css — public.test.ts ตรวจ) */
+.rs-swatch {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sw-bg) 55%, var(--sw-ac) 55%);
+}
+
+.rs-theme[data-t="midnight"] {
+  --sw-bg: #0a0c12;
+  --sw-ac: #8b7bff;
+}
+
+.rs-theme[data-t="paper"] {
+  --sw-bg: #f4efe6;
+  --sw-ac: #c2410c;
+}
+
+.rs-theme[data-t="sepia"] {
+  --sw-bg: #f2e8d2;
+  --sw-ac: #9a4508;
+}
+
+.rs-theme[data-t="black"] {
+  --sw-bg: #000000;
+  --sw-ac: #8b7bff;
+}
+
+.rs-font[data-f="sarabun"] {
+  font-family: var(--font-body);
+}
+
+.rs-font[data-f="serif"] {
+  font-family: var(--font-serif);
+}
+
+.rs-size {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rs-range {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.rs-size-small {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.rs-size-big {
+  color: var(--muted);
+  font-size: 24px;
+}
+
+.rs-value {
+  min-width: 2ch;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.rs-note {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
 /* ---------- จอเล็กลง ---------- */
 
 @media (max-width: 1099px) {
@@ -1616,6 +1988,31 @@
   .foot {
     margin-top: 48px;
   }
+
+  .rd-main {
+    padding-top: 84px;
+  }
+
+  .rs-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .rs {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    max-height: 82vh;
+    max-height: 82dvh;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+    border-bottom: 0;
+    border-radius: 20px 20px 0 0;
+  }
 }
 
 @media (max-width: 519px) {
@@ -1688,6 +2085,27 @@
   .state {
     padding: 40px 16px;
   }
+
+  .rd-main {
+    padding-inline: 16px;
+  }
+
+  .rd-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rd-next {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .rb-row {
+    padding-inline: 12px;
+  }
+
+  .rb-player {
+    padding-inline: 12px;
+  }
 }
 
 @media (max-width: 359px) {
@@ -1702,5 +2120,13 @@
 
   .top .in {
     gap: 8px;
+  }
+
+  .rb-row {
+    gap: 6px;
+  }
+
+  .rb-actions {
+    gap: 6px;
   }
 }
