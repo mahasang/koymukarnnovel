@@ -1,4 +1,4 @@
-/** หน้า "ไม่พบหน้านี้" (ชั่วคราว — งาน 27 ปรับให้สมบูรณ์) */
+/** หน้า "ไม่พบหน้านี้" — ที่อยู่ไหนที่ไม่ตรงเส้นทางใดในโครงหน้าสาธารณะ (เซิร์ฟเวอร์ตอบ 404 พร้อม noindex ให้เอง) */
 import { Link } from "react-router"
 import { EmptyState } from "../components/EmptyState"
 import { useDocumentTitle } from "../lib/useDocumentTitle"

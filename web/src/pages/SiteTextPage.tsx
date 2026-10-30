@@ -1,4 +1,4 @@
-/** หน้าข้อความของเจ้าของ (เกี่ยวกับ / ติดต่อ) — ชั่วคราว งาน 27 ปรับให้สมบูรณ์ · ข้อความดิบแสดงตามที่เจ้าของพิมพ์ (ขึ้นบรรทัดใหม่ตามเดิม ไม่แปลงเป็นลิงก์) */
+/** หน้าข้อความของเจ้าของ (เกี่ยวกับ / ติดต่อ) — แสดงเป็นข้อความล้วนตามที่เจ้าของพิมพ์ (React escape ให้ · ขึ้นบรรทัดใหม่ตามเดิมด้วย white-space: pre-wrap · ไม่แปลงเป็นลิงก์) */
 import { EmptyState } from "../components/EmptyState"
 import { ErrorState } from "../components/ErrorState"
 import { Skeleton } from "../components/Skeleton"
