@@ -15,6 +15,8 @@ import { admin } from "./adminApi"
 import { Dashboard } from "./Dashboard"
 import { AdminLayout } from "./Layout"
 import { Login } from "./Login"
+import { NovelEdit, NovelNew } from "./NovelForm"
+import { Novels } from "./Novels"
 import { QueueProvider } from "./QueueContext"
 import type { MeDto } from "./types"
 
@@ -70,9 +72,9 @@ function AdminNotFound() {
 /** เส้นทางสัมพัทธ์กับ `/admin` (`handle.page` ไว้ให้เทสต์อ่านว่าตรงหน้าไหน) */
 export const adminRoutes: RouteObject[] = [
   { index: true, element: <Dashboard />, handle: { page: "dashboard" } },
-  { path: "novels", element: <ComingSoon title="นิยาย" />, handle: { page: "novels" } },
-  { path: "novels/new", element: <ComingSoon title="เพิ่มนิยายใหม่" />, handle: { page: "novel-new" } },
-  { path: "novels/:id", element: <ComingSoon title="จัดการนิยาย" />, handle: { page: "novel" } },
+  { path: "novels", element: <Novels />, handle: { page: "novels" } },
+  { path: "novels/new", element: <NovelNew />, handle: { page: "novel-new" } },
+  { path: "novels/:id", element: <NovelEdit />, handle: { page: "novel" } },
   { path: "novels/:id/chapters/:chapterId", element: <ComingSoon title="แก้ไขตอน" />, handle: { page: "chapter" } },
   { path: "add", element: <ComingSoon title="เพิ่มตอน" />, handle: { page: "add" } },
   { path: "settings", element: <ComingSoon title="ตั้งค่า" />, handle: { page: "settings" } },

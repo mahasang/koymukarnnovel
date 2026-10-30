@@ -281,13 +281,15 @@ html[data-theme="sepia"] {
   gap: 7px;
 }
 
-.ad-field label {
+.ad-field label,
+.ad-label {
   color: var(--muted);
   font-size: 14px;
   font-weight: 500;
 }
 
-.ad-field input {
+.ad-field input,
+.ad-tag-input {
   width: 100%;
   height: 48px;
   padding: 0 14px;
@@ -299,7 +301,30 @@ html[data-theme="sepia"] {
   font-size: 16px;
 }
 
-.ad-field input[aria-invalid="true"] {
+.ad-field textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.ad-field input::placeholder,
+.ad-tag-input::placeholder,
+.ad-field textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.ad-field input[aria-invalid="true"],
+.ad-tag-input[aria-invalid="true"],
+.ad-field textarea[aria-invalid="true"] {
   border-color: var(--ad-danger-text);
 }
 
@@ -1039,6 +1064,370 @@ html[data-theme="sepia"] {
   overflow-wrap: anywhere;
 }
 
+/* ---------- ฟอร์มนิยาย ---------- */
+
+.ad-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* สองคอลัมน์เมื่อกว้างพอ (ข้อมูลหลัก + ปก/การแสดงผล) · แคบลงแล้วคอลัมน์ข้างลงไปอยู่ใต้ข้อมูลหลักเองโดยไม่ต้องใช้จุดตัดจอ */
+.ad-form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.ad-form-main {
+  display: flex;
+  flex: 1000 1 440px;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.ad-form-side {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.ad-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ad-req {
+  color: var(--ad-danger-text);
+}
+
+.ad-hint {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.ad-field-error {
+  color: var(--ad-danger-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ad-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.ad-chips .fchip {
+  min-height: 40px;
+}
+
+/* ปุ่ม AI ช่วยกรอก: กล่องประขอบแยกจากช่องกรอกจริง (ผลลัพธ์เป็นแค่ร่างจนกว่าจะบันทึก) */
+.ad-ai {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: var(--bg-2);
+}
+
+.ad-ai > .btn {
+  max-width: 100%;
+  text-align: left;
+}
+
+.ad-ai-note {
+  color: var(--ad-ok-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ad-form-bar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ad-form-bar-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  min-width: 0;
+}
+
+.ad-form-note {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-form-ok {
+  color: var(--ad-ok-text);
+}
+
+.btn.ghost.ad-danger-ghost {
+  border-color: color-mix(in srgb, var(--ad-danger-text) 40%, var(--line));
+  color: var(--ad-danger-text);
+}
+
+.btn.ghost.ad-danger-ghost:hover:not(:disabled) {
+  border-color: var(--ad-danger-text);
+}
+
+/* ---------- แท็บของหน้าเรื่อง ---------- */
+
+.ad-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.ad-tab {
+  flex: none;
+  margin-bottom: -1px;
+  padding: 12px 16px;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.ad-tab:hover {
+  color: var(--text);
+}
+
+.ad-tab[aria-current="page"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ad-tab-n {
+  display: inline-block;
+  min-width: 24px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- ช่องแท็ก ---------- */
+
+.ad-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ad-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ad-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 3px 4px 3px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 14.5px;
+  overflow-wrap: anywhere;
+}
+
+.ad-tag-x {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ad-tag-x:hover {
+  background: var(--line);
+  color: var(--text);
+}
+
+/* ---------- ช่องปก ---------- */
+
+.ad-cover-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px 18px;
+}
+
+.ad-cover-preview {
+  flex: 0 0 160px;
+  width: 160px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.ad-cover-side {
+  display: flex;
+  flex: 1 1 140px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ad-cover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ปุ่มเลือกไฟล์คือป้ายกำกับของช่องไฟล์ที่ซ่อนไว้ (sr-only): โฟกัสด้วยแป้นพิมพ์ต้องเห็นที่ปุ่ม */
+.ad-file {
+  position: relative;
+  cursor: pointer;
+}
+
+.ad-file:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ad-file:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- รายการนิยาย ---------- */
+
+/* position: relative = ที่อ้างอิงของป้ายสวิตช์ที่ซ่อน (absolute) — ไม่งั้นมันหลุดออกนอกกรอบเลื่อน .ad-scroll แล้วดันทั้งหน้าให้เลื่อนแนวนอนบนจอแคบ */
+.ad-ntable {
+  position: relative;
+  background: var(--surface);
+}
+
+.ad-ntable th,
+.ad-ntable td {
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+.ad-ntable thead th {
+  white-space: nowrap;
+}
+
+.ad-ntable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ad-ncell {
+  min-width: 240px;
+}
+
+.ad-nlink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: var(--text);
+}
+
+.ad-nlink:hover strong {
+  text-decoration: underline;
+}
+
+.ad-thumb {
+  flex: none;
+  width: 44px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.ad-ntext {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ad-ntext strong {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.ad-nsub {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.ad-ncell > .ad-pill {
+  margin-top: 8px;
+}
+
+.ad-ncount {
+  display: block;
+  font-weight: 600;
+}
+
+/* ป้ายของสวิตช์ในตารางมีชื่อเรื่องเพื่อโปรแกรมอ่านหน้าจอ — ไม่แสดงซ้ำในทุกแถว */
+.ad-ntable .switch-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ad-nact {
+  display: flex;
+  gap: 8px;
+}
+
 /* ---------- ปุ่ม (ส่วนเพิ่มของ .btn ใน public.css) ---------- */
 
 .btn.sm {
@@ -1166,5 +1555,23 @@ html[data-theme="sepia"] {
 
   .ad-chart-svg {
     height: 150px;
+  }
+
+  .ad-form-bar {
+    bottom: 0;
+    padding: 10px 12px;
+  }
+
+  .ad-form-bar-main .btn.primary {
+    flex: 1 1 100%;
+  }
+
+  .ad-ai > .btn {
+    align-self: stretch;
+  }
+
+  /* ตารางนิยายกว้างกว่าจอ: เลื่อนแนวนอนในกรอบของมันเอง (ไม่ดันทั้งหน้า) */
+  .ad-ntable {
+    min-width: 640px;
   }
 }

@@ -106,9 +106,6 @@ describe("AdminShellView", () => {
 
   test("ทุกเส้นทางที่ยังเป็นที่ว่าง: หัวเรื่องตรงหน้านั้น + ข้อความ \"ยังไม่พร้อมใช้งาน\" (ขั้นถัดไปแทนที่ทีละหน้า)", () => {
     const titles: [string, string][] = [
-      ["/admin/novels", "นิยาย"],
-      ["/admin/novels/new", "เพิ่มนิยายใหม่"],
-      ["/admin/novels/7", "จัดการนิยาย"],
       ["/admin/novels/7/chapters/70", "แก้ไขตอน"],
       ["/admin/add", "เพิ่มตอน"],
       ["/admin/settings", "ตั้งค่า"],
@@ -126,6 +123,24 @@ describe("AdminShellView", () => {
     assert.equal(all(root, ".state-title").length, 0)
     assert.deepEqual(all(one(root, "div.ad-ph-actions"), "a").map((a) => a.attrs.href), ["/admin/add", "/admin/novels/new"])
     assert.equal(all(one(root, "main.ad-main"), ".skeleton").length, 1)
+  })
+
+  test("หน้านิยายเป็นของจริง: รายการ · ฟอร์มสร้าง · หน้าจัดการเรื่อง (หัวหน้าอยู่ครบตั้งแต่ตอนโหลด)", () => {
+    const list = at(ready, "/admin/novels")
+    assert.equal(text(one(list, "h1")), "นิยาย")
+    assert.equal(all(list, ".state-title").length, 0)
+    assert.ok(all(one(list, "div.ad-ph-actions"), "a").some((a) => a.attrs.href === "/admin/novels/new"))
+    assert.equal(all(one(list, "main.ad-main"), ".skeleton").length, 1)
+
+    const create = at(ready, "/admin/novels/new")
+    assert.equal(text(one(create, "h1")), "เพิ่มนิยายใหม่")
+    assert.equal(all(create, "form.ad-form").length, 1)
+    assert.equal(text(one(create, "button[type=submit]")), "สร้างเรื่อง")
+
+    const edit = at(ready, "/admin/novels/7")
+    assert.equal(text(one(edit, "h1")), "จัดการนิยาย")
+    assert.equal(all(edit, ".state-title").length, 0)
+    assert.equal(all(one(edit, "main.ad-main"), ".skeleton").length, 1)
   })
 
   test("โหมดไม่มีรหัสผ่านส่งต่อให้โครง (ไม่มีปุ่มออกจากระบบ)", () => {

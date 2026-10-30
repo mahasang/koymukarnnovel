@@ -75,8 +75,15 @@ const usedClasses = new Set(adminFiles.flatMap((file) => classNameExpressions(re
 const adminDefined = classesIn(rules)
 const sharedDefined = new Set([...classesIn(publicRules), ...classesIn(baseRules)])
 
-/** คลาสที่ประกอบในฟังก์ชันช่วยนอก className= (เช่น NavLink ที่รับฟังก์ชัน) — ยืนยันด้วยข้อความในโค้ดต้นทางด้านล่าง */
-const ASSEMBLED: Array<{ file: string; literal: string; classes: string[] }> = [{ file: "admin/Layout.tsx", literal: '"ad-it on"', classes: ["on"] }]
+/**
+ * คลาสที่หลังบ้านอ้างใน CSS แต่ถูกใส่โดยโค้ดนอก className= ของไฟล์หลังบ้าน (NavLink ที่รับฟังก์ชัน, คอมโพเนนต์กลาง Chip/Switch ที่หลังบ้านปรับหน้าตาเฉพาะในหน้าของตัวเอง)
+ * — ยืนยันด้วยข้อความในโค้ดต้นทางด้านล่าง
+ */
+const ASSEMBLED: Array<{ file: string; literal: string; classes: string[] }> = [
+  { file: "admin/Layout.tsx", literal: '"ad-it on"', classes: ["on"] },
+  { file: "components/Chip.tsx", literal: '"fchip on"', classes: ["fchip"] },
+  { file: "components/Switch.tsx", literal: 'className="switch-label"', classes: ["switch-label"] },
+]
 
 describe("คลาสในโค้ดหลังบ้านกับ admin.css ตรงกัน", () => {
   test("พบไฟล์หลังบ้านและอ่านคลาสออกมาได้ (ตัวอ่านไม่ได้ทำงานว่างเปล่า)", () => {
@@ -504,5 +511,123 @@ describe("แดชบอร์ด: โครงหน้าและส่ว�
   test("ข้อความแจ้งผลเผยแพร่ใช้สีสำเร็จของหลังบ้าน ไม่ใช้สี accent เป็นตัวอักษร", () => {
     assert.match(declOf(".ad-notice", "background") ?? "", /var\(--ad-ok-text\)/)
     assert.equal(declOf(".ad-notice", "color"), "var(--text)")
+  })
+})
+
+// ───────────────────────── ฟอร์มนิยาย · แท็บ · แท็ก · ปก · ตารางนิยาย ─────────────────────────
+
+describe("ฟอร์มนิยาย: ช่องกรอกและเลย์เอาต์", () => {
+  test("ช่องหลายบรรทัดและช่องแท็กใช้ฟอนต์ 16px ขึ้นไปเหมือนช่องบรรทัดเดียว (iOS ไม่ซูมหน้า) และใช้ฟอนต์เนื้อหา", () => {
+    assert.equal(declOf(".ad-field textarea", "font-size"), "16px")
+    assert.equal(declOf(".ad-field textarea", "font-family"), "var(--font-body)")
+    assert.equal(declOf(".ad-tag-input", "font-size"), "16px")
+    assert.equal(declOf(".ad-tag-input", "height"), declOf(".ad-field input", "height"))
+  })
+
+  test("ช่องที่ผิด (aria-invalid) เปลี่ยนขอบเป็นสีแดงหลังบ้านทุกชนิด: บรรทัดเดียว, หลายบรรทัด, แท็ก", () => {
+    for (const selector of [".ad-field input[aria-invalid=\"true\"]", ".ad-field textarea[aria-invalid=\"true\"]", ".ad-tag-input[aria-invalid=\"true\"]"]) {
+      assert.equal(declOf(selector, "border-color"), "var(--ad-danger-text)", selector)
+    }
+  })
+
+  test("ข้อความผิดพลาด/ดอกจันบังคับใช้สีแดงหลังบ้าน (ผ่านความต่างสีที่ทดสอบไว้แล้ว) · คำอธิบายใช้สีรอง · ข้อความสำเร็จใช้สีสำเร็จ", () => {
+    assert.equal(declOf(".ad-field-error", "color"), "var(--ad-danger-text)")
+    assert.equal(declOf(".ad-req", "color"), "var(--ad-danger-text)")
+    assert.equal(declOf(".ad-hint", "color"), "var(--muted)")
+    assert.equal(declOf(".ad-form-ok", "color"), "var(--ad-ok-text)")
+    assert.equal(declOf(".ad-ai-note", "color"), "var(--ad-ok-text)")
+  })
+
+  test("สองคอลัมน์ด้วย flex-wrap (ไม่พึ่งจุดตัดจอ): ข้อมูลหลักกว้างกว่า ได้พื้นที่ที่เหลือ · แคบลงคอลัมน์ข้างลงไปอยู่ใต้ข้อมูลหลักเอง", () => {
+    assert.equal(declOf(".ad-form-grid", "display"), "flex")
+    assert.equal(declOf(".ad-form-grid", "flex-wrap"), "wrap")
+    const grow = (selector: string) => parseInt(declOf(selector, "flex") ?? "0")
+    assert.ok(grow(".ad-form-main") > grow(".ad-form-side"), "ข้อมูลหลักต้องได้ส่วนที่เหลือมากกว่า")
+    for (const selector of [".ad-form-main", ".ad-form-side"]) assert.equal(declOf(selector, "min-width"), "0", `${selector}: ต้องหดได้ ไม่ดันหน้ากว้าง`)
+  })
+
+  test("แถบบันทึกลอยติดขอบล่าง (sticky) อยู่ใต้ฉากหลังลิ้นชัก/แถบบน/กล่องยืนยัน และชิดขอบล่างจริงบนจอแคบ", () => {
+    assert.equal(declOf(".ad-form-bar", "position"), "sticky")
+    const bar = Number(declOf(".ad-form-bar", "z-index"))
+    assert.ok(bar > 0, "ต้องอยู่เหนือเนื้อหาปกติ (ปกที่ซ้อน z-index 2–3 ในหน้าบ้าน)")
+    assert.ok(bar < Number(declOf(".ad-drawer-scrim", "z-index", MOBILE)), "ใต้ฉากหลังลิ้นชัก")
+    assert.ok(bar < Number(declOf(".ad-scrim", "z-index")), "ใต้กล่องยืนยัน")
+    assert.equal(declOf(".ad-form-bar", "bottom", MOBILE), "0")
+  })
+
+  test("ปุ่ม AI ช่วยกรอก: ข้อความยาวขึ้นบรรทัดใหม่ได้ (ไม่ล้นกล่อง) และเต็มความกว้างบนจอแคบ", () => {
+    assert.equal(declOf(".ad-ai > .btn", "max-width"), "100%")
+    assert.equal(declOf(".ad-ai > .btn", "align-self", MOBILE), "stretch")
+  })
+
+  test("ปุ่มลบเรื่องเป็นสีแดงหลังบ้าน และชนะสีของ .btn.ghost (ความจำเพาะสูงกว่า)", () => {
+    assert.equal(declOf(".btn.ghost.ad-danger-ghost", "color"), "var(--ad-danger-text)")
+    assert.match(declOf(".btn.ghost.ad-danger-ghost", "border-color") ?? "", /var\(--ad-danger-text\)/)
+  })
+
+  test("ชิปสถานะ/โหมดสูงพอแตะง่าย (≥ 40px)", () => {
+    assert.ok(parseInt(declOf(".ad-chips .fchip", "min-height") ?? "0") >= 40)
+  })
+})
+
+describe("แท็บ · แท็ก · ช่องปก", () => {
+  test("แท็บเลื่อนแนวนอนได้เมื่อจอแคบ ไม่ตัดบรรทัด · แท็บที่เปิดอยู่ขีดเส้นใต้ด้วย accent (ตัวอักษรไม่ใช้ accent) และแตะง่าย", () => {
+    assert.equal(declOf(".ad-tabs", "overflow-x"), "auto")
+    assert.equal(declOf(".ad-tab", "white-space"), "nowrap")
+    assert.equal(declOf(".ad-tab[aria-current=\"page\"]", "border-bottom-color"), "var(--accent)")
+    assert.equal(declOf(".ad-tab[aria-current=\"page\"]", "color"), "var(--text)")
+    assert.ok(parseInt(declOf(".ad-tab", "padding") ?? "0") >= 12)
+  })
+
+  test("แท็ก: รายการไม่มีจุดนำหน้า/ขอบในตัว · ปุ่มลบแท็กเป็นวงกลม ≥ 30px · ข้อความยาวขึ้นบรรทัดใหม่ได้", () => {
+    assert.equal(declOf(".ad-tag-list", "list-style"), "none")
+    assert.equal(declOf(".ad-tag-list", "flex-wrap"), "wrap")
+    assert.ok(parseInt(declOf(".ad-tag-x", "width") ?? "0") >= 30)
+    assert.ok(parseInt(declOf(".ad-tag-x", "height") ?? "0") >= 30)
+    assert.equal(declOf(".ad-tag-x", "border-radius"), "50%")
+    assert.equal(declOf(".ad-tag", "overflow-wrap"), "anywhere")
+  })
+
+  test("ตัวอย่างปกคงอัตราส่วนด้วย .cv (2:3) และถูกจำกัดความกว้าง · ปุ่มเลือกไฟล์โชว์วงโฟกัสเมื่อช่องไฟล์ที่ซ่อนอยู่ได้โฟกัส", () => {
+    assert.match(declOf(".ad-cover-preview", "width") ?? "", /^\d+px$/)
+    assert.equal(declOf(".ad-cover-preview", "overflow"), "hidden")
+    assert.equal(declOf(".ad-file", "position"), "relative") // ช่องไฟล์ sr-only เป็น absolute: ต้องมีที่อ้างอิงในปุ่ม ไม่งั้นหน้าเลื่อนกระโดด
+    assert.match(declOf(".ad-file:focus-within", "outline") ?? "", /^2px solid var\(--accent\)$/)
+    assert.equal(declOf(".ad-file:has(input:disabled)", "cursor"), "not-allowed")
+  })
+})
+
+describe("รายการนิยาย", () => {
+  test("ตารางนิยายจัดชิดซ้ายทุกคอลัมน์และขึ้นบรรทัดใหม่ได้ (ทับค่าตัวเลขชิดขวา/ไม่ตัดบรรทัดของตารางการใช้ AI) · หัวคอลัมน์ไม่ตัดบรรทัด", () => {
+    assert.equal(declOf(".ad-ntable td", "text-align"), "left")
+    assert.equal(declOf(".ad-ntable th", "text-align"), "left")
+    assert.equal(declOf(".ad-ntable td", "white-space"), "normal")
+    assert.equal(declOf(".ad-ntable thead th", "white-space"), "nowrap")
+  })
+
+  test("ปกในตารางกว้างคงที่ ไม่หดเมื่อชื่อยาว · ชื่อยาวขึ้นบรรทัดใหม่ได้ ไม่ดันตาราง", () => {
+    assert.equal(declOf(".ad-thumb", "flex"), "none")
+    assert.ok(parseInt(declOf(".ad-thumb", "width") ?? "0") >= 40)
+    assert.equal(declOf(".ad-ntext", "min-width"), "0")
+    assert.equal(declOf(".ad-ntext strong", "overflow-wrap"), "anywhere")
+    assert.equal(declOf(".ad-nsub", "overflow-wrap"), "anywhere")
+  })
+
+  test("ป้ายของสวิตช์ในตารางซ่อนจากสายตาแต่ยังอยู่ให้โปรแกรมอ่านหน้าจอ (ไม่ใช่ display:none)", () => {
+    const hidden = rulesFor(".ad-ntable .switch-label")
+    assert.equal(hidden.length, 1)
+    assert.equal(hidden[0]!.decls.position, "absolute")
+    assert.equal(hidden[0]!.decls.width, "1px")
+    assert.equal(hidden[0]!.decls.height, "1px")
+    assert.equal(hidden[0]!.decls.overflow, "hidden")
+    assert.notEqual(hidden[0]!.decls.display, "none")
+    assert.notEqual(hidden[0]!.decls.visibility, "hidden")
+    // absolute ที่ไม่มีบรรพบุรุษ positioned จะหลุดออกนอกกรอบเลื่อนแล้วดันหน้าให้เลื่อนแนวนอน (พบจริงที่ 390px): ตารางต้องเป็นที่อ้างอิง
+    assert.equal(declOf(".ad-ntable", "position"), "relative")
+  })
+
+  test("จอแคบ: ตารางนิยายกว้างขั้นต่ำกว่าจอ แล้วเลื่อนในกรอบ .ad-scroll เอง (หน้าไม่เลื่อนแนวนอน)", () => {
+    assert.ok(parseInt(declOf(".ad-ntable", "min-width", MOBILE) ?? "0") >= 560)
+    assert.equal(declOf(".ad-scroll", "overflow-x"), "auto")
   })
 })
