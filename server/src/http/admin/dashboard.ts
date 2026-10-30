@@ -4,7 +4,7 @@ import { readApiCheck } from "../../api-check.js"
 import { READY_TO_PUBLISH_SQL } from "../../chapters.js"
 import type { SiteSettings } from "../../settings.js"
 import { dayKey } from "../../util/time.js"
-import { toNovelProgressDto, toUsageRowDto, type NovelProgressRow, type UsageRow } from "../dto.js"
+import { toNovelProgressDto, toUsageRowDto, type DashboardDto, type NovelProgressRow, type UsageRow } from "../dto.js"
 
 const DAY_MS = 24 * 60 * 60 * 1000
 /** กราฟยอดอ่านย้อนหลังกี่วัน (รวมวันนี้) และช่วง "30 วัน" ของโทเคน (รวมวันนี้) */
@@ -81,7 +81,7 @@ export function createDashboardRouter(deps: AppDeps): Router {
     const usageToday = db.all<UsageRow>(USAGE_SQL, today, today)
     const usageLast30 = db.all<UsageRow>(USAGE_SQL, daysAgo(USAGE_DAYS - 1), today)
 
-    res.json({
+    const body: DashboardDto = {
       onboarding: {
         apiKey: ai.hasKey() || config.importToken !== null,
         contact: site.contactText !== "", // settings.get() ล้างช่องว่างหัวท้ายให้แล้ว: เหลือแต่ช่องว่าง = ว่าง
@@ -101,7 +101,8 @@ export function createDashboardRouter(deps: AppDeps): Router {
       usage: { today: usageToday.map(toUsageRowDto), last30: usageLast30.map(toUsageRowDto) },
       estimate: { today: estimateCost(usageToday, site.prices), last30: estimateCost(usageLast30, site.prices) },
       api: { hasKey: ai.hasKey(), lastOk: readApiCheck(settings) },
-    })
+    }
+    res.json(body)
   })
 
   return router

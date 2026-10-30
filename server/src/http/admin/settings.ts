@@ -9,6 +9,7 @@ import { createBackupFile } from "../../backup.js"
 import type { SiteSettings } from "../../settings.js"
 import { recordUsage } from "../../usage.js"
 import { dayKey } from "../../util/time.js"
+import type { SettingsViewDto } from "../dto.js"
 import { obj } from "../validate.js"
 
 /** คำตอบของ test-api เมื่อเกิดข้อผิดพลาดที่ไม่ใช่ความผิดพลาดจาก Claude (ไม่บอกรายละเอียดภายใน — ดูใน log ของเซิร์ฟเวอร์) */
@@ -27,7 +28,7 @@ export function createSettingsRouter(deps: AppDeps): Router {
   const importUrl = (req: Request): string => `${config.publicUrl ?? `${req.protocol}://${req.get("host") ?? `localhost:${config.port}`}`}/api/import`
 
   /** การตั้งค่า + สถานะที่ระบบคำนวณเอง (บอกแค่ว่าตั้งความลับไว้แล้วหรือยัง ไม่เคยส่งค่าจริง) */
-  const view = (req: Request) => ({
+  const view = (req: Request): SettingsViewDto => ({
     ...settings.get(),
     apiKeySet: ai.hasKey(),
     importTokenSet: config.importToken !== null,

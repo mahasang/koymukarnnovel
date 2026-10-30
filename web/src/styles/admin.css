@@ -1,0 +1,447 @@
+/*
+ * สไตล์หลังบ้าน (/admin) — โหลดเฉพาะตอนเปิดหลังบ้าน (AdminApp.tsx เป็นคนนำเข้า) · token สี/ฟอนต์ชุดเดียวกับหน้าบ้าน (tokens.css, base.css)
+ * ใช้ปุ่ม .btn โลโก้ .logo และสถานะ .state / .skeleton ของ public.css (โหลดอยู่แล้วทั้งแอป) · คลาสของหลังบ้านขึ้นต้นด้วย ad- ไม่ชนกับหน้าบ้าน
+ * กติกาที่ admin.test.ts ตรวจให้: คลาสในโค้ดตรงกับสไตล์ทั้งสองทิศ, สีมาจากตัวแปรเท่านั้น (ค่าตายตัวอยู่ที่ตัวแปร --ad-* ด้านล่าง), ไม่มี !important,
+ * ข้อความสี accent ไม่วางบน --bg-2 (พื้นเมนูข้าง), สีแดงผ่านความต่างสี ≥ 4.5:1 ทุกธีม, จุดตัดจอเดียวคือ 899px (เมนูข้าง ↔ แถบบน + ลิ้นชัก)
+ */
+
+/* ---------- ตัวแปรเฉพาะหลังบ้าน ---------- */
+
+:root {
+  /* พื้นปุ่มอันตราย + ตัวอักษรบนพื้นนั้น (ขาวบน #dc2626 = 4.83:1) */
+  --ad-danger: #dc2626;
+  --ad-danger-ink: #ffffff;
+  /* ข้อความสีแดงบนพื้นของธีม: ธีมมืดใช้แดงอ่อน ธีมสว่างใช้แดงเข้ม */
+  --ad-danger-text: #f87171;
+  /* ฉากหลังของลิ้นชัก/กล่องยืนยัน */
+  --ad-scrim: rgba(0, 0, 0, 0.55);
+}
+
+html[data-theme="paper"],
+html[data-theme="sepia"] {
+  --ad-danger-text: #b91c1c;
+}
+
+/* ---------- โครงหน้า ---------- */
+
+.ad-shell {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.ad-main {
+  min-width: 0;
+  padding: 28px 36px 40px;
+}
+
+.ad-main:focus {
+  outline: none;
+}
+
+.ad-solo {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 56px 16px;
+}
+
+.ad-ph {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.ad-ph h1 {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 27px;
+  line-height: 1.2;
+}
+
+/* ---------- เมนูข้าง ---------- */
+
+.ad-side {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100vh;
+  height: 100dvh;
+  padding: 22px 16px;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: var(--bg-2);
+}
+
+/* ชื่อเว็บเริ่มต้น (koymukarnnovel) ต้องแสดงครบในเมนูกว้าง 248px: ตัวอักษรเล็กลงเล็กน้อยและขอบข้างแคบลง */
+.ad-side .logo {
+  padding: 4px 8px 20px;
+  font-size: 18px;
+}
+
+.ad-side-label {
+  padding: 6px 14px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.ad-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ad-it {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ad-it:hover:not(.on):not(:disabled) {
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+  color: var(--text);
+}
+
+.ad-it.on {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.ad-it.on svg {
+  color: var(--accent);
+}
+
+.ad-it:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ad-add {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.ad-grow {
+  flex: 1;
+}
+
+.ad-queue {
+  margin: 0 6px 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ad-side-error {
+  margin: 4px 14px 0;
+  color: var(--ad-danger-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ---------- แถบบน + ลิ้นชัก (จอแคบ) ---------- */
+
+.ad-topbar {
+  display: none;
+}
+
+.ad-drawer-scrim {
+  display: none;
+}
+
+.ad-menu-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* ---------- แถบเตือนคิวหยุด ---------- */
+
+.ad-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--text);
+}
+
+.ad-banner svg {
+  color: var(--accent);
+}
+
+.ad-banner-text {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14.5px;
+  overflow-wrap: anywhere;
+}
+
+.ad-banner-text strong {
+  font-family: var(--font-ui);
+  font-weight: 600;
+}
+
+.ad-banner-error {
+  flex-basis: 100%;
+  color: var(--ad-danger-text);
+  font-size: 13.5px;
+}
+
+/* ---------- หน้าล็อกอิน ---------- */
+
+.ad-login {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  background: var(--bg);
+}
+
+.ad-login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+  padding: 30px 28px 26px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ad-login-title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.ad-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ad-field label {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ad-field input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+.ad-field input[aria-invalid="true"] {
+  border-color: var(--ad-danger-text);
+}
+
+.ad-login-error {
+  color: var(--ad-danger-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ad-login-back {
+  align-self: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-login-back:hover {
+  color: var(--text);
+}
+
+/* ---------- กล่องยืนยัน ---------- */
+
+.ad-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--ad-scrim);
+}
+
+.ad-dialog {
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  padding: 24px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.ad-dialog:focus {
+  outline: none;
+}
+
+.ad-dialog-title {
+  margin-bottom: 8px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.ad-dialog-body {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.ad-dialog-error {
+  margin-top: 12px;
+  color: var(--ad-danger-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ad-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+/* ---------- ปุ่ม (ส่วนเพิ่มของ .btn ใน public.css) ---------- */
+
+.btn.sm {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 13px;
+  font-size: 14.5px;
+}
+
+.btn.danger {
+  background: var(--ad-danger);
+  color: var(--ad-danger-ink);
+}
+
+.btn.danger:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* ---------- จอแคบ: แถบบน + ลิ้นชัก ---------- */
+
+@media (max-width: 899px) {
+  .ad-shell {
+    display: block;
+  }
+
+  /* แถบบนอยู่เหนือลิ้นชักและฉากหลัง: ปุ่มเมนู (ตอนเปิดเป็น X) ยังกดปิดได้ ลิ้นชักเลื่อนออกมาใต้แถบบน */
+  .ad-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 58px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  .ad-drawer-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: block;
+    background: var(--ad-scrim);
+  }
+
+  .ad-side {
+    position: fixed;
+    top: 58px;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    width: min(300px, 86vw);
+    height: auto;
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition:
+      transform 0.22s ease,
+      visibility 0s linear 0.22s;
+  }
+
+  /* โลโก้อยู่ที่แถบบนแล้ว */
+  .ad-side .logo {
+    display: none;
+  }
+
+  .menu-open .ad-side {
+    visibility: visible;
+    transform: none;
+    box-shadow: var(--shadow);
+    transition:
+      transform 0.22s ease,
+      visibility 0s;
+  }
+
+  .ad-main {
+    padding: 20px 16px 32px;
+  }
+
+  .ad-ph h1 {
+    font-size: 23px;
+  }
+
+  .ad-login-card {
+    padding: 26px 20px 22px;
+  }
+}

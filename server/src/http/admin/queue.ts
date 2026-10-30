@@ -1,6 +1,6 @@
 import { Router } from "express"
 import type { AppDeps } from "../../app.js"
-import { toQueueErrorDto, type QueueErrorRow } from "../dto.js"
+import { toQueueErrorDto, type QueueDto, type QueueErrorRow } from "../dto.js"
 import { obj, str } from "../validate.js"
 
 /** ขีดจำกัด: สาเหตุที่ผู้ดูแลพิมพ์ (นับหลังล้างข้อความ) และจำนวนตอนผิดพลาดที่แสดงในหน้าคิว */
@@ -20,7 +20,7 @@ export function createQueueRouter(deps: AppDeps): Router {
   const router = Router()
 
   /** สถานะสดของคิว (`queue.state()`) + ตอนที่ผิดพลาดล่าสุด ตอบแบบเดียวกันทั้งเส้นทางอ่านและสั่งงาน หน้าเว็บจะได้อัปเดตทันทีไม่ต้องรอรอบดึงถัดไป */
-  const snapshot = () => ({ ...queue.state(), errors: db.all<QueueErrorRow>(SELECT_ERRORS, MAX.errors).map(toQueueErrorDto) })
+  const snapshot = (): QueueDto => ({ ...queue.state(), errors: db.all<QueueErrorRow>(SELECT_ERRORS, MAX.errors).map(toQueueErrorDto) })
 
   router.get("/queue", (_req, res) => {
     res.json(snapshot())

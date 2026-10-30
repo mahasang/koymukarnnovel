@@ -25,9 +25,12 @@ const declOf = (selector: string, property: string, media: string | null = null)
 // ───────────────────────── คลาสในโค้ด ↔ คลาสใน CSS ─────────────────────────
 
 const SRC = fileURLToPath(new URL("../", import.meta.url))
+/** ไฟล์ที่ใช้เฉพาะในหลังบ้าน: สไตล์อยู่ใน admin.css และ admin.test.ts เป็นคนตรวจ (ใช้รายการเดียวกัน) */
+const ADMIN_ONLY_COMPONENTS = ["components/ConfirmDialog.tsx"]
 const sourceFiles = readdirSync(SRC, { recursive: true, encoding: "utf8" })
   .map((file) => file.replaceAll("\\", "/"))
   .filter((file) => file.endsWith(".tsx") && !file.endsWith(".test.tsx") && !file.startsWith("testing/"))
+  .filter((file) => !file.startsWith("admin/") && !ADMIN_ONLY_COMPONENTS.includes(file))
 
 /** นิพจน์ของ `className=` แต่ละที่: ข้อความตรงๆ หรือเนื้อใน {…} */
 function classNameExpressions(source: string): string[] {
@@ -73,7 +76,7 @@ const globalKeyframes = new Set([...read("./base.css").matchAll(/@keyframes\s+([
 
 /** ใช้ในโค้ดแต่ไม่มีสไตล์ของตัวเอง (ตัวยึดโครงสร้างให้ CSS/เทสต์อ้างถึง) */
 const STRUCTURAL = ["foot-brand", "state-empty", "skeleton", "switch-label", "sk-card"]
-/** มีสไตล์แล้วแต่ยังไม่มีคอมโพเนนต์ใช้ — สงวนไว้ให้หน้าถัดไป (ปุ่มเต็มแถว: ปุ่มบนหน้าเรื่อง/ท้ายตอน) */
+/** มีสไตล์แล้วแต่ยังไม่มีคอมโพเนนต์ของหน้าบ้านใช้ — สงวนไว้ให้หน้าถัดไป (ปุ่มเต็มแถว: ปุ่มบนหน้าเรื่อง/ท้ายตอน; ตอนนี้มีแต่หน้าล็อกอินหลังบ้านใช้) */
 const RESERVED = ["full"]
 /** คลาสที่ประกอบตอนรันจากแม่แบบ `skeleton-${variant}` (variant = grid | lines) */
 const SKELETON_VARIANTS = ["skeleton-grid", "skeleton-lines"]

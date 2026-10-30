@@ -1,12 +1,4 @@
-/** หลังบ้าน (ชั่วคราว — งาน 28 แทนที่ด้วยโครงหลังบ้านจริง ต้องคง `export default` ไว้เพราะ App โหลดแบบ lazy) */
-import { EmptyState } from "../components/EmptyState"
-import { useDocumentTitle } from "../lib/useDocumentTitle"
-
-export default function AdminApp() {
-  useDocumentTitle("หลังบ้าน")
-  return (
-    <main className="wrap main">
-      <EmptyState title="หลังบ้านกำลังสร้าง" hint="ส่วนจัดการเนื้อหาจะมาในขั้นถัดไป" />
-    </main>
-  )
-}
+// จุดเข้าของหลังบ้านที่ App โหลดแบบ lazy: ไฟล์นี้ผูก CSS หลังบ้านไว้ในก้อนเดียวกัน (ผู้อ่านทั่วไปไม่ต้องโหลดมัน)
+// ตรรกะทั้งหมดอยู่ใน AdminShell ซึ่งไม่ import CSS เพื่อให้ node:test โหลดไปทดสอบได้
+import "../styles/admin.css"
+export { AdminShell as default } from "./AdminShell"

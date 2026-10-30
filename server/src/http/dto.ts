@@ -1,5 +1,7 @@
+import type { ApiCheck } from "../api-check.js"
 import type { ChapterContext } from "../context.js"
-import type { AccentId } from "../settings.js"
+import type { QueueState } from "../queue.js"
+import type { AccentId, SiteSettings } from "../settings.js"
 import type { ChapterRow, ChapterStatus, GlossaryRow, Mode, NovelRow, NovelStatus } from "../types.js"
 import { truncate } from "../util/text.js"
 
@@ -245,6 +247,26 @@ export interface NovelProgressRow {
 export function toNovelProgressDto(r: NovelProgressRow): NovelProgressDto {
   return { novelId: r.id, title: r.title_th || r.title, translated: r.translated, total: r.total, published: r.published }
 }
+
+/** `GET /api/admin/queue` (และคำตอบของ pause/resume): สถานะสดของคิว + ตอนที่ผิดพลาดล่าสุด */
+export type QueueDto = QueueState & { errors: QueueErrorDto[] }
+
+/** `GET /api/admin/dashboard` */
+export interface DashboardDto {
+  onboarding: { apiKey: boolean; contact: boolean; firstNovel: boolean }
+  counts: { publishedNovels: number; totalNovels: number; publishedChapters: number; queued: number; errors: number; readyToPublish: number }
+  queue: QueueState
+  /** 14 วัน เก่า→ใหม่ (วันตาม UTC+7) เติมศูนย์ */
+  views: { day: string; count: number }[]
+  progress: NovelProgressDto[]
+  usage: { today: UsageRowDto[]; last30: UsageRowDto[] }
+  /** ค่าใช้จ่ายโดยประมาณเป็นดอลลาร์ · null = ประเมินไม่ได้ (ยังไม่กรอกราคา) */
+  estimate: { today: number | null; last30: number | null }
+  api: { hasKey: boolean; lastOk: ApiCheck | null }
+}
+
+/** `GET/PUT /api/admin/settings`: การตั้งค่า + สถานะความลับที่ระบบคำนวณเอง (ไม่เคยส่งค่าจริงของความลับ) */
+export type SettingsViewDto = SiteSettings & { apiKeySet: boolean; importTokenSet: boolean; importUrl: string }
 
 // ───────────────────────── หน้าบ้านสาธารณะ (/api/public · spec 4.2) ─────────────────────────
 
