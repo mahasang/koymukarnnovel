@@ -1,0 +1,907 @@
+/*
+ * สไตล์หน้าเว็บสาธารณะ — CSS ธรรมดาบน design tokens (tokens.css) ไม่ใช้ UI framework
+ * พอร์ตคลาสหลักมาจากต้นแบบ design-reference/build.mjs (.top .logo .nav .search .iconbtn .btn .cv .card .chips .fchip .foot) แล้วเติมสถานะที่ต้นแบบไม่มี
+ *
+ * กติกาสีที่ public.test.ts ตรวจให้ (อ้างอิง tokens.css):
+ *   - ข้อความสี --accent / --accent-2 วางบน --bg --surface --surface-2 เท่านั้น ห้ามบน --bg-2 (พื้นท้ายเว็บ)
+ *   - พื้นที่ระบายด้วย --accent / --accent-2 ใช้ข้อความสี --accent-ink
+ *   - น้ำหนักตัวอักษรที่โหลดไว้ (base.css): Prompt 500/600/700 · Sarabun 400/500/600 — น้ำหนัก 700 ต้องระบุฟอนต์ Prompt/display ไว้ในกฎเดียวกัน
+ * จุดตัดจอ: 960 (เมนูแคบลง) · 720 (ซ่อนเมนูหัวเว็บ ตาราง 3 คอลัมน์) · 520 (เหลือแค่ตัว K ที่โลโก้) · 360 (ตาราง 2 คอลัมน์)
+ */
+
+:root {
+  --font-ui: "Prompt", "Sarabun", system-ui, sans-serif;
+  --header-h: 64px;
+}
+
+/* ---------- โครงหน้า ---------- */
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 1160px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+/* เนื้อหาดันท้ายเว็บลงล่างสุดแม้หน้าสั้น · tabindex=-1 รับโฟกัสจากโปรแกรม (ลิงก์ข้ามเนื้อหา/เปลี่ยนหน้า) ไม่ต้องมีกรอบ */
+.main {
+  flex: 1 0 auto;
+  padding-top: 28px;
+  scroll-margin-top: var(--header-h);
+}
+
+.main:focus {
+  outline: none;
+}
+
+.skip-link {
+  position: absolute;
+  top: -64px;
+  left: 12px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ---------- แถบบน ---------- */
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+
+.top .in {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  height: var(--header-h);
+}
+
+.logo {
+  --mark: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+
+/* ในแถบบน: เมื่อที่ไม่พอ ช่องค้นหาหดก่อน (flex-shrink 100, ต่ำสุด 150px) แล้วชื่อเว็บค่อยหดตัดด้วย … — ไม่เล็กกว่าตัว K เพื่อไม่ให้ช่องค้นหาทับตัว K */
+.top .logo {
+  flex: 0 1 auto;
+  min-width: var(--mark);
+}
+
+.logo .mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--mark);
+  height: var(--mark);
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--accent-ink);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.logo .logo-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  gap: 4px;
+}
+
+.nav a {
+  padding: 8px 15px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.nav a:hover {
+  color: var(--text);
+}
+
+.nav a.on {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 100 330px;
+  min-width: 150px;
+  height: 42px;
+  margin-left: auto;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 14.5px;
+}
+
+.search:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: inherit;
+  text-overflow: ellipsis;
+}
+
+.search input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.iconbtn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.iconbtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  height: 42px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.admin-link:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+/* ---------- เมนูธีม ---------- */
+
+.theme-menu {
+  position: relative;
+  flex: none;
+}
+
+.theme-list {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 190px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.theme-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.theme-item:hover {
+  background: var(--surface-2);
+}
+
+.theme-item.on {
+  font-weight: 600;
+}
+
+.theme-check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+}
+
+/* ---------- ท้ายเว็บ ---------- */
+
+.foot {
+  margin-top: 64px;
+  padding: 38px 0 30px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--muted);
+  font-size: 14.5px;
+}
+
+/* minmax(0, …): คอลัมน์หดได้ ชื่อเว็บยาว (เซิร์ฟเวอร์อนุญาต 80 ตัวอักษร) จึงถูกตัดด้วย … ไม่ดันหน้าให้ล้นจอ */
+.foot .cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 2fr);
+  gap: 40px;
+}
+
+.foot .logo {
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.foot-note {
+  max-width: 46ch;
+}
+
+.foot-nav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.foot-h {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.foot ul {
+  list-style: none;
+}
+
+.foot li {
+  margin: 5px 0;
+}
+
+.foot a:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.foot .cr {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+/* ---------- ปกนิยาย ---------- */
+
+.cv {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  container-type: inline-size;
+}
+
+.cv-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cv svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* เงาจางด้านล่างให้ชื่อเรื่องสีขาวอ่านออกบนทุกสีพื้น (เฉพาะปกอัตโนมัติ — รูปปกจริงไม่ถูกบัง) */
+.cv-placeholder::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 42%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+.cv-title {
+  position: absolute;
+  z-index: 2;
+  right: 8%;
+  bottom: 8%;
+  left: 8%;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  color: #fff;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 15px;
+  font-size: max(10px, 11.5cqw);
+  line-height: 1.22;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- การ์ดนิยาย ---------- */
+
+/* ป้าย "จบแล้ว" / "ร่าง" นั่งที่มุมล่างของปก (bottom 9px สูงไม่เกิน 26px) — ยกชื่อบนปกอัตโนมัติให้พ้นแถบนั้นเสมอ ชื่อในทุกการ์ดจึงอยู่ระดับเดียวกัน */
+.card .cv-title {
+  bottom: 42px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 26px 20px;
+}
+
+.card {
+  display: block;
+  min-width: 0;
+}
+
+.card .box {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  transition: transform 0.18s ease;
+}
+
+@media (hover: hover) {
+  .card:hover .box {
+    transform: translateY(-3px);
+  }
+}
+
+.card:hover h3 {
+  color: var(--accent);
+}
+
+.card h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 11px 0 3px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.38;
+  overflow-wrap: anywhere;
+}
+
+.card .meta {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card .meta svg {
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: -2px;
+}
+
+.b-top,
+.b-done,
+.b-draft {
+  position: absolute;
+  z-index: 3;
+  font-family: var(--font-ui);
+}
+
+/* ป้ายบน (ใหม่ / ตอน N) เรียงในแถบ flex: ปกแคบวางข้างกันไม่พอ ชิปจะห่อลงบรรทัดที่สอง (ยังชิดขวา) แทนการทับป้ายใหม่ */
+.b-top {
+  top: 9px;
+  right: 9px;
+  left: 9px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4px 6px;
+}
+
+.b-new {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-2);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: 11.5px;
+}
+
+.b-ep {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 9px;
+  background: rgba(8, 8, 14, 0.72);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-weight: 500;
+  font-size: 11.5px;
+}
+
+.b-done {
+  bottom: 9px;
+  left: 9px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.b-draft {
+  right: 9px;
+  bottom: 9px;
+}
+
+/* ป้ายร่าง (เห็นเฉพาะผู้ดูแล) — พื้นทึบ อ่านออกทั้งบนปกและบนพื้นหน้าเว็บ */
+.draft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 11px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 55%, var(--line));
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--accent-2);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.draft-compact {
+  padding: 2px 9px;
+  font-size: 11px;
+}
+
+/* ---------- ปุ่ม ชิป สวิตช์ ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 8px 24px;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15.5px;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+.btn.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.btn.ghost {
+  border-color: var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.btn.ghost:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.btn.full {
+  flex: 1;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 22px;
+}
+
+.fchip {
+  padding: 8px 17px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 14.5px;
+  cursor: pointer;
+}
+
+.fchip:hover {
+  color: var(--text);
+}
+
+.fchip.on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.switch-track {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 26px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  transition: background 0.18s ease;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.18s ease;
+}
+
+.switch.on .switch-track {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.switch.on .switch-thumb {
+  background: var(--accent-ink);
+  transform: translateX(18px);
+}
+
+/* ---------- สถานะ: ว่าง / ผิดพลาด / กำลังโหลด ---------- */
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 520px;
+  margin: 24px auto;
+  padding: 52px 24px;
+  border: 1px dashed var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.state-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 6px;
+  border-radius: 18px;
+  background: var(--surface-2);
+  color: var(--accent);
+}
+
+.state-error .state-icon {
+  color: var(--accent-2);
+}
+
+.state-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.state-message {
+  max-width: 42ch;
+  color: var(--text);
+}
+
+.state-hint {
+  max-width: 42ch;
+  color: var(--muted);
+}
+
+.state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.sk {
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--surface) 0%, var(--surface-2) 50%, var(--surface) 100%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes sk-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 26px 20px;
+}
+
+.sk-cover {
+  aspect-ratio: 2 / 3;
+  border-radius: 14px;
+}
+
+.sk-line {
+  height: 14px;
+  margin-top: 11px;
+}
+
+.sk-short {
+  width: 60%;
+}
+
+.skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
+}
+
+.skeleton-lines .sk-line {
+  height: 16px;
+  margin-top: 0;
+}
+
+/* ---------- หน้าข้อความ / หัวข้อส่วน ---------- */
+
+.sec {
+  margin-top: 4px;
+}
+
+.sec-h {
+  margin-bottom: 18px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.prose {
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.prose h1 {
+  margin-bottom: 18px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 30px;
+}
+
+.prose-text {
+  font-size: 16.5px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* ---------- จอเล็กลง ---------- */
+
+@media (max-width: 1099px) {
+  .grid,
+  .skeleton-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 959px) {
+  /* แท็บเล็ตแนวตั้ง (720–959px) ใส่เมนูไม่พอเมื่อมีปุ่มหลังบ้าน → ซ่อนเมนูเหมือนมือถือ (ลิงก์เดียวกันอยู่ท้ายเว็บ) แล้วให้ช่องค้นหากินที่ที่เหลือ */
+  .nav {
+    display: none;
+  }
+
+  .top .in {
+    gap: 12px;
+  }
+
+  .search {
+    flex: 1 100 auto;
+    margin-left: 0;
+  }
+
+  .foot .cols {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+}
+
+@media (max-width: 719px) {
+  :root {
+    --header-h: 58px;
+  }
+
+  .wrap {
+    padding-inline: 18px;
+  }
+
+  .search {
+    padding: 0 14px;
+  }
+
+  /* ปุ่มหลังบ้านเหลือแค่ไอคอน (ข้อความยังอ่านออกเสียงได้) */
+  .admin-link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .admin-link {
+    justify-content: center;
+    width: 42px;
+    padding: 0;
+  }
+
+  .grid,
+  .skeleton-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px 12px;
+  }
+
+  .card h3 {
+    font-size: 14px;
+  }
+
+  .main {
+    padding-top: 20px;
+  }
+
+  .foot {
+    margin-top: 48px;
+  }
+}
+
+@media (max-width: 519px) {
+  .wrap {
+    padding-inline: 16px;
+  }
+
+  /* โลโก้เหลือแค่ตัว K (ชื่อเว็บยังอ่านออกเสียงได้) ช่องค้นหาจึงหดได้เต็มที่ในพื้นที่ที่เหลือ */
+  .top .logo-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .search {
+    min-width: 0;
+  }
+
+  .foot-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .state {
+    padding: 40px 16px;
+  }
+}
+
+@media (max-width: 359px) {
+  .grid,
+  .skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .top .in {
+    gap: 8px;
+  }
+}

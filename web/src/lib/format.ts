@@ -39,3 +39,32 @@ export function thaiDate(sql: string): string {
   const thai = new Date(time + THAI_OFFSET)
   return `${thai.getUTCDate()} ${THAI_MONTHS[thai.getUTCMonth()]} ${thai.getUTCFullYear() + 543}`
 }
+
+const MINUTE = 60 * 1000
+const DAY = 24 * HOUR
+const WEEK_DAYS = 7
+/** ตั้งแต่กี่วันขึ้นไปที่บอกเป็นวันที่ตรงๆ แทน "N สัปดาห์ที่แล้ว" */
+const DATE_AFTER_DAYS = 30
+
+/** วันที่ตามปฏิทินไทย (UTC+7) นับเป็นลำดับวันจาก epoch — ใช้เทียบว่า "เมื่อวาน" คือวันก่อนหน้าจริงตามปฏิทิน ไม่ใช่แค่ห่างกัน 24 ชั่วโมง */
+const thaiDayIndex = (ms: number) => Math.floor((ms + THAI_OFFSET) / DAY)
+
+/**
+ * เวลาที่ผ่านมาแบบอ่านง่าย (ป้ายใต้ปกนิยาย) จากเวลา SQL (UTC):
+ * ไม่ถึง 1 นาที "เมื่อสักครู่" → "N นาทีที่แล้ว" → "N ชั่วโมงที่แล้ว" (ถึง 24 ชั่วโมงเต็ม นับตามเวลาจริง)
+ * → "เมื่อวาน" / "N วันที่แล้ว" (นับตามปฏิทินไทย) → "N สัปดาห์ที่แล้ว" (ตั้งแต่ 7 วัน) → วันที่แบบไทย (ตั้งแต่ 30 วัน)
+ * เวลาในอนาคต (นาฬิกาเครื่องผู้อ่านช้ากว่าเซิร์ฟเวอร์) นับเป็น "เมื่อสักครู่" · รูปแบบผิด → สตริงว่าง
+ */
+export function timeAgo(sql: string, now: number = Date.now()): string {
+  const time = parseSqlTime(sql)
+  if (time === null) return ""
+  const elapsed = Math.max(0, now - time)
+  if (elapsed < MINUTE) return "เมื่อสักครู่"
+  if (elapsed < HOUR) return `${Math.floor(elapsed / MINUTE)} นาทีที่แล้ว`
+  if (elapsed < DAY) return `${Math.floor(elapsed / HOUR)} ชั่วโมงที่แล้ว`
+  const days = thaiDayIndex(now) - thaiDayIndex(time)
+  if (days === 1) return "เมื่อวาน"
+  if (days < WEEK_DAYS) return `${days} วันที่แล้ว`
+  if (days < DATE_AFTER_DAYS) return `${Math.floor(days / WEEK_DAYS)} สัปดาห์ที่แล้ว`
+  return thaiDate(sql)
+}
