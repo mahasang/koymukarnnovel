@@ -1,0 +1,40 @@
+# koymukarnnovel: แอป + Caddy (HTTPS อัตโนมัติ)
+# ก่อนรันครั้งแรก:
+#   1) cp server/.env.example server/.env   แล้วใส่ ADMIN_PASSWORD (และ ANTHROPIC_API_KEY, PUBLIC_URL, IMPORT_TOKEN ตามต้องการ)
+#   2) สร้างไฟล์ .env ข้างไฟล์นี้ให้มีบรรทัด DOMAIN=โดเมนของคุณ (โดเมนต้องชี้ DNS มาที่เครื่องนี้ และเปิดพอร์ต 80/443)
+#   3) docker compose up -d --build
+services:
+  app:
+    build: .
+    image: koymukarnnovel
+    env_file: ./server/.env
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      DB_PATH: /data/koymukarnnovel.db
+      TRUST_PROXY: "1"
+    volumes:
+      - koymukarnnovel-data:/data
+    restart: unless-stopped
+    # ไม่เปิดพอร์ตออกเครื่อง: ผู้ใช้เข้าผ่าน caddy เท่านั้น
+
+  caddy:
+    image: caddy:2
+    depends_on:
+      - app
+    environment:
+      DOMAIN: ${DOMAIN:?ตั้ง DOMAIN ในไฟล์ .env ข้าง docker-compose.yml เช่น DOMAIN=novel.example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+
+volumes:
+  koymukarnnovel-data:
+  caddy-data:
+  caddy-config:

@@ -300,6 +300,9 @@ async function main() {
       await ctx.close()
     }
 
+    const publicCalls = await aiCalls()
+    check("ผู้อ่านเปิดหน้าบ้านทุกหน้า (หน้าแรก เรื่อง ตอน เมนู ออฟไลน์ ลิงก์หลังบ้าน) แล้วไม่มีการเรียก AI เลย", publicCalls.total === 0, JSON.stringify(publicCalls))
+
     // ═════════════════ หลังบ้าน ═════════════════
     section("หลังบ้าน: ล็อกอิน · Dashboard · สร้างเรื่อง")
     const ctx = await newContext({ viewport: { width: 1280, height: 900 } })
