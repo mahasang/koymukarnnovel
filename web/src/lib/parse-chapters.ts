@@ -64,7 +64,7 @@ function countWords(text: string): number {
 // ───────────────────────── หัวข้อ ─────────────────────────
 
 /** เลขตอนที่เซิร์ฟเวอร์รับ: จำนวนเต็มที่ JavaScript แทนได้เป๊ะ ตั้งแต่ 0 ขึ้นไป (ตอน 0 ใช้ได้) */
-function isChapterNumber(n: number | null): n is number {
+export function isChapterNumber(n: number | null): n is number {
   return n !== null && Number.isSafeInteger(n) && n >= 0
 }
 

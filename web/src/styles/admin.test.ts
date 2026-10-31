@@ -631,3 +631,38 @@ describe("รายการนิยาย", () => {
     assert.equal(declOf(".ad-scroll", "overflow-x"), "auto")
   })
 })
+
+describe("เพิ่มตอน", () => {
+  test("ช่องเลือกเรื่อง (select) ใช้รูปแบบเดียวกับช่องกรอกอื่นในฟอร์ม — ใช้กฎร่วมกัน ไม่ซ้ำ", () => {
+    const shared = rules.filter((rule) => rule.selectors.includes(".ad-field select") && rule.selectors.includes(".ad-field input"))
+    assert.equal(shared.length, 1)
+    assert.equal(shared[0]!.decls.width, "100%")
+    assert.equal(shared[0]!.decls.height, "48px")
+  })
+
+  test("ปุ่มโหมดแยกตอนที่เลือกอยู่ (aria-pressed) เห็นต่างจากปุ่มที่ไม่ได้เลือก โดยตัวอักษรยังเป็นสีข้อความปกติ", () => {
+    const on = '.ad-add-actions .btn[aria-pressed="true"]'
+    assert.equal(declOf(on, "border-color"), "var(--accent)")
+    assert.equal(declOf(on, "color"), "var(--text)")
+    assert.match(declOf(on, "background") ?? "", /^color-mix\(in srgb, var\(--accent\) \d+%, var\(--surface\)\)$/)
+  })
+
+  test("ช่องในตารางตอน: เลขแคบคงที่ · ชื่อกว้างพอไม่หดจนอ่านไม่ได้ · ช่องติ๊กกดง่าย · ช่องที่เลขผิดมีกรอบสีเตือน", () => {
+    // ช่องกรอกเล็กกว่า 16px ทำให้ iOS Safari ซูมหน้าตอนแตะ — ช่องในตารางต้อง 16px เท่าช่องในฟอร์ม และสูงพอแตะได้
+    assert.equal(declOf('.ad-atable input[type="text"]', "font-size"), "16px")
+    assert.ok(parseInt(declOf('.ad-atable input[type="text"]', "height") ?? "0") >= 36)
+    assert.ok(parseInt(declOf(".ad-add", "max-width") ?? "9999") <= 1100, "ฟอร์มไม่ยืดจนอ่านยากบนจอกว้าง")
+    assert.equal(declOf(".ad-anum", "width"), "84px")
+    assert.ok(parseInt(declOf(".ad-atitle", "min-width") ?? "0") >= 200)
+    assert.ok(parseInt(declOf(".ad-acheck", "width") ?? "0") >= 20)
+    assert.equal(declOf('.ad-atable input[aria-invalid="true"]', "border-color"), "var(--ad-danger-text)")
+    // หัวคอลัมน์ต้องชิดเดียวกับเซลล์ข้างใต้ (ค่าตั้งต้นของ .ad-table th คือชิดขวา)
+    for (const selector of [".ad-atable th", ".ad-atable td"]) assert.equal(declOf(selector, "text-align"), "left", selector)
+    for (const selector of [".ad-atable th:nth-child(4)", ".ad-atable td:nth-child(4)"]) assert.equal(declOf(selector, "text-align"), "right", selector)
+  })
+
+  test("จอแคบ: ปุ่มส่งเต็มความกว้าง · ตารางตอนเลื่อนในกรอบ .ad-scroll (ไม่ดันหน้า)", () => {
+    assert.equal(declOf(".ad-add-submit .btn", "width", MOBILE), "100%")
+    assert.equal(declOf(".ad-scroll", "overflow-x"), "auto")
+  })
+})

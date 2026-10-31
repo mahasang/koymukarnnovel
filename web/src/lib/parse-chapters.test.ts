@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
-import { MAX_CHAPTERS, MAX_CHARS, forceSingle, parseChapters, revalidate, validateSelection, type ParsedRow } from "./parse-chapters"
+import { MAX_CHAPTERS, MAX_CHARS, forceSingle, isChapterNumber, parseChapters, revalidate, validateSelection, type ParsedRow } from "./parse-chapters"
 
 const NONE: ReadonlySet<number> = new Set()
 const have = (...numbers: number[]): ReadonlySet<number> => new Set(numbers)
@@ -735,5 +735,12 @@ describe("ตัวล้างข้อความตรงกับ normalize
       const web = forceSingle(s, NONE)[0]?.text ?? ""
       assert.equal(web, server.normalizeText(s), JSON.stringify(s))
     }
+  })
+})
+
+describe("isChapterNumber — เลขตอนที่เซิร์ฟเวอร์รับ (ใช้ร่วมกับหน้าเพิ่มตอน)", () => {
+  test("จำนวนเต็มปลอดภัยตั้งแต่ 0 ขึ้นไปเท่านั้น", () => {
+    for (const ok of [0, 1, 12, Number.MAX_SAFE_INTEGER]) assert.equal(isChapterNumber(ok), true, String(ok))
+    for (const bad of [null, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1]) assert.equal(isChapterNumber(bad), false, String(bad))
   })
 })

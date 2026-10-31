@@ -355,7 +355,7 @@ export function NovelTabs({ id, tab, chapterCount }: { id: number; tab: NovelTab
 // ───────────────────────── ตัวถือสถานะ ─────────────────────────
 
 /** เตือนของเบราว์เซอร์ตอนปิด/รีเฟรชแท็บขณะมีแก้ไขค้าง (ไม่ใช่ `confirm()`) · เปลี่ยนหน้าในแอปไม่ถูกกัน */
-function useUnsavedGuard(dirty: boolean): void {
+export function useUnsavedGuard(dirty: boolean): void {
   useEffect(() => {
     if (!dirty) return
     const guard = (event: BeforeUnloadEvent) => {

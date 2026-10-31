@@ -19,12 +19,13 @@ const BROKEN: [string, StorageSetup][] = [
 ]
 
 describe("KEYS", () => {
-  test("สี่คีย์ที่แอปใช้เก็บข้อมูลในเครื่องผู้อ่าน ขึ้นต้น koymukarnnovel. ทั้งหมด", () => {
+  test("ห้าคีย์ที่แอปใช้เก็บข้อมูลในเครื่อง (สี่ของผู้อ่าน + ตัวเลือกเพิ่มตอนของเจ้าของ) ขึ้นต้น koymukarnnovel. ทั้งหมด", () => {
     assert.deepEqual(KEYS, {
       theme: "koymukarnnovel.theme",
       reader: "koymukarnnovel.reader",
       progress: "koymukarnnovel.progress",
       history: "koymukarnnovel.history",
+      addOptions: "koymukarnnovel.admin.add",
     })
   })
 

@@ -289,6 +289,7 @@ html[data-theme="sepia"] {
 }
 
 .ad-field input,
+.ad-field select,
 .ad-tag-input {
   width: 100%;
   height: 48px;
@@ -1448,6 +1449,93 @@ html[data-theme="sepia"] {
 
 /* ---------- จอแคบ: แถบบน + ลิ้นชัก ---------- */
 
+/* ---------- เพิ่มตอน (วางแล้วแปล) ---------- */
+
+.ad-add {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 980px;
+}
+
+.ad-add-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ad-add-actions .btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--text);
+}
+
+.ad-found {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 19px;
+}
+
+/* ตารางตอนที่แยกได้: ช่องกรอกในเซลล์ย่อให้เล็กกว่าฟอร์มปกติ · ตารางเลื่อนแนวนอนในกรอบ .ad-scroll บนจอแคบ */
+.ad-atable th,
+.ad-atable td {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.ad-atable th:nth-child(4),
+.ad-atable td:nth-child(4) {
+  text-align: right;
+}
+
+.ad-atable input[type="text"] {
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+.ad-atable input[aria-invalid="true"] {
+  border-color: var(--ad-danger-text);
+}
+
+.ad-anum {
+  width: 84px;
+}
+
+.ad-atitle {
+  width: 100%;
+  min-width: 220px;
+}
+
+.ad-acheck {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+}
+
+.ad-akind {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ad-add-opts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ad-add-submit {
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media (max-width: 899px) {
   .ad-shell {
     display: block;
@@ -1573,5 +1661,9 @@ html[data-theme="sepia"] {
   /* ตารางนิยายกว้างกว่าจอ: เลื่อนแนวนอนในกรอบของมันเอง (ไม่ดันทั้งหน้า) */
   .ad-ntable {
     min-width: 640px;
+  }
+
+  .ad-add-submit .btn {
+    width: 100%;
   }
 }
