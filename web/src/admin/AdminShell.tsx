@@ -16,6 +16,7 @@ import { Dashboard } from "./Dashboard"
 import { AdminLayout } from "./Layout"
 import { Login } from "./Login"
 import { AddChapters } from "./AddChapters"
+import { ChapterEdit } from "./ChapterEdit"
 import { NovelEdit, NovelNew } from "./NovelForm"
 import { Novels } from "./Novels"
 import { QueueProvider } from "./QueueContext"
@@ -76,7 +77,7 @@ export const adminRoutes: RouteObject[] = [
   { path: "novels", element: <Novels />, handle: { page: "novels" } },
   { path: "novels/new", element: <NovelNew />, handle: { page: "novel-new" } },
   { path: "novels/:id", element: <NovelEdit />, handle: { page: "novel" } },
-  { path: "novels/:id/chapters/:chapterId", element: <ComingSoon title="แก้ไขตอน" />, handle: { page: "chapter" } },
+  { path: "novels/:id/chapters/:chapterId", element: <ChapterEdit />, handle: { page: "chapter" } },
   { path: "add", element: <AddChapters />, handle: { page: "add" } },
   { path: "settings", element: <ComingSoon title="ตั้งค่า" />, handle: { page: "settings" } },
   { path: "*", element: <AdminNotFound />, handle: { page: "not-found" } },

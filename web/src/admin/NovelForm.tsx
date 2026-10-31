@@ -17,6 +17,7 @@ import { useDocumentTitle } from "../lib/useDocumentTitle"
 import { useFetch } from "../lib/useFetch"
 import { admin } from "./adminApi"
 import { ChapterTable } from "./ChapterTable"
+import { Glossary } from "./Glossary"
 import { CoverField } from "./CoverField"
 import {
   aiFillNotice,
@@ -63,6 +64,8 @@ export interface TextFieldProps {
   rows?: number
   type?: "text" | "url"
   placeholder?: string
+  /** ปิดช่อง (ดูได้ แก้ไม่ได้) */
+  disabled?: boolean
   /** ส่วนเสริมใต้ช่อง (เช่น ปุ่มใส่ตัวอย่าง) */
   children?: ReactNode
 }
@@ -77,6 +80,7 @@ export function TextField(p: TextFieldProps) {
     value: p.value,
     maxLength: p.max,
     placeholder: p.placeholder,
+    disabled: p.disabled ? true : undefined,
     "aria-required": p.required ? true : undefined,
     "aria-invalid": p.error !== undefined ? true : undefined,
     "aria-describedby": describedBy === "" ? undefined : describedBy,
@@ -649,7 +653,7 @@ function NovelEditor({ initial }: { initial: AdminNovelDto }) {
       ) : tab === "chapters" ? (
         <ChapterTable novelId={novel.id} onCount={(count) => setNovel((current) => (current.chapterCount === count ? current : { ...current, chapterCount: count }))} />
       ) : (
-        <EmptyState title="อภิธานศัพท์กำลังสร้างในขั้นถัดไป" hint="ระหว่างนี้แก้ข้อมูลเรื่องได้ที่แท็บ “ข้อมูล”" />
+        <Glossary novelId={novel.id} />
       )}
       {confirmDelete && <ConfirmDialog title="ลบนิยายเรื่องนี้?" message={deleteMessage(novel)} confirmLabel="ลบถาวร" danger onConfirm={remove} onCancel={() => setConfirmDelete(false)} />}
     </>

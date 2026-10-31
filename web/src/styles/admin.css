@@ -1656,6 +1656,125 @@ html[data-theme="sepia"] {
   color: var(--text);
 }
 
+/* ---------- หน้าแก้ตอน ---------- */
+
+.ad-ce-nav {
+  flex-wrap: nowrap;
+}
+
+.ad-ce-stat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-ce-error {
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--ad-danger-text) 40%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ad-danger-text) 8%, var(--surface));
+  color: var(--ad-danger-text);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+/* ต้นฉบับ | คำแปล สองคอลัมน์เท่ากัน (แคบลงเป็นคอลัมน์เดียวที่จุดตัดจอเดียวของหลังบ้าน) */
+.ad-ce-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.ad-ce-cols .ad-field textarea {
+  min-height: 420px;
+}
+
+.ad-field input:disabled,
+.ad-field textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- อภิธานศัพท์ ---------- */
+
+.ad-glossary {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ad-gadd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr) auto;
+  gap: 12px 14px;
+  align-items: start;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.ad-gadd-go {
+  align-self: end;
+}
+
+.ad-gadd-error {
+  grid-column: 1 / -1;
+}
+
+.ad-gtable {
+  background: var(--surface);
+}
+
+.ad-gtable th,
+.ad-gtable td {
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+.ad-gtable thead th {
+  white-space: nowrap;
+}
+
+.ad-gtable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ad-gword {
+  margin-right: 8px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ad-gnote {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.ad-gcell {
+  width: 100%;
+  min-width: 120px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+.ad-gcell[aria-invalid="true"] {
+  border-color: var(--ad-danger-text);
+}
+
 @media (max-width: 899px) {
   .ad-shell {
     display: block;
@@ -1790,5 +1909,33 @@ html[data-theme="sepia"] {
   /* ตารางตอนกว้างกว่าจอ: เลื่อนแนวนอนในกรอบของมันเอง (ไม่ดันทั้งหน้า) */
   .ad-ctable {
     min-width: 760px;
+  }
+
+  .ad-ce-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ad-ce-cols .ad-field textarea {
+    min-height: 300px;
+  }
+
+  .ad-ce-nav {
+    width: 100%;
+  }
+
+  .ad-ce-nav .btn {
+    flex: 1 1 0;
+  }
+
+  .ad-gadd {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ad-gadd-go .btn {
+    width: 100%;
+  }
+
+  .ad-gtable {
+    min-width: 640px;
   }
 }

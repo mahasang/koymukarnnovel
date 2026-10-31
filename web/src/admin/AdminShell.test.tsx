@@ -105,15 +105,19 @@ describe("AdminShellView", () => {
   })
 
   test("ทุกเส้นทางที่ยังเป็นที่ว่าง: หัวเรื่องตรงหน้านั้น + ข้อความ \"ยังไม่พร้อมใช้งาน\" (ขั้นถัดไปแทนที่ทีละหน้า)", () => {
-    const titles: [string, string][] = [
-      ["/admin/novels/7/chapters/70", "แก้ไขตอน"],
-      ["/admin/settings", "ตั้งค่า"],
-    ]
+    const titles: [string, string][] = [["/admin/settings", "ตั้งค่า"]]
     for (const [path, title] of titles) {
       const root = at(ready, path)
       assert.equal(text(one(root, "h1")), title, path)
       assert.equal(text(one(root, ".state-title")), "หน้านี้ยังไม่พร้อมใช้งาน", path)
     }
+  })
+
+  test("/admin/novels/7/chapters/70 เป็นหน้าแก้ตอนจริง (ไม่ใช่ที่ว่าง): หัวหน้า \"แก้ไขตอน\" + โครงจำลองระหว่างรอข้อมูล", () => {
+    const root = at(ready, "/admin/novels/7/chapters/70")
+    assert.equal(text(one(root, "h1")), "แก้ไขตอน")
+    assert.equal(all(root, ".state-title").length, 0)
+    assert.equal(all(root, ".skeleton").length, 1)
   })
 
   test("/admin/add เป็นหน้าเพิ่มตอนจริง (ไม่ใช่ที่ว่าง): หัวหน้าอยู่ครบ + โครงจำลองระหว่างรอข้อมูล", () => {

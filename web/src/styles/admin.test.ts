@@ -292,6 +292,15 @@ describe("สีแดงของหลังบ้านผ่านควา�
     assert.equal(adminToken("--ad-danger-text", "paper"), adminToken("--ad-danger-text", "sepia"))
     assert.equal(adminToken("--ad-danger-text", "midnight"), adminToken("--ad-danger-text", "black"))
   })
+
+  test("กล่องข้อผิดพลาดล่าสุดของตอน (พื้น = แดง 8% ผสม --surface) ตัวอักษรแดงผ่านทุกธีม", () => {
+    const pct = Number(/color-mix\(in srgb, var\(--ad-danger-text\) (\d+)%/.exec(declOf(".ad-ce-error", "background") ?? "")![1])
+    for (const theme of THEMES) {
+      const red = adminToken("--ad-danger-text", theme)
+      const bg = mix(red, pct, surfaces(theme).surface)
+      assert.ok(contrast(red, bg) >= 4.5, `${theme}: ${red} บน ${bg} = ${contrast(red, bg).toFixed(2)}`)
+    }
+  })
 })
 
 // ───────────────────────── ฟอนต์ โฟกัส ─────────────────────────
@@ -724,3 +733,67 @@ describe("ตารางตอน (แท็บ ตอน)", () => {
     assert.equal(declOf(".ad-ctable", "min-width", MOBILE), "760px")
   })
 })
+
+describe("หน้าแก้ตอน + อภิธานศัพท์", () => {
+  test("แก้ตอน: ต้นฉบับ | คำแปล เป็นสองคอลัมน์เท่ากัน · ช่องสูงพอเห็นหลายย่อหน้า · จอแคบเรียงลงคอลัมน์เดียว", () => {
+    assert.equal(declOf(".ad-ce-cols", "display"), "grid")
+    assert.equal(declOf(".ad-ce-cols", "grid-template-columns"), "repeat(2, minmax(0, 1fr))")
+    assert.equal(declOf(".ad-ce-cols", "grid-template-columns", MOBILE), "minmax(0, 1fr)")
+    assert.ok(parseInt(declOf(".ad-ce-cols .ad-field textarea", "min-height") ?? "0") >= 360)
+    const mobileMin = parseInt(declOf(".ad-ce-cols .ad-field textarea", "min-height", MOBILE) ?? "0")
+    assert.ok(mobileMin >= 240 && mobileMin < parseInt(declOf(".ad-ce-cols .ad-field textarea", "min-height") ?? "0"), "จอแคบเตี้ยกว่าเดสก์ท็อป (ไม่ให้ช่องสองช่องกินจอทั้งจอ)")
+    assert.equal(declOf(".ad-ce-stat", "color"), "var(--muted)")
+  })
+
+  test("ปุ่มก่อนหน้า/ถัดไป: ไม่ตัดบรรทัดข้างหัวเรื่อง · จอแคบกว้างเต็มและแบ่งครึ่ง", () => {
+    assert.equal(declOf(".ad-ce-nav", "flex-wrap"), "nowrap")
+    assert.equal(declOf(".ad-ce-nav", "width", MOBILE), "100%")
+    assert.equal(declOf(".ad-ce-nav .btn", "flex", MOBILE), "1 1 0")
+  })
+
+  test("ช่องที่ปิด (ตอนกำลังแปล) เห็นว่าปิด: จางลง + เมาส์เป็นห้าม", () => {
+    assert.equal(declOf(".ad-field textarea:disabled", "cursor"), "not-allowed")
+    assert.ok(Number(declOf(".ad-field textarea:disabled", "opacity")) < 1)
+    assert.equal(declOf(".ad-field input:disabled", "cursor"), "not-allowed")
+  })
+
+  test("กล่องข้อผิดพลาดล่าสุดของตอน: ตัวอักษรแดงบนพื้นผสมแดง 8% · ข้อความยาวตัดคำได้ (ความต่างสีตรวจในหมวดสีแดง)", () => {
+    assert.equal(declOf(".ad-ce-error", "color"), "var(--ad-danger-text)")
+    assert.match(declOf(".ad-ce-error", "background") ?? "", /^color-mix\(in srgb, var\(--ad-danger-text\) 8%, var\(--surface\)\)$/)
+    assert.equal(declOf(".ad-ce-error", "overflow-wrap"), "anywhere")
+  })
+
+  test("อภิธาน: ฟอร์มเพิ่มคำสี่ช่องเรียงแถวเดียว (ปุ่มชิดล่างของช่อง) · จอแคบคอลัมน์เดียวและปุ่มเต็มกว้าง · ข้อผิดพลาดกินทั้งแถว", () => {
+    assert.equal(declOf(".ad-glossary", "flex-direction"), "column")
+    assert.equal(declOf(".ad-gadd", "display"), "grid")
+    assert.equal(declOf(".ad-gadd", "grid-template-columns"), "minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr) auto")
+    assert.equal(declOf(".ad-gadd", "grid-template-columns", MOBILE), "minmax(0, 1fr)")
+    assert.equal(declOf(".ad-gadd-go", "align-self"), "end")
+    assert.equal(declOf(".ad-gadd-go .btn", "width", MOBILE), "100%")
+    assert.equal(declOf(".ad-gadd-error", "grid-column"), "1 / -1")
+  })
+
+  test("ตารางอภิธาน: ชิดซ้ายทุกคอลัมน์ · หัวไม่ตัดบรรทัด · แถวสุดท้ายไม่มีเส้นล่าง · จอแคบเลื่อนในกรอบ (min-width)", () => {
+    assert.equal(declOf(".ad-gtable th", "text-align"), "left")
+    assert.equal(declOf(".ad-gtable td", "text-align"), "left")
+    assert.equal(declOf(".ad-gtable td", "vertical-align"), "middle")
+    assert.equal(declOf(".ad-gtable td", "white-space"), "normal")
+    assert.equal(declOf(".ad-gtable thead th", "white-space"), "nowrap")
+    assert.equal(declOf(".ad-gtable tbody tr:last-child td", "border-bottom"), "0")
+    assert.equal(declOf(".ad-gtable", "min-width", MOBILE), "640px")
+  })
+
+  test("ช่องแก้ในแถวอภิธาน: 16px (iOS ไม่ซูม) สูงพอแตะ · กว้างเต็มช่อง · ช่องผิดมีกรอบสีเตือน · คำหนา/หมายเหตุจาง", () => {
+    assert.equal(declOf(".ad-gcell", "font-size"), "16px")
+    assert.ok(parseInt(declOf(".ad-gcell", "height") ?? "0") >= 36)
+    assert.equal(declOf(".ad-gcell", "width"), "100%")
+    assert.equal(declOf('.ad-gcell[aria-invalid="true"]', "border-color"), "var(--ad-danger-text)")
+    assert.equal(declOf(".ad-gword", "font-weight"), "600")
+    assert.equal(declOf(".ad-gword", "margin-right"), "8px")
+    assert.equal(declOf(".ad-gword", "overflow-wrap"), "anywhere")
+    assert.equal(declOf(".ad-gnote", "overflow-wrap"), "anywhere")
+    assert.equal(declOf(".ad-gcell", "min-width"), "120px")
+    assert.equal(declOf(".ad-gnote", "color"), "var(--muted)")
+  })
+})
+
