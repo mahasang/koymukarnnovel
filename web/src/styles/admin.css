@@ -1775,6 +1775,185 @@ html[data-theme="sepia"] {
   border-color: var(--ad-danger-text);
 }
 
+/* ---------- ตั้งค่า ---------- */
+
+.ad-st {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ad-st .ad-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ad-st .ad-panel-head {
+  margin-bottom: 0;
+}
+
+/* ปุ่มเลือกชุดสี: จุดสีสองโทน (สีเน้น + สีเสริม) ตามธีมปัจจุบัน · ตัวแปร --a-* ของแต่ละปุ่มมาจาก tokens.css (กลุ่มตัวเลือกเดียวกับ html[data-accent]) */
+.ad-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ad-swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 6px 16px 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.ad-swatch:hover {
+  border-color: var(--muted);
+}
+
+.ad-swatch[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+
+.ad-swatch-dot {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--a-dark) 50%, var(--a2-dark) 50%);
+  box-shadow: 0 0 0 1px var(--line);
+  color: var(--muted);
+}
+
+html[data-theme="paper"] .ad-swatch-dot,
+html[data-theme="sepia"] .ad-swatch-dot {
+  background: linear-gradient(135deg, var(--a-light) 50%, var(--a2-light) 50%);
+}
+
+.ad-swatch[data-accent="default"] .ad-swatch-dot {
+  border: 1px dashed var(--muted);
+  background: var(--surface-2);
+  box-shadow: none;
+}
+
+.ad-ptable th,
+.ad-ptable td {
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+}
+
+.ad-pmodel {
+  overflow-wrap: anywhere;
+}
+
+.ad-pmodel .ad-field-error {
+  display: block;
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+.ad-pcell {
+  width: 100%;
+  min-width: 110px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ad-pcell[aria-invalid="true"] {
+  border-color: var(--ad-danger-text);
+}
+
+.ad-st-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  line-height: 1.55;
+}
+
+.ad-st-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.ad-st-howto {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: var(--bg-2);
+}
+
+.ad-st-step {
+  font-weight: 600;
+}
+
+.ad-st-steps {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+
+.ad-code-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ad-code-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ad-code-label {
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.ad-code {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.6;
+  white-space: pre;
+}
+
 @media (max-width: 899px) {
   .ad-shell {
     display: block;
@@ -1937,5 +2116,9 @@ html[data-theme="sepia"] {
 
   .ad-gtable {
     min-width: 640px;
+  }
+
+  .ad-ptable {
+    min-width: 560px;
   }
 }

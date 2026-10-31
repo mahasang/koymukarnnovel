@@ -209,6 +209,13 @@ describe("ชุด accent", () => {
     })
   }
 
+  test("ปุ่มเลือกสีในหน้าตั้งค่า (.ad-swatch[data-accent]) ใช้บล็อกตัวแปรเดียวกับ html[data-accent] ทุกชุด — ไม่มีค่าสีซ้ำ", () => {
+    for (const id of ACCENT_IDS) {
+      assert.ok(ruleFor(`html[data-accent="${id}"]`).selectors.includes(`.ad-swatch[data-accent="${id}"]`), id)
+    }
+    assert.equal(rules.filter((r) => r.selectors.some((sel) => sel.startsWith(".ad-swatch"))).length, ACCENT_IDS.length)
+  })
+
   test("ไม่ใส่ accent (default): แต่ละธีมใช้สี accent ของธีมเองตามตาราง spec — ไม่ใช่สีของชุดใดชุดหนึ่ง", () => {
     for (const theme of THEME_IDS) {
       const t = tokensFor(theme, "default")

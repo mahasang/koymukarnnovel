@@ -20,6 +20,7 @@ import { ChapterEdit } from "./ChapterEdit"
 import { NovelEdit, NovelNew } from "./NovelForm"
 import { Novels } from "./Novels"
 import { QueueProvider } from "./QueueContext"
+import { Settings } from "./Settings"
 import type { MeDto } from "./types"
 
 export interface MeView {
@@ -37,18 +38,6 @@ export type ShellPhase = "loading" | "login" | "error" | "ready"
 export function shellPhase(me: MeView): ShellPhase {
   if (me.error !== null) return me.error.status === 401 ? "login" : "error"
   return me.data !== null ? "ready" : "loading"
-}
-
-function ComingSoon({ title }: { title: string }) {
-  useDocumentTitle(title)
-  return (
-    <>
-      <div className="ad-ph">
-        <h1>{title}</h1>
-      </div>
-      <EmptyState title="หน้านี้ยังไม่พร้อมใช้งาน" hint="กำลังสร้างในขั้นถัดไป" />
-    </>
-  )
 }
 
 function AdminNotFound() {
@@ -79,7 +68,7 @@ export const adminRoutes: RouteObject[] = [
   { path: "novels/:id", element: <NovelEdit />, handle: { page: "novel" } },
   { path: "novels/:id/chapters/:chapterId", element: <ChapterEdit />, handle: { page: "chapter" } },
   { path: "add", element: <AddChapters />, handle: { page: "add" } },
-  { path: "settings", element: <ComingSoon title="ตั้งค่า" />, handle: { page: "settings" } },
+  { path: "settings", element: <Settings />, handle: { page: "settings" } },
   { path: "*", element: <AdminNotFound />, handle: { page: "not-found" } },
 ]
 

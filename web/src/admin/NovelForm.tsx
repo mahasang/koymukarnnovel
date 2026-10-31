@@ -66,6 +66,8 @@ export interface TextFieldProps {
   placeholder?: string
   /** ปิดช่อง (ดูได้ แก้ไม่ได้) */
   disabled?: boolean
+  /** id ของ `<datalist>` ที่ให้รายการแนะนำ (ช่องบรรทัดเดียวเท่านั้น) */
+  list?: string
   /** ส่วนเสริมใต้ช่อง (เช่น ปุ่มใส่ตัวอย่าง) */
   children?: ReactNode
 }
@@ -96,7 +98,7 @@ export function TextField(p: TextFieldProps) {
           </span>
         )}
       </label>
-      {p.rows !== undefined ? <textarea rows={p.rows} {...common} /> : <input type={p.type ?? "text"} inputMode={p.type === "url" ? "url" : undefined} autoComplete="off" {...common} />}
+      {p.rows !== undefined ? <textarea rows={p.rows} {...common} /> : <input type={p.type ?? "text"} inputMode={p.type === "url" ? "url" : undefined} autoComplete="off" list={p.list} {...common} />}
       {p.hint !== undefined && (
         <p id={hintId} className="ad-hint">
           {p.hint}

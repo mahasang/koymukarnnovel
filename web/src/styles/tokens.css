@@ -4,6 +4,7 @@
  * ธีม:    <html data-theme="midnight|paper|sepia|black">  (ไม่มี = Midnight)
  * accent: <html data-accent="violet|pink|teal|amber|blue">  (ไม่มี = ใช้สี accent ของแต่ละธีมตาม spec)
  *
+ * (ปุ่มเลือกสีในหน้าตั้งค่าหลังบ้าน `.ad-swatch[data-accent=…]` อยู่ในกลุ่มตัวเลือกเดียวกัน เพื่อให้แสดงสีของชุดนั้นๆ ได้โดยไม่เขียนค่าซ้ำ)
  * ชุด accent แค่ตั้งตัวแปรช่วย --a-dark / --a2-dark (ใช้กับธีมมืด) และ --a-light / --a2-light (ใช้กับธีมสว่าง)
  * บล็อกธีมหยิบไปใช้ด้วย var(--a-dark, <สีของธีม>) จึงได้ "ไม่เลือก accent = สีของธีม" โดยไม่ต้องเขียนค่าซ้ำ
  *
@@ -13,35 +14,40 @@
  *   --accent-ink                ข้อความบนพื้นที่ระบายด้วย --accent / --accent-2 (ปุ่ม ป้าย โลโก้ไล่สี)
  */
 
-html[data-accent="violet"] {
+html[data-accent="violet"],
+.ad-swatch[data-accent="violet"] {
   --a-dark: #8b7bff;
   --a2-dark: #ff6f91;
   --a-light: #6d28d9;
   --a2-light: #be185d;
 }
 
-html[data-accent="pink"] {
+html[data-accent="pink"],
+.ad-swatch[data-accent="pink"] {
   --a-dark: #ff7aa8;
   --a2-dark: #ffb36b;
   --a-light: #be185d;
   --a2-light: #9a3412;
 }
 
-html[data-accent="teal"] {
+html[data-accent="teal"],
+.ad-swatch[data-accent="teal"] {
   --a-dark: #2dd4bf;
   --a2-dark: #60a5fa;
   --a-light: #0d6e66;
   --a2-light: #1d4ed8;
 }
 
-html[data-accent="amber"] {
+html[data-accent="amber"],
+.ad-swatch[data-accent="amber"] {
   --a-dark: #fbbf24;
   --a2-dark: #fb7185;
   --a-light: #92400e;
   --a2-light: #9f1239;
 }
 
-html[data-accent="blue"] {
+html[data-accent="blue"],
+.ad-swatch[data-accent="blue"] {
   --a-dark: #60a5fa;
   --a2-dark: #a78bfa;
   --a-light: #1d4ed8;

@@ -797,3 +797,74 @@ describe("หน้าแก้ตอน + อภิธานศัพท์", (
   })
 })
 
+
+describe("หน้าตั้งค่า", () => {
+  test("หน้าเรียงลงเป็นคอลัมน์ · ทุกกล่องเว้นช่องเท่ากันด้วย gap (ไม่ใช้ margin ของหัวกล่อง)", () => {
+    assert.equal(declOf(".ad-st", "display"), "flex")
+    assert.equal(declOf(".ad-st", "flex-direction"), "column")
+    assert.equal(declOf(".ad-st", "gap"), "18px")
+    assert.equal(declOf(".ad-st .ad-panel", "flex-direction"), "column")
+    assert.equal(declOf(".ad-st .ad-panel", "gap"), "14px")
+    assert.equal(declOf(".ad-st .ad-panel-head", "margin-bottom"), "0")
+  })
+
+  test("ปุ่มเลือกสี: ห่อบรรทัดได้ · ปุ่มสูงพอแตะ (≥44) · ที่เลือกมีกรอบสีเน้นและพื้นอ่อนของสีเน้น", () => {
+    assert.equal(declOf(".ad-swatches", "flex-wrap"), "wrap")
+    assert.equal(declOf(".ad-swatches", "gap"), "10px")
+    assert.ok(parseInt(declOf(".ad-swatch", "min-height") ?? "0") >= 44)
+    assert.equal(declOf(".ad-swatch", "border-radius"), "999px")
+    assert.equal(declOf(".ad-swatch", "cursor"), "pointer")
+    assert.equal(declOf(".ad-swatch", "font-family"), "var(--font-body)")
+    assert.equal(declOf(".ad-swatch:hover", "border-color"), "var(--muted)")
+    assert.equal(declOf('.ad-swatch[aria-pressed="true"]', "border-color"), "var(--accent)")
+    assert.match(declOf('.ad-swatch[aria-pressed="true"]', "background") ?? "", /^color-mix\(in srgb, var\(--accent\) 16%, var\(--surface\)\)$/)
+  })
+
+  test("จุดสี: ไล่สีสองโทนจาก --a-dark/--a2-dark · ธีมสว่าง (paper, sepia) ใช้ --a-light/--a2-light · 'ตามธีม' ไม่ไล่สี", () => {
+    assert.equal(declOf(".ad-swatch-dot", "background"), "linear-gradient(135deg, var(--a-dark) 50%, var(--a2-dark) 50%)")
+    assert.equal(declOf(".ad-swatch-dot", "border-radius"), "50%")
+    assert.equal(declOf(".ad-swatch-dot", "width"), declOf(".ad-swatch-dot", "height"))
+    assert.equal(declOf(".ad-swatch-dot", "flex"), "none")
+    const light = rules.filter((r) => r.selectors.includes('html[data-theme="paper"] .ad-swatch-dot') && r.selectors.includes('html[data-theme="sepia"] .ad-swatch-dot'))
+    assert.equal(light.length, 1)
+    assert.equal(light[0]!.decls.background, "linear-gradient(135deg, var(--a-light) 50%, var(--a2-light) 50%)")
+    assert.equal(declOf('.ad-swatch[data-accent="default"] .ad-swatch-dot', "background"), "var(--surface-2)")
+    assert.equal(declOf('.ad-swatch[data-accent="default"] .ad-swatch-dot', "border"), "1px dashed var(--muted)")
+  })
+
+  test("ตารางราคา: ชิดซ้าย ตัดคำได้ · ชื่อโมเดลยาวตัดคำ · ข้อความผิดพลาดขึ้นบรรทัดใหม่ใต้ชื่อ · จอแคบเลื่อนในกรอบ", () => {
+    assert.equal(declOf(".ad-ptable th", "text-align"), "left")
+    assert.equal(declOf(".ad-ptable td", "vertical-align"), "top")
+    assert.equal(declOf(".ad-ptable td", "white-space"), "normal")
+    assert.equal(declOf(".ad-pmodel", "overflow-wrap"), "anywhere")
+    assert.equal(declOf(".ad-pmodel .ad-field-error", "display"), "block")
+    assert.equal(declOf(".ad-ptable", "min-width", MOBILE), "560px")
+  })
+
+  test("ช่องราคา: 16px (iOS ไม่ซูม) สูงพอแตะ · กว้างเต็มช่อง · เลขเรียงหลักเท่ากัน · ช่องผิดมีกรอบสีเตือน", () => {
+    assert.equal(declOf(".ad-pcell", "font-size"), "16px")
+    assert.ok(parseInt(declOf(".ad-pcell", "height") ?? "0") >= 36)
+    assert.equal(declOf(".ad-pcell", "width"), "100%")
+    assert.equal(declOf(".ad-pcell", "min-width"), "110px")
+    assert.equal(declOf(".ad-pcell", "font-variant-numeric"), "tabular-nums")
+    assert.equal(declOf('.ad-pcell[aria-invalid="true"]', "border-color"), "var(--ad-danger-text)")
+  })
+
+  test("แถวสถานะ/ปุ่ม/วิธีเปิดใช้: ห่อบรรทัดได้ · กรอบวิธีเปิดใช้ขอบประ", () => {
+    assert.equal(declOf(".ad-st-status", "flex-wrap"), "wrap")
+    assert.equal(declOf(".ad-st-actions", "flex-wrap"), "wrap")
+    assert.equal(declOf(".ad-st-howto", "border"), "1px dashed var(--line)")
+    assert.equal(declOf(".ad-st-howto", "flex-direction"), "column")
+    assert.equal(declOf(".ad-st-step", "font-weight"), "600")
+  })
+
+  test("กรอบคำสั่ง: ไม่ตัดบรรทัดอัตโนมัติ เลื่อนแนวนอนในกรอบของมันเอง · ใช้ฟอนต์ของระบบ · ป้าย+ปุ่มคัดลอกอยู่หัวกรอบ", () => {
+    assert.equal(declOf(".ad-code", "white-space"), "pre")
+    assert.equal(declOf(".ad-code", "overflow-x"), "auto")
+    assert.equal(declOf(".ad-code", "font-family"), "var(--font-body)")
+    assert.equal(declOf(".ad-code", "margin"), "0")
+    assert.equal(declOf(".ad-code-box", "min-width"), "0")
+    assert.equal(declOf(".ad-code-head", "justify-content"), "space-between")
+    assert.equal(declOf(".ad-code-label", "color"), "var(--muted)")
+  })
+})
