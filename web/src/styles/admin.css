@@ -1536,6 +1536,126 @@ html[data-theme="sepia"] {
   justify-content: flex-end;
 }
 
+/* ---------- ตารางตอน (แท็บ "ตอน") ---------- */
+
+.ad-chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ad-cbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.ad-csummary {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-cbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* แถบคำสั่งหลายตอน: โผล่เมื่อมีแถวที่เลือก */
+.ad-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.ad-bulk-count {
+  margin-right: 6px;
+  font-weight: 600;
+}
+
+.ad-ctable {
+  position: relative;
+  background: var(--surface);
+}
+
+.ad-ctable th,
+.ad-ctable td {
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+.ad-ctable thead th {
+  white-space: nowrap;
+}
+
+.ad-ctable tbody tr:last-child th,
+.ad-ctable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ad-ctable tbody th {
+  font-weight: 600;
+}
+
+.ad-clink {
+  color: var(--text);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.ad-clink:hover {
+  text-decoration: underline;
+}
+
+.ad-csub,
+.ad-cerr,
+.ad-cwhy {
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.ad-csub,
+.ad-cwhy {
+  color: var(--muted);
+}
+
+.ad-cerr {
+  color: var(--ad-danger-text);
+}
+
+.ad-ctable .ad-ctime {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ป้ายของสวิตช์ในตารางซ่อนจากสายตาแต่ยังอยู่ให้โปรแกรมอ่านหน้าจอ (เหตุผลที่ปิดสวิตช์เขียนไว้ใต้สวิตช์แทน) */
+.ad-ctable .switch-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ad-pill[data-tone="live"] {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--surface));
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--text);
+}
+
 @media (max-width: 899px) {
   .ad-shell {
     display: block;
@@ -1665,5 +1785,10 @@ html[data-theme="sepia"] {
 
   .ad-add-submit .btn {
     width: 100%;
+  }
+
+  /* ตารางตอนกว้างกว่าจอ: เลื่อนแนวนอนในกรอบของมันเอง (ไม่ดันทั้งหน้า) */
+  .ad-ctable {
+    min-width: 760px;
   }
 }

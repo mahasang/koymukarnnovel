@@ -666,3 +666,61 @@ describe("เพิ่มตอน", () => {
     assert.equal(declOf(".ad-scroll", "overflow-x"), "auto")
   })
 })
+
+describe("ตารางตอน (แท็บ ตอน)", () => {
+  test("เวลาแปลไม่ตัดบรรทัด (กฎของเซลล์ .ad-ctable td ต้องไม่ชนะ) · เซลล์ปกติตัดบรรทัดได้ · หัวคอลัมน์ไม่ตัด", () => {
+    assert.equal(declOf(".ad-ctable .ad-ctime", "white-space"), "nowrap")
+    assert.equal(declOf(".ad-ctable td", "white-space"), "normal")
+    assert.equal(declOf(".ad-ctable thead th", "white-space"), "nowrap")
+  })
+
+  test("ทุกคอลัมน์ชิดซ้าย (ค่าตั้งต้นของ .ad-table th คือชิดขวา)", () => {
+    assert.equal(declOf(".ad-ctable th", "text-align"), "left")
+    assert.equal(declOf(".ad-ctable td", "text-align"), "left")
+    assert.equal(declOf(".ad-ctable td", "vertical-align"), "middle")
+  })
+
+  test("แถบคำสั่งหลายตอนเห็นต่างจากพื้นหน้า (กรอบ+พื้นผสมสีหลัก) และข้อความตัวนับหนา", () => {
+    assert.match(declOf(".ad-bulk", "border-color") ?? declOf(".ad-bulk", "border") ?? "", /var\(--accent\)/)
+    assert.match(declOf(".ad-bulk", "background") ?? "", /^color-mix\(in srgb, var\(--accent\) \d+%, var\(--surface\)\)$/)
+  })
+
+  test("ชิป 'กำลังแปล' เด่นด้วยสีหลักแต่ตัวอักษรยังเป็นสีข้อความปกติ (อ่านออกบนพื้นผสม)", () => {
+    assert.equal(declOf('.ad-pill[data-tone="live"]', "color"), "var(--text)")
+    assert.match(declOf('.ad-pill[data-tone="live"]', "background") ?? "", /var\(--accent\)/)
+  })
+
+  test("ข้อความผิดพลาดใต้ชื่อตอนใช้สีตัวอักษรเตือนของหลังบ้าน · ป้ายสวิตช์ซ่อนไว้ให้อ่านออกเสียงอย่างเดียว", () => {
+    assert.equal(declOf(".ad-cerr", "color"), "var(--ad-danger-text)")
+    assert.ok(rulesFor(".ad-ctable .switch-label").length >= 1)
+  })
+
+  test("ลิงก์ชื่อตอน: สีข้อความปกติ ตัดคำยาวได้ ขีดเส้นใต้ตอนชี้ · บรรทัดรอง (ชื่อเดิม/เหตุผล) เป็นบล็อก 13px สีจาง · เลขตอนหนา · แถวสุดท้ายไม่มีเส้นล่าง", () => {
+    assert.equal(declOf(".ad-clink", "color"), "var(--text)")
+    assert.equal(declOf(".ad-clink", "overflow-wrap"), "anywhere")
+    assert.equal(declOf(".ad-clink:hover", "text-decoration"), "underline")
+    for (const selector of [".ad-csub", ".ad-cerr", ".ad-cwhy"]) {
+      const rule = rules.find((r) => r.selectors.includes(selector) && r.media === null && r.decls.display === "block")
+      assert.ok(rule, `${selector} เป็นบล็อก`)
+      assert.equal(rule!.decls["font-size"], "13px", selector)
+    }
+    for (const selector of [".ad-csub", ".ad-cwhy"]) assert.ok(rules.some((r) => r.selectors.includes(selector) && r.decls.color === "var(--muted)"), selector)
+    assert.equal(declOf(".ad-ctable tbody th", "font-weight"), "600")
+    assert.equal(declOf(".ad-ctable tbody tr:last-child td", "border-bottom"), "0")
+    assert.equal(declOf(".ad-ctable .ad-ctime", "color"), "var(--muted)")
+    assert.equal(declOf(".ad-bulk-count", "font-weight"), "600")
+  })
+
+  test("ป้ายสวิตช์ที่ซ่อน (absolute 1px) ต้องมีตัวตั้งหลัก .ad-ctable เป็น position:relative ไม่เช่นนั้นหลุดกรอบเลื่อนแล้วดันหน้าให้เลื่อนแนวนอน", () => {
+    assert.equal(declOf(".ad-ctable", "position"), "relative")
+    assert.equal(declOf(".ad-ctable .switch-label", "position"), "absolute")
+    assert.equal(declOf(".ad-ctable .switch-label", "width"), "1px")
+    assert.equal(declOf(".ad-ctable .switch-label", "height"), "1px")
+    assert.equal(declOf(".ad-ctable .switch-label", "clip-path"), "inset(50%)")
+    assert.equal(declOf(".ad-ctable .switch-label", "overflow"), "hidden")
+  })
+
+  test("จอแคบ: ตารางกว้างอย่างน้อย 760px แล้วเลื่อนในกรอบของมันเอง (ไม่ดันทั้งหน้า)", () => {
+    assert.equal(declOf(".ad-ctable", "min-width", MOBILE), "760px")
+  })
+})

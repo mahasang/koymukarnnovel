@@ -16,6 +16,7 @@ import { ApiError } from "../lib/api"
 import { useDocumentTitle } from "../lib/useDocumentTitle"
 import { useFetch } from "../lib/useFetch"
 import { admin } from "./adminApi"
+import { ChapterTable } from "./ChapterTable"
 import { CoverField } from "./CoverField"
 import {
   aiFillNotice,
@@ -645,8 +646,10 @@ function NovelEditor({ initial }: { initial: AdminNovelDto }) {
           onAiUndo={undoAi}
           onDelete={() => setConfirmDelete(true)}
         />
+      ) : tab === "chapters" ? (
+        <ChapterTable novelId={novel.id} onCount={(count) => setNovel((current) => (current.chapterCount === count ? current : { ...current, chapterCount: count }))} />
       ) : (
-        <EmptyState title={tab === "chapters" ? "ตารางตอนกำลังสร้างในขั้นถัดไป" : "อภิธานศัพท์กำลังสร้างในขั้นถัดไป"} hint="ระหว่างนี้แก้ข้อมูลเรื่องได้ที่แท็บ “ข้อมูล”" />
+        <EmptyState title="อภิธานศัพท์กำลังสร้างในขั้นถัดไป" hint="ระหว่างนี้แก้ข้อมูลเรื่องได้ที่แท็บ “ข้อมูล”" />
       )}
       {confirmDelete && <ConfirmDialog title="ลบนิยายเรื่องนี้?" message={deleteMessage(novel)} confirmLabel="ลบถาวร" danger onConfirm={remove} onCancel={() => setConfirmDelete(false)} />}
     </>
