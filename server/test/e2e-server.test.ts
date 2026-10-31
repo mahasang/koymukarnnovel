@@ -10,6 +10,7 @@ import { WINDOWS, spawnNode, within, type Child } from "./helpers/boot.js"
  */
 
 const LISTENING = /^READY (http:\/\/127\.0\.0\.1:(\d+))$/m
+const DEBUGGING = /^DEBUG (http:\/\/127\.0\.0\.1:(\d+))$/m
 /** ค่าของเครื่องผู้รันที่ต้องไม่ไหลเข้าไปในเซิร์ฟเวอร์ e2e — ถ้าไหลเข้า พอร์ต/ที่อยู่/ฐานข้อมูล/รหัส/ช่องทางนำเข้าจะผิดจากที่ตรวจด้านล่าง */
 const MACHINE_ENV = {
   HOST: "0.0.0.0",
@@ -25,7 +26,7 @@ const MACHINE_ENV = {
 function e2eEnv(extra: Record<string, string> = {}): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, ...MACHINE_ENV, ...extra }
   // ค่าของเครื่องผู้รันที่ไม่ได้ขอมาในเทสต์นี้ต้องไม่รั่วเข้ามา (E2E_LIBRARY=full ที่เผลอ export ไว้จะทำให้เทสต์ที่นับ "หนึ่งเรื่อง" พังแบบงงๆ)
-  for (const key of ["E2E_ADMIN_PASSWORD", "E2E_LIBRARY", "E2E_HERO"]) if (extra[key] === undefined) delete env[key]
+  for (const key of ["E2E_ADMIN_PASSWORD", "E2E_LIBRARY", "E2E_HERO", "E2E_IMPORT_TOKEN"]) if (extra[key] === undefined) delete env[key]
   return env
 }
 
@@ -164,6 +165,53 @@ describe("e2e/server.ts", { concurrency: 3 }, () => {
       run({ E2E_LIBRARY: "full", E2E_HERO: "banner" }, /E2E_HERO ต้องเป็นหนึ่งใน demo, cover, none/),
       run({ E2E_HERO: "none" }, /ใช้ได้เฉพาะเมื่อตั้ง E2E_LIBRARY=full/),
     ])
+  })
+
+  test("E2E_IMPORT_TOKEN → เปิดช่องทางนำเข้า (โทเค็นผิด 401, ถูกใช้ได้) · ไม่ใช่โทเค็นของเครื่อง", async () => {
+    const token = "e2e-import-token-0123456789-abcdefghij"
+    await using(spawnNode(["../e2e/server.ts"], e2eEnv({ E2E_IMPORT_TOKEN: token })), async (child, url) => {
+      assert.match(child.out(), /ช่องทางนำเข้า=เปิด/)
+      const call = (bearer: string) => fetch(`${url}/api/import/novels/1/chapters`, { headers: { authorization: `Bearer ${bearer}` } })
+      assert.equal((await call(MACHINE_ENV.IMPORT_TOKEN)).status, 401)
+      assert.equal((await call(token)).status, 200)
+    })
+  })
+
+  test("พอร์ตตรวจ DEBUG: ai-calls นับการเรียก AI ปลอม · ai-mode ตั้งโหมด fail401 → การแปลล้มแบบร้ายแรง คิวหยุด · โหมดผิด 400 · เส้นทางอื่น 404 · ไม่มีบนพอร์ตเว็บ", async () => {
+    await using(spawnNode(["../e2e/server.ts"], e2eEnv({ E2E_ADMIN_PASSWORD: "pw-for-e2e-test" })), async (child, url) => {
+      const [, debug] = await child.waitFor(DEBUGGING)
+      assert.notEqual(new URL(debug).port, new URL(url).port)
+      assert.equal((await fetch(`${url}/__e2e/ai-calls`)).status, 404, "เส้นทางตรวจต้องไม่อยู่บนเว็บจริง")
+      const calls = async () => (await (await fetch(`${debug}/__e2e/ai-calls`)).json()) as Record<string, number>
+      assert.deepEqual(await calls(), { translateChunk: 0, chapterNotes: 0, fillNovel: 0, ping: 0, total: 0 })
+
+      const cookie = (await login(url, "pw-for-e2e-test")).headers.getSetCookie()[0].split(";")[0]
+      const headers = { cookie, "content-type": "application/json" }
+      const test = await fetch(`${url}/api/admin/settings/test-api`, { method: "POST", headers })
+      assert.equal(test.status, 200)
+      assert.equal((await calls()).ping, 1)
+
+      const setMode = (mode: unknown) => fetch(`${debug}/__e2e/ai-mode`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode }) })
+      assert.equal((await setMode("banana")).status, 400)
+      assert.equal((await fetch(`${debug}/__e2e/ai-mode`, { method: "POST", body: "{not json" })).status, 400)
+      assert.equal((await fetch(`${debug}/__e2e/nothing`)).status, 404)
+      assert.equal((await setMode("fail401")).status, 200)
+
+      const novels = (await (await fetch(`${url}/api/admin/novels`, { headers })).json()) as { id: number }[]
+      const chapters = (await (await fetch(`${url}/api/admin/novels/${novels[0].id}/chapters`, { headers })).json()) as { id: number }[]
+      assert.ok(chapters.length > 0)
+      const queued = await fetch(`${url}/api/admin/chapters/bulk`, { method: "POST", headers, body: JSON.stringify({ action: "translate", ids: [chapters[0].id] }) })
+      assert.equal(queued.status, 200)
+      const deadline = Date.now() + 10_000
+      let paused: { paused?: boolean; pausedReason?: string | null } = {}
+      while (Date.now() < deadline) {
+        paused = (await (await fetch(`${url}/api/admin/queue`, { headers })).json()) as typeof paused
+        if (paused.paused) break
+        await new Promise((r) => setTimeout(r, 100))
+      }
+      assert.equal(paused.paused, true, JSON.stringify(paused))
+      assert.match(paused.pausedReason ?? "", /HTTP 401/)
+    })
   })
 
   test("SIGTERM → ปิดเรียบร้อย exit 0 และลบโฟลเดอร์ฐานข้อมูลชั่วคราวทิ้ง", { skip: WINDOWS && "Windows ไม่มีสัญญาณ POSIX จริง" }, async () => {
