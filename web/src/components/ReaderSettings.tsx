@@ -7,7 +7,8 @@
 import { X } from "lucide-react"
 import { useEffect, useRef, type Ref, type RefObject } from "react"
 import { FONTS, clampFontSize, type FontId } from "../lib/reader-prefs"
-import { THEMES, THEME_LABELS, type ThemeId } from "../lib/theme"
+import { MESSAGES } from "../i18n/messages"
+import { THEMES, type ThemeId } from "../lib/theme"
 
 export const FONT_LABELS: Record<FontId, string> = { sarabun: "Sarabun", serif: "Noto Serif Thai" }
 
@@ -46,7 +47,7 @@ export function ReaderSettingsView({ id, theme, fontSize, font, voiceMissing, on
             {THEMES.map((option) => (
               <button key={option} type="button" className={option === theme ? "rs-opt rs-theme on" : "rs-opt rs-theme"} data-t={option} aria-pressed={option === theme} onClick={() => onTheme(option)}>
                 <span className="rs-swatch" aria-hidden="true" />
-                {THEME_LABELS[option]}
+                {MESSAGES.th.theme.labels[option]}
               </button>
             ))}
           </div>

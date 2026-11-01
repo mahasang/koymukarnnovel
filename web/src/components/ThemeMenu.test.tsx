@@ -1,7 +1,8 @@
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
 import { renderToStaticMarkup } from "react-dom/server"
-import { THEMES, THEME_LABELS, type ThemeId } from "../lib/theme"
+import { MESSAGES } from "../i18n/messages"
+import { THEMES, type ThemeId } from "../lib/theme"
 import { all, one, parse, text } from "../testing/dom"
 import { findAll, findTag, handlerOf, type AnyElement } from "../testing/elements"
 import { ThemeMenu, ThemeMenuView } from "./ThemeMenu"
@@ -46,7 +47,7 @@ describe("ThemeMenuView", () => {
     const items = all(render({ open: true }), "[role=menuitemradio]")
     assert.deepEqual(
       items.map((item) => text(item).trim()),
-      THEMES.map((theme) => THEME_LABELS[theme]),
+      THEMES.map((theme) => MESSAGES.th.theme.labels[theme]),
     )
     for (const item of items) assert.equal(item.tag, "button")
     for (const item of items) assert.equal(item.attrs.type, "button")

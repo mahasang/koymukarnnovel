@@ -1,12 +1,13 @@
 /**
  * ปุ่มเลือกธีม (มืด / กระดาษ / ซีเปีย / ดำสนิท) บนแถบบน — ปุ่มเปิดเมนูตัวเลือกแบบ radio
- * `ThemeMenuView` ไม่มี state/effect (ทดสอบโครงสร้างและการผูก handler ได้) · `ThemeMenu` ใส่พฤติกรรมของเบราว์เซอร์:
- * เปิดแล้วโฟกัสธีมปัจจุบัน, ลูกศร/Home/End ย้ายโฟกัส, Escape ปิดแล้วโฟกัสกลับที่ปุ่ม, คลิกหรือโฟกัสนอกเมนูปิด
+ * `ThemeMenuView` ไม่มี state/effect (ทดสอบโครงสร้างและการผูก handler ได้) · `ThemeMenu` ใส่พฤติกรรมของเบราว์เซอร์ผ่าน `useRadioMenu`
  */
 import { Check, Palette } from "lucide-react"
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type Ref } from "react"
-import { menuKeyAction } from "../lib/keynav"
-import { THEMES, THEME_LABELS, getTheme, setTheme, type ThemeId } from "../lib/theme"
+import { useState, type KeyboardEvent, type Ref } from "react"
+import { useI18n } from "../i18n/I18nProvider"
+import { MESSAGES, type Messages } from "../i18n/messages"
+import { THEMES, getTheme, setTheme, type ThemeId } from "../lib/theme"
+import { useRadioMenu } from "../lib/useRadioMenu"
 
 export interface ThemeMenuViewProps {
   current: ThemeId
@@ -18,16 +19,18 @@ export interface ThemeMenuViewProps {
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
   /** กรอบนอก — ผู้เรียกใช้หาปุ่ม/รายการเมนูเพื่อย้ายโฟกัส และเช็กว่าคลิกอยู่นอกเมนูหรือไม่ */
   rootRef?: Ref<HTMLDivElement>
+  /** ชุดข้อความ — ไม่ส่ง = ภาษาไทย (ไม่ใช้ hook เพื่อให้เทสต์เรียกเป็นฟังก์ชันตรงๆ ได้) */
+  m?: Messages
 }
 
-export function ThemeMenuView({ current, open, menuId, onToggle, onSelect, onKeyDown, rootRef }: ThemeMenuViewProps) {
+export function ThemeMenuView({ current, open, menuId, onToggle, onSelect, onKeyDown, rootRef, m = MESSAGES.th }: ThemeMenuViewProps) {
   return (
     <div className="theme-menu" ref={rootRef} onKeyDown={onKeyDown}>
-      <button type="button" className="iconbtn" aria-label="เปลี่ยนธีม" aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menuId : undefined} onClick={onToggle}>
+      <button type="button" className="iconbtn" aria-label={m.theme.change} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menuId : undefined} onClick={onToggle}>
         <Palette aria-hidden="true" size={18} />
       </button>
       {open ? (
-        <div id={menuId} role="menu" aria-label="ธีม" className="theme-list">
+        <div id={menuId} role="menu" aria-label={m.theme.menu} className="theme-list">
           {THEMES.map((theme) => {
             const checked = theme === current
             return (
@@ -36,7 +39,7 @@ export function ThemeMenuView({ current, open, menuId, onToggle, onSelect, onKey
                 <span className="theme-check" aria-hidden="true">
                   {checked ? <Check size={16} /> : null}
                 </span>
-                <span>{THEME_LABELS[theme]}</span>
+                <span>{m.theme.labels[theme]}</span>
               </button>
             )
           })}
@@ -46,59 +49,16 @@ export function ThemeMenuView({ current, open, menuId, onToggle, onSelect, onKey
   )
 }
 
-const CHECKED_ITEM = '[role="menuitemradio"][aria-checked="true"]'
-const ALL_ITEMS = '[role="menuitemradio"]'
-const TOGGLE_BUTTON = "button[aria-haspopup]"
-
 export function ThemeMenu() {
+  const { m } = useI18n()
   const [current, setCurrent] = useState<ThemeId>(getTheme)
-  const [open, setOpen] = useState(false)
-  const menuId = useId()
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  // เปิดเมนู → โฟกัสธีมที่ใช้อยู่ (ผู้ใช้คีย์บอร์ดเริ่มเลือกได้ทันที; ผู้ใช้เมาส์ไม่เห็นกรอบโฟกัสเพราะเบราว์เซอร์ซ่อนให้หลังคลิก)
-  useEffect(() => {
-    if (open) rootRef.current?.querySelector<HTMLElement>(CHECKED_ITEM)?.focus()
-  }, [open])
-
-  // เมนูเปิดอยู่: คลิก/แตะ หรือโฟกัสไปที่อื่นนอกเมนู (เช่น กด Tab ออก) → ปิด
-  useEffect(() => {
-    if (!open) return
-    const closeWhenOutside = (event: Event) => {
-      const root = rootRef.current
-      if (root !== null && event.target instanceof Node && !root.contains(event.target)) setOpen(false)
-    }
-    document.addEventListener("pointerdown", closeWhenOutside)
-    document.addEventListener("focusin", closeWhenOutside)
-    return () => {
-      document.removeEventListener("pointerdown", closeWhenOutside)
-      document.removeEventListener("focusin", closeWhenOutside)
-    }
-  }, [open])
-
-  const focusToggle = () => rootRef.current?.querySelector<HTMLElement>(TOGGLE_BUTTON)?.focus()
+  const menu = useRadioMenu()
 
   const choose = (theme: ThemeId) => {
     setTheme(theme)
     setCurrent(theme)
-    setOpen(false)
-    focusToggle()
+    menu.close()
   }
 
-  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    const items = open ? Array.from(rootRef.current?.querySelectorAll<HTMLElement>(ALL_ITEMS) ?? []) : []
-    const action = menuKeyAction(open, event.key, items.indexOf(document.activeElement as HTMLElement), items.length)
-    if (action === null) return
-    event.preventDefault()
-    if (action.type === "open") {
-      setOpen(true)
-    } else if (action.type === "close") {
-      setOpen(false)
-      focusToggle()
-    } else {
-      items[action.index]?.focus()
-    }
-  }
-
-  return <ThemeMenuView current={current} open={open} menuId={menuId} onToggle={() => setOpen((value) => !value)} onSelect={choose} onKeyDown={onKeyDown} rootRef={rootRef} />
+  return <ThemeMenuView current={current} open={menu.open} menuId={menu.menuId} onToggle={menu.onToggle} onSelect={choose} onKeyDown={menu.onKeyDown} rootRef={menu.rootRef} m={m} />
 }

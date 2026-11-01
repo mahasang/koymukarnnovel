@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { afterEach, test } from "node:test"
-import { THEME_LABELS, THEMES, getTheme, setTheme, type ThemeId } from "./theme"
+import { THEMES, getTheme, setTheme, type ThemeId } from "./theme"
 
 /** `getTheme`/`setTheme` กับ `document` และ `localStorage` ปลอม (ติดตั้งเป็น global ชั่วคราว คืนค่าเดิมหลังทุกเทสต์) */
 
@@ -78,13 +78,6 @@ test("THEMES: สี่ธีมตามลำดับที่ใช้แส
   assert.deepEqual([...THEMES], ["midnight", "paper", "sepia", "black"])
   const id: ThemeId = THEMES[0]
   assert.equal(id, "midnight")
-})
-
-test("THEME_LABELS: ทุกธีมมีชื่อไทยที่ไม่ซ้ำกัน และไม่มีคีย์เกิน (ข้อความที่ผู้อ่านเห็นในปุ่มเลือกธีม)", () => {
-  assert.deepEqual(THEME_LABELS, { midnight: "มืด", paper: "กระดาษ", sepia: "ซีเปีย", black: "ดำสนิท" })
-  assert.deepEqual(Object.keys(THEME_LABELS).sort(), [...THEMES].sort())
-  for (const id of THEMES) assert.match(THEME_LABELS[id], /[฀-๿]/, id)
-  assert.equal(new Set(Object.values(THEME_LABELS)).size, THEMES.length)
 })
 
 test("getTheme: ไม่มีอะไรตั้งไว้เลย → midnight", () => {

@@ -7,13 +7,6 @@
 export const THEMES = ["midnight", "paper", "sepia", "black"] as const
 export type ThemeId = (typeof THEMES)[number]
 
-export const THEME_LABELS: Record<ThemeId, string> = {
-  midnight: "มืด",
-  paper: "กระดาษ",
-  sepia: "ซีเปีย",
-  black: "ดำสนิท",
-}
-
 const DEFAULT_THEME: ThemeId = "midnight"
 const STORAGE_KEY = "koymukarnnovel.theme"
 const ATTRIBUTE = "data-theme"

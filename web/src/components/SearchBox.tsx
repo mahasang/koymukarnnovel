@@ -5,6 +5,8 @@
 import { Search } from "lucide-react"
 import { useRef, useState, type Ref } from "react"
 import { useNavigate } from "react-router"
+import { useI18n } from "../i18n/I18nProvider"
+import { MESSAGES, type Messages } from "../i18n/messages"
 import { SEARCH_MAX_LENGTH, searchPath } from "../lib/search"
 
 export interface SearchBoxViewProps {
@@ -12,9 +14,11 @@ export interface SearchBoxViewProps {
   onChange: (value: string) => void
   onSubmit: () => void
   inputRef?: Ref<HTMLInputElement>
+  /** ชุดข้อความ — ไม่ส่ง = ภาษาไทย (ไม่ใช้ hook เพื่อให้เทสต์เรียกเป็นฟังก์ชันตรงๆ ได้) */
+  m?: Messages
 }
 
-export function SearchBoxView({ value, onChange, onSubmit, inputRef }: SearchBoxViewProps) {
+export function SearchBoxView({ value, onChange, onSubmit, inputRef, m = MESSAGES.th }: SearchBoxViewProps) {
   return (
     <form
       className="search"
@@ -31,8 +35,8 @@ export function SearchBoxView({ value, onChange, onSubmit, inputRef }: SearchBox
         name="q"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="ค้นหาชื่อเรื่อง ผู้แต่ง หมวดหมู่…"
-        aria-label="ค้นหานิยาย"
+        placeholder={m.search.placeholder}
+        aria-label={m.search.label}
         maxLength={SEARCH_MAX_LENGTH}
         autoComplete="off"
         spellCheck={false}
@@ -46,11 +50,13 @@ export function SearchBox({ initial }: { initial: string }) {
   const [value, setValue] = useState(initial)
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
+  const { m } = useI18n()
   return (
     <SearchBoxView
       value={value}
       onChange={setValue}
       inputRef={inputRef}
+      m={m}
       onSubmit={() => {
         navigate(searchPath(value))
         inputRef.current?.blur() // มือถือ: เก็บแป้นพิมพ์ให้เห็นผลลัพธ์

@@ -3,10 +3,9 @@
  * `FooterView` ไม่ดึงข้อมูลเอง (ทดสอบง่าย) · `Footer` อ่านข้อมูลเว็บแล้วส่งให้
  */
 import { Link } from "react-router"
+import { useI18n } from "../i18n/I18nProvider"
 import { useSite } from "../lib/SiteContext"
 import { shownSiteName } from "../lib/title"
-
-export const CONTENT_NOTE = "นิยายแปลโดย AI สิทธิ์ในเนื้อหาเป็นของเจ้าของผลงานเดิม"
 
 export interface FooterViewProps {
   /** ชื่อเว็บ — null = ยังโหลดอยู่ ไม่เขียนชื่อ */
@@ -15,6 +14,7 @@ export interface FooterViewProps {
 }
 
 export function FooterView({ siteName, year }: FooterViewProps) {
+  const { m } = useI18n()
   return (
     <footer className="foot">
       <div className="wrap">
@@ -26,25 +26,25 @@ export function FooterView({ siteName, year }: FooterViewProps) {
               </span>
               {siteName !== null ? <span className="logo-name">{siteName}</span> : null}
             </div>
-            <p className="foot-note">{CONTENT_NOTE}</p>
+            <p className="foot-note">{m.footer.note}</p>
           </div>
-          <nav className="foot-nav" aria-label="ลิงก์ท้ายเว็บ">
+          <nav className="foot-nav" aria-label={m.footer.linksLabel}>
             <div>
-              <h2 className="foot-h">เมนู</h2>
+              <h2 className="foot-h">{m.footer.menu}</h2>
               <ul>
                 <li>
-                  <Link to="/">หน้าแรก</Link>
+                  <Link to="/">{m.footer.home}</Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h2 className="foot-h">ข้อมูล</h2>
+              <h2 className="foot-h">{m.footer.info}</h2>
               <ul>
                 <li>
-                  <Link to="/about">เกี่ยวกับเว็บไซต์</Link>
+                  <Link to="/about">{m.footer.about}</Link>
                 </li>
                 <li>
-                  <Link to="/contact">ติดต่อ / แจ้งลบเนื้อหา</Link>
+                  <Link to="/contact">{m.footer.contact}</Link>
                 </li>
               </ul>
             </div>

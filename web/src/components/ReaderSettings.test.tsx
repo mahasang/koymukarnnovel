@@ -2,7 +2,8 @@ import assert from "node:assert/strict"
 import { describe, test } from "node:test"
 import { renderToStaticMarkup } from "react-dom/server"
 import { FONTS } from "../lib/reader-prefs"
-import { THEMES, THEME_LABELS, type ThemeId } from "../lib/theme"
+import { MESSAGES } from "../i18n/messages"
+import { THEMES, type ThemeId } from "../lib/theme"
 import { all, one, parse, text } from "../testing/dom"
 import { findAll, findTag, handlerOf } from "../testing/elements"
 import { FONT_LABELS, ReaderSettings, ReaderSettingsView, type ReaderSettingsViewProps } from "./ReaderSettings"
@@ -56,7 +57,7 @@ describe("ReaderSettingsView — ธีม", () => {
     const buttons = all(html(), "button.rs-theme")
     assert.deepEqual(
       buttons.map((button) => text(button).trim()),
-      THEMES.map((theme) => THEME_LABELS[theme]),
+      THEMES.map((theme) => MESSAGES.th.theme.labels[theme]),
     )
     assert.deepEqual(
       buttons.map((button) => button.attrs["data-t"]),

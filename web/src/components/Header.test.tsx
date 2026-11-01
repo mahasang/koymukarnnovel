@@ -8,12 +8,12 @@ const view = (over: Partial<HeaderViewProps> = {}, path = "/") => renderPage(<He
 const links = (root: El) => all(one(root, "nav"), "a").map((a) => [a.attrs.href, text(a).trim()])
 
 describe("HeaderView", () => {
-  test("แถบบนเป็น landmark banner ติดขอบบน (คลาส top) มีโลโก้ เมนู ช่องค้นหา และปุ่มธีม ตามลำดับ", () => {
+  test("แถบบนเป็น landmark banner ติดขอบบน (คลาส top) มีโลโก้ เมนู ช่องค้นหา ปุ่มภาษา และปุ่มธีม ตามลำดับ", () => {
     const root = view()
     const header = one(root, "header.top")
     const inner = one(header, ".in")
     const order = inner.children.filter((child): child is El => typeof child !== "string").map((child) => child.tag + (child.attrs.class ? `.${child.attrs.class.split(" ")[0]}` : ""))
-    assert.deepEqual(order, ["a.logo", "nav.nav", "form.search", "div.theme-menu"])
+    assert.deepEqual(order, ["a.logo", "nav.nav", "form.search", "div.lang-menu", "div.theme-menu"])
   })
 
   test("โลโก้: ตัว K ในสี่เหลี่ยม (ภาพประดับ) + ชื่อเว็บ ลิงก์กลับหน้าแรก", () => {

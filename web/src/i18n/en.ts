@@ -41,4 +41,20 @@ export const en: Messages = {
   states: { loading: "Loading…" },
   notFound: { title: "Page not found", hint: "The link may have changed, or this page isn't open for reading yet.", home: "Back to home" },
   layout: { skip: "Skip to main content" },
+  header: { menuLabel: "Main menu", home: "Home", about: "About", contact: "Contact", admin: "Admin" },
+  footer: {
+    note: "Novels translated by AI. Rights to the content belong to the original authors.",
+    linksLabel: "Footer links",
+    menu: "Menu",
+    info: "Information",
+    home: "Home",
+    about: "About this site",
+    contact: "Contact / report content for removal",
+  },
+  search: { placeholder: "Search title, author, category…", label: "Search novels" },
+  theme: {
+    change: "Change theme",
+    menu: "Theme",
+    labels: { midnight: "Midnight", paper: "Paper", sepia: "Sepia", black: "Pitch black" },
+  },
 }

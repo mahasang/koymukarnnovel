@@ -40,4 +40,20 @@ export const lo: Messages = {
   states: { loading: "ກຳລັງໂຫຼດ…" },
   notFound: { title: "ບໍ່ພົບໜ້ານີ້", hint: "ລິ້ງອາດປ່ຽນໄປ ຫຼື ໜ້ານີ້ຍັງບໍ່ເປີດໃຫ້ອ່ານ", home: "ກັບໄປໜ້າຫຼັກ" },
   layout: { skip: "ຂ້າມໄປຍັງເນື້ອຫາຫຼັກ" },
+  header: { menuLabel: "ເມນູຫຼັກ", home: "ໜ້າຫຼັກ", about: "ກ່ຽວກັບ", contact: "ຕິດຕໍ່", admin: "ຫຼັງບ້ານ" },
+  footer: {
+    note: "ນິຍາຍແປໂດຍ AI ສິດໃນເນື້ອຫາເປັນຂອງເຈົ້າຂອງຜົນງານເດີມ",
+    linksLabel: "ລິ້ງທ້າຍເວັບ",
+    menu: "ເມນູ",
+    info: "ຂໍ້ມູນ",
+    home: "ໜ້າຫຼັກ",
+    about: "ກ່ຽວກັບເວັບໄຊ",
+    contact: "ຕິດຕໍ່ / ແຈ້ງລຶບເນື້ອຫາ",
+  },
+  search: { placeholder: "ຄົ້ນຫາຊື່ເລື່ອງ ຜູ້ແຕ່ງ ໝວດໝູ່…", label: "ຄົ້ນຫານິຍາຍ" },
+  theme: {
+    change: "ປ່ຽນທີມ",
+    menu: "ທີມ",
+    labels: { midnight: "ມືດ", paper: "ເຈ້ຍ", sepia: "ຊີເປຍ", black: "ດຳສະນິດ" },
+  },
 }
