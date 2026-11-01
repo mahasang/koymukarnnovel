@@ -103,10 +103,10 @@ const EXTRA = {
 
 /** เงากับฟอนต์หัวข้อของแต่ละธีม (จาก mockup; Black กำหนดเงาเองในงานนี้): Paper ใช้ตัวเซอริฟกับหัวข้อให้ความรู้สึกเป็นหนังสือ ธีมอื่นใช้ Prompt */
 const LOOK = {
-  midnight: { shadow: "0 12px 30px rgba(0, 0, 0, 0.45)", display: '"Prompt", "Sarabun", sans-serif' },
-  paper: { shadow: "0 10px 26px rgba(80, 56, 20, 0.18)", display: '"Noto Serif Thai", "Prompt", serif' },
-  sepia: { shadow: "0 10px 26px rgba(80, 56, 20, 0.18)", display: '"Prompt", "Sarabun", sans-serif' },
-  black: { shadow: "0 12px 30px rgba(0, 0, 0, 0.6)", display: '"Prompt", "Sarabun", sans-serif' },
+  midnight: { shadow: "0 12px 30px rgba(0, 0, 0, 0.45)", display: '"Prompt", "Sarabun", "Noto Sans Lao", sans-serif' },
+  paper: { shadow: "0 10px 26px rgba(80, 56, 20, 0.18)", display: '"Noto Serif Thai", "Prompt", "Noto Sans Lao", serif' },
+  sepia: { shadow: "0 10px 26px rgba(80, 56, 20, 0.18)", display: '"Prompt", "Sarabun", "Noto Sans Lao", sans-serif' },
+  black: { shadow: "0 12px 30px rgba(0, 0, 0, 0.6)", display: '"Prompt", "Sarabun", "Noto Sans Lao", sans-serif' },
 } as const
 
 /** ชุด accent (ตารางในแผน Task 20): [accent, accent-2] */

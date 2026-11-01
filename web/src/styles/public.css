@@ -10,7 +10,7 @@
  */
 
 :root {
-  --font-ui: "Prompt", "Sarabun", system-ui, sans-serif;
+  --font-ui: "Prompt", "Sarabun", "Noto Sans Lao", system-ui, sans-serif;
   --header-h: 64px;
 }
 
