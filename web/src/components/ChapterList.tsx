@@ -15,7 +15,9 @@ import {
   type ListAction,
   type ListState,
 } from "../lib/chapter-list"
-import { thaiDate } from "../lib/format"
+import { useI18n } from "../i18n/I18nProvider"
+import type { Locale } from "../i18n/types"
+import { formatDate } from "../lib/format"
 import { displayTitle } from "../lib/novel"
 import type { ChapterItemDto } from "../lib/types"
 import { Chip } from "./Chip"
@@ -40,9 +42,11 @@ export interface ChapterListViewProps {
   listRef?: Ref<HTMLOListElement>
   /** ตัวอ้างอิงถึงหัวข้อ — `ChapterList` เลื่อนกลับมาที่หัวรายการหลังกดเปลี่ยนหน้า */
   headingRef?: Ref<HTMLHeadingElement>
+  /** ภาษาของวันที่ — ผู้ทดสอบเรียกฟังก์ชันนี้ตรงๆ (ไม่ผ่านการเรนเดอร์) จึงใช้ hook ในนี้ไม่ได้: ตัวห่อส่งมาให้ ไม่ส่ง = ไทย */
+  locale?: Locale
 }
 
-export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue, jumpError, onJumpValue, onJumpSubmit, dispatch, listRef, headingRef }: ChapterListViewProps) {
+export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue, jumpError, onJumpValue, onJumpSubmit, dispatch, listRef, headingRef, locale = "th" }: ChapterListViewProps) {
   const total = chapters.length
   if (total === 0) {
     return (
@@ -106,7 +110,7 @@ export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue,
       <ol className="ch-list" ref={listRef}>
         {rows.map((chapter) => {
           const title = displayTitle(chapter)
-          const date = chapter.publishedAt !== null ? thaiDate(chapter.publishedAt) : ""
+          const date = chapter.publishedAt !== null ? formatDate(chapter.publishedAt, locale) : ""
           const isLast = chapter.number === lastRead
           const isJump = chapter.number === state.jump
           return (
@@ -141,6 +145,7 @@ export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue,
 }
 
 export function ChapterList({ novelId, chapters, lastRead }: { novelId: number; chapters: ChapterItemDto[]; lastRead: number | null }) {
+  const { locale } = useI18n()
   const [state, dispatch] = useReducer(listReducer, INITIAL_LIST)
   const [jumpValue, setJumpValue] = useState("")
   const [jumpError, setJumpError] = useState<string | null>(null)
@@ -195,6 +200,7 @@ export function ChapterList({ novelId, chapters, lastRead }: { novelId: number; 
       dispatch={act}
       listRef={listRef}
       headingRef={headingRef}
+      locale={locale}
     />
   )
 }

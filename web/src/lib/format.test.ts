@@ -1,6 +1,9 @@
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
-import { isNew, parseSqlTime, resumePercent, thaiDate, timeAgo } from "./format"
+import { MESSAGES } from "../i18n/messages"
+import { formatDate, isNew, parseSqlTime, resumePercent, thaiDate, timeAgo } from "./format"
+
+const th = MESSAGES.th
 
 /** `YYYY-MM-DD HH:MM:SS` ที่เซิร์ฟเวอร์ส่งมาเป็นเวลา UTC เสมอ (ไม่ใช่เวลาของเครื่องผู้อ่าน) — เทสต์ทั้งหมดสร้างเวลาปัจจุบันด้วย Date.UTC ไม่พึ่งเขตเวลาของเครื่องที่รัน */
 
@@ -153,7 +156,7 @@ describe("thaiDate", () => {
 describe("timeAgo", () => {
   // "ตอนนี้" ของทุกเคสคือ 22 ต.ค. 2026 12:00:00 UTC = 19:00 เวลาไทย
   const now = utc(2026, 10, 22, 12, 0, 0)
-  const ago = (sql: string) => timeAgo(sql, now)
+  const ago = (sql: string) => timeAgo(sql, th, now)
 
   test("ไม่เกิน 1 นาที → เมื่อสักครู่ (รวมวินาทีที่ 59)", () => {
     assert.equal(ago("2026-10-22 12:00:00"), "เมื่อสักครู่")
@@ -183,7 +186,7 @@ describe("timeAgo", () => {
 
   test("ชั่วโมงนับตามเวลาจริง ไม่ใช่ตามวันที่: ข้ามเที่ยงคืนแต่ยังไม่ครบ 24 ชม. ก็ยังเป็นชั่วโมง", () => {
     // 00:30 เวลาไทยของวันที่ 22 เทียบกับ 23:00 เวลาไทยของวันที่ 21 (ห่างกัน 1.5 ชม. คนละวันตามปฏิทิน)
-    assert.equal(timeAgo("2026-10-21 16:00:00", utc(2026, 10, 21, 17, 30, 0)), "1 ชั่วโมงที่แล้ว")
+    assert.equal(timeAgo("2026-10-21 16:00:00", th, utc(2026, 10, 21, 17, 30, 0)), "1 ชั่วโมงที่แล้ว")
     // 19:00 ไทยของวันที่ 22 เทียบกับ 00:00 ไทยของวันที่ 22 → 19 ชม. (วันเดียวกันตามปฏิทินไทย)
     assert.equal(ago("2026-10-21 17:00:00"), "19 ชั่วโมงที่แล้ว")
   })
@@ -200,10 +203,10 @@ describe("timeAgo", () => {
   test("นับวันตามปฏิทินไทย (UTC+7) ไม่ใช่ปฏิทิน UTC", () => {
     // ตอนนี้ = 22 ต.ค. 09:00 ไทย; อัปเดต 21 ต.ค. 01:00 ไทย (= 20 ต.ค. 18:00 UTC) ห่างกัน 32 ชม.
     // ตามปฏิทินไทยคือเมื่อวาน (ตามปฏิทิน UTC จะผิดเป็น 2 วัน)
-    assert.equal(timeAgo("2026-10-20 18:00:00", utc(2026, 10, 22, 2, 0, 0)), "เมื่อวาน")
+    assert.equal(timeAgo("2026-10-20 18:00:00", th, utc(2026, 10, 22, 2, 0, 0)), "เมื่อวาน")
     // ตอนนี้ = 23 ต.ค. 01:00 ไทย; อัปเดต 21 ต.ค. 23:00 ไทย (= 21 ต.ค. 16:00 UTC) ห่างกัน 26 ชม.
     // ตามปฏิทินไทยคือ 2 วันที่แล้ว (ตามปฏิทิน UTC จะผิดเป็นเมื่อวาน)
-    assert.equal(timeAgo("2026-10-21 16:00:00", utc(2026, 10, 22, 18, 0, 0)), "2 วันที่แล้ว")
+    assert.equal(timeAgo("2026-10-21 16:00:00", th, utc(2026, 10, 22, 18, 0, 0)), "2 วันที่แล้ว")
   })
 
   test("ตั้งแต่ 7 วันเป็นสัปดาห์ (ปัดลง): 7 → 1, 13 → 1, 14 → 2, 29 → 4", () => {
@@ -219,9 +222,9 @@ describe("timeAgo", () => {
   })
 
   test("ข้ามเดือน ข้ามปี นับวันถูกต้อง", () => {
-    assert.equal(timeAgo("2026-10-30 12:00:00", utc(2026, 11, 2, 12, 0, 0)), "3 วันที่แล้ว")
-    assert.equal(timeAgo("2026-12-31 12:00:00", utc(2027, 1, 1, 12, 0, 0)), "เมื่อวาน")
-    assert.equal(timeAgo("2028-02-28 12:00:00", utc(2028, 3, 1, 12, 0, 0)), "2 วันที่แล้ว") // ปีอธิกสุรทิน มี 29 ก.พ.
+    assert.equal(timeAgo("2026-10-30 12:00:00", th, utc(2026, 11, 2, 12, 0, 0)), "3 วันที่แล้ว")
+    assert.equal(timeAgo("2026-12-31 12:00:00", th, utc(2027, 1, 1, 12, 0, 0)), "เมื่อวาน")
+    assert.equal(timeAgo("2028-02-28 12:00:00", th, utc(2028, 3, 1, 12, 0, 0)), "2 วันที่แล้ว") // ปีอธิกสุรทิน มี 29 ก.พ.
   })
 
   test("รูปแบบเวลาที่ไม่ถูกต้อง → สตริงว่าง (ไม่แสดงอะไรดีกว่าแสดงข้อความมั่ว)", () => {
@@ -232,8 +235,8 @@ describe("timeAgo", () => {
 
   test("ไม่ส่งเวลาปัจจุบัน → ใช้นาฬิกาจริง", () => {
     const sql = (ms: number) => new Date(ms).toISOString().slice(0, 19).replace("T", " ")
-    assert.equal(timeAgo(sql(Date.now() - 10 * 60 * 1000 - 5000)), "10 นาทีที่แล้ว")
-    assert.equal(timeAgo(sql(Date.now() - 5 * 60 * 60 * 1000 - 5000)), "5 ชั่วโมงที่แล้ว")
+    assert.equal(timeAgo(sql(Date.now() - 10 * 60 * 1000 - 5000), th), "10 นาทีที่แล้ว")
+    assert.equal(timeAgo(sql(Date.now() - 5 * 60 * 60 * 1000 - 5000), th), "5 ชั่วโมงที่แล้ว")
   })
 })
 
@@ -246,6 +249,70 @@ describe("parseSqlTime", () => {
   test("รูปแบบผิดหรือวันที่ไม่มีจริง → null", () => {
     for (const bad of ["", "2026-10-22", "2026-10-22T12:00:00Z", "2026-02-30 00:00:00", "2026-10-22 24:00:00", "0026-10-22 00:00:00", "nope"]) {
       assert.equal(parseSqlTime(bad), null, JSON.stringify(bad))
+    }
+  })
+})
+
+describe("formatDate (ตามภาษา)", () => {
+  test("ไทย พ.ศ. เหมือน thaiDate · อังกฤษและลาว ค.ศ.", () => {
+    assert.equal(formatDate("2026-10-22 03:00:00", "th"), "22 ต.ค. 2569")
+    assert.equal(formatDate("2026-10-22 03:00:00", "en"), "22 Oct 2026")
+    assert.equal(formatDate("2026-10-22 03:00:00", "lo"), "22 ຕຸລາ 2026")
+    assert.equal(thaiDate("2026-10-22 03:00:00"), formatDate("2026-10-22 03:00:00", "th"))
+  })
+  test("ใช้วันตามเวลา UTC+7 ทุกภาษา (17:00 UTC ข้ามไปวันถัดไป) และข้ามปี", () => {
+    for (const [locale, expected] of [
+      ["th", "23 ต.ค. 2569"],
+      ["en", "23 Oct 2026"],
+      ["lo", "23 ຕຸລາ 2026"],
+    ] as const) {
+      assert.equal(formatDate("2026-10-22 17:00:00", locale), expected)
+    }
+    assert.equal(formatDate("2026-12-31 17:00:00", "en"), "1 Jan 2027")
+    assert.equal(formatDate("2026-12-31 17:00:00", "th"), "1 ม.ค. 2570")
+  })
+  test("ครบ 12 เดือนในทุกภาษา ไม่ซ้ำกันในภาษาเดียวกัน", () => {
+    for (const locale of ["th", "en", "lo"] as const) {
+      const names = Array.from({ length: 12 }, (_, i) => formatDate(`2026-${String(i + 1).padStart(2, "0")}-15 00:00:00`, locale).split(" ")[1])
+      assert.equal(new Set(names).size, 12, locale)
+    }
+  })
+  test("รูปแบบผิด → สตริงว่างทุกภาษา", () => {
+    for (const locale of ["th", "en", "lo"] as const) assert.equal(formatDate("garbage", locale), "")
+  })
+})
+
+describe("timeAgo (ตามภาษา)", () => {
+  const utc = (...parts: [number, number, number, number, number, number]) => Date.UTC(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5])
+  const now = utc(2026, 10, 22, 12, 0, 0)
+  test("อังกฤษ: เอกพจน์/พหูพจน์", () => {
+    const en = MESSAGES.en
+    assert.equal(timeAgo("2026-10-22 11:59:30", en, now), "just now")
+    assert.equal(timeAgo("2026-10-22 11:59:00", en, now), "1 minute ago")
+    assert.equal(timeAgo("2026-10-22 11:55:00", en, now), "5 minutes ago")
+    assert.equal(timeAgo("2026-10-22 11:00:00", en, now), "1 hour ago")
+    assert.equal(timeAgo("2026-10-22 07:00:00", en, now), "5 hours ago")
+    assert.equal(timeAgo("2026-10-21 12:00:00", en, now), "yesterday")
+    assert.equal(timeAgo("2026-10-19 12:00:00", en, now), "3 days ago")
+    assert.equal(timeAgo("2026-10-08 12:00:00", en, now), "2 weeks ago")
+    assert.equal(timeAgo("2026-10-15 12:00:00", en, now), "1 week ago")
+  })
+  test("ลาว: ทุกช่วง", () => {
+    const lo = MESSAGES.lo
+    assert.equal(timeAgo("2026-10-22 11:55:00", lo, now), "5 ນາທີກ່ອນ")
+    assert.equal(timeAgo("2026-10-22 07:00:00", lo, now), "5 ຊົ່ວໂມງກ່ອນ")
+    assert.equal(timeAgo("2026-10-19 12:00:00", lo, now), "3 ມື້ກ່ອນ")
+    assert.equal(timeAgo("2026-10-08 12:00:00", lo, now), "2 ອາທິດກ່ອນ")
+  })
+  test("ตั้งแต่ 30 วัน บอกเป็นวันที่ตามภาษา", () => {
+    assert.equal(timeAgo("2026-09-01 03:00:00", MESSAGES.en, now), "1 Sep 2026")
+    assert.equal(timeAgo("2026-09-01 03:00:00", MESSAGES.lo, now), "1 ກັນຍາ 2026")
+    assert.equal(timeAgo("2026-09-01 03:00:00", th, now), "1 ก.ย. 2569")
+  })
+  test("รูปแบบผิดและเวลาในอนาคตเหมือนเดิมทุกภาษา", () => {
+    for (const locale of ["th", "en", "lo"] as const) {
+      assert.equal(timeAgo("garbage", MESSAGES[locale], now), "")
+      assert.equal(timeAgo("2026-10-22 12:00:30", MESSAGES[locale], now), MESSAGES[locale].time.justNow)
     }
   })
 })

@@ -16,6 +16,7 @@ import { Skeleton } from "../components/Skeleton"
 import { Synopsis } from "../components/Synopsis"
 import { publicApi, type ApiError } from "../lib/api"
 import { latestChapter, readAction } from "../lib/chapter-list"
+import { useI18n } from "../i18n/I18nProvider"
 import { timeAgo } from "../lib/format"
 import { displayTitle, parseNovelId } from "../lib/novel"
 import { getProgress, type Progress } from "../lib/progress"
@@ -30,7 +31,8 @@ export function NovelView({ novel, progress, now }: { novel: NovelDetailDto; pro
   const original = novel.title.trim() !== title ? novel.title.trim() : ""
   const author = novel.author.trim()
   const ongoing = novel.status === "ongoing"
-  const updated = timeAgo(novel.updatedAt, now)
+  const { m } = useI18n()
+  const updated = timeAgo(novel.updatedAt, m, now)
   const base = `/novel/${novel.id}`
   const action = readAction(novel.chapters, progress)
   const latest = latestChapter(novel.chapters)

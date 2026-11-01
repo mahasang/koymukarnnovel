@@ -5,6 +5,7 @@
  */
 import { Clock, User } from "lucide-react"
 import { Link } from "react-router"
+import { useI18n } from "../i18n/I18nProvider"
 import { timeAgo } from "../lib/format"
 import { displayTitle } from "../lib/novel"
 import type { NovelCardDto } from "../lib/types"
@@ -22,7 +23,8 @@ export interface NovelCardProps {
 export function NovelCard({ novel, badge = null, chip = null, now }: NovelCardProps) {
   const title = displayTitle(novel)
   const author = novel.author.trim()
-  const updated = timeAgo(novel.updatedAt, now)
+  const { m } = useI18n()
+  const updated = timeAgo(novel.updatedAt, m, now)
   return (
     <Link to={`/novel/${novel.id}`} className="card">
       <div className="box">

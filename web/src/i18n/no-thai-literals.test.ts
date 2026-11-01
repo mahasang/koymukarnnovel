@@ -36,7 +36,6 @@ export const PENDING: string[] = [
   "lib/api.ts",
   "lib/chapter-list.ts",
   "lib/errors.ts",
-  "lib/format.ts",
   "lib/library.ts",
   "lib/reader.ts",
   "lib/theme.ts",
