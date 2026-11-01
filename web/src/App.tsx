@@ -8,6 +8,7 @@ import { useLocation, useRoutes, type RouteObject } from "react-router"
 import { AppErrorBoundary } from "./components/AppErrorBoundary"
 import { Layout } from "./components/Layout"
 import { Skeleton } from "./components/Skeleton"
+import { I18nProvider } from "./i18n/I18nProvider"
 import { SiteProvider } from "./lib/SiteContext"
 import { About } from "./pages/About"
 import { Contact } from "./pages/Contact"
@@ -40,7 +41,9 @@ export const routes: RouteObject[] = [
           </div>
         }
       >
-        <AdminApp />
+        <I18nProvider fixedLocale="th">
+          <AdminApp />
+        </I18nProvider>
       </Suspense>
     ),
   },
@@ -51,7 +54,9 @@ export function App() {
   const page = useRoutes(routes)
   return (
     <AppErrorBoundary resetKey={pathname}>
-      <SiteProvider>{page}</SiteProvider>
+      <I18nProvider>
+        <SiteProvider>{page}</SiteProvider>
+      </I18nProvider>
     </AppErrorBoundary>
   )
 }
