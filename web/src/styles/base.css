@@ -1,6 +1,6 @@
 /*
- * ฟอนต์ self-host ผ่าน @fontsource (ไม่พึ่ง Google Fonts) เฉพาะ subset ไทย + ละติน และเฉพาะน้ำหนักที่ใช้:
- * Prompt = หัวข้อ · Sarabun = เนื้อหา · Noto Serif Thai = ตัวเลือกอ่านนิยาย
+ * ฟอนต์ self-host ผ่าน @fontsource (ไม่พึ่ง Google Fonts) เฉพาะ subset ไทย + ละติน (+ ลาวสำหรับข้อความ UI ภาษาลาว) และเฉพาะน้ำหนักที่ใช้:
+ * Prompt = หัวข้อ · Sarabun = เนื้อหา · Noto Serif Thai = ตัวเลือกอ่านนิยาย · Noto Sans Lao = ตัวอักษรลาว (Sarabun/Prompt ไม่มี; ไฟล์ละ ~9 KB และเบราว์เซอร์โหลดเมื่อมีตัวอักษรที่ฟอนต์ก่อนหน้าในสแต็กไม่มี)
  * @import ต้องอยู่บนสุดของไฟล์ · Vite คัดลอกไฟล์ฟอนต์เป็นไฟล์ (build.assetsInlineLimit = 0) เพราะ CSP font-src 'self' ห้ามฟอนต์แบบ data:
  */
 @import "@fontsource/prompt/thai-500.css";
@@ -21,9 +21,13 @@
 @import "@fontsource/noto-serif-thai/latin-600.css";
 @import "@fontsource/noto-serif-thai/thai-700.css";
 @import "@fontsource/noto-serif-thai/latin-700.css";
+@import "@fontsource/noto-sans-lao/lao-400.css";
+@import "@fontsource/noto-sans-lao/lao-500.css";
+@import "@fontsource/noto-sans-lao/lao-600.css";
+@import "@fontsource/noto-sans-lao/lao-700.css";
 
 :root {
-  --font-body: "Sarabun", "Prompt", system-ui, sans-serif;
+  --font-body: "Sarabun", "Prompt", "Noto Sans Lao", system-ui, sans-serif;
   --font-serif: "Noto Serif Thai", "Sarabun", serif;
 }
 

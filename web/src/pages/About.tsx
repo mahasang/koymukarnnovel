@@ -1,5 +1,7 @@
+import { useI18n } from "../i18n/I18nProvider"
 import { SiteTextPage } from "./SiteTextPage"
 
 export function About() {
-  return <SiteTextPage title="เกี่ยวกับเว็บนี้" pick={(site) => site.aboutText} emptyTitle="ยังไม่มีข้อความแนะนำเว็บ" emptyHint="เจ้าของเว็บยังไม่ได้เขียนข้อความในหน้านี้" />
+  const { m } = useI18n()
+  return <SiteTextPage title={m.about.aboutTitle} pick={(site) => site.aboutText} emptyTitle={m.about.aboutEmptyTitle} emptyHint={m.about.aboutEmptyHint} />
 }

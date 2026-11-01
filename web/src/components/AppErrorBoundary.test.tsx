@@ -3,7 +3,7 @@ import { describe, test } from "node:test"
 import { renderToStaticMarkup } from "react-dom/server"
 import { all, one, parse, text } from "../testing/dom"
 import { findTag, handlerOf, type AnyElement } from "../testing/elements"
-import { AppErrorBoundary, CrashFallback } from "./AppErrorBoundary"
+import { AppErrorBoundary, CrashFallback, CrashView } from "./AppErrorBoundary"
 
 const noop = () => {}
 type Props = ConstructorParameters<typeof AppErrorBoundary>[0]
@@ -25,7 +25,7 @@ describe("CrashFallback (หน้าแจ้งปัญหาแทนหน�
 
   test("กดปุ่ม → onReload", () => {
     let reloads = 0
-    const element = CrashFallback({ onReload: () => reloads++ })
+    const element = CrashView({ onReload: () => reloads++ })
     handlerOf(findTag(element, "button"), "onClick")()
     assert.equal(reloads, 1)
   })

@@ -6,6 +6,8 @@
 import { Play, Sparkles } from "lucide-react"
 import { useId } from "react"
 import { Link } from "react-router"
+import { useI18n } from "../i18n/I18nProvider"
+import { CONTENT_LANG } from "../i18n/types"
 import type { ResumeInfo } from "../lib/library"
 import { displayTitle } from "../lib/novel"
 import type { NovelCardDto } from "../lib/types"
@@ -17,10 +19,11 @@ const HERO_TAGS = 3
 
 export function Hero({ novel, resume }: { novel: NovelCardDto; resume: ResumeInfo | null }) {
   const headingId = useId()
+  const { m } = useI18n()
   const title = displayTitle(novel)
   const original = novel.titleTh.trim() !== "" ? novel.title.trim() : ""
   const author = novel.author.trim()
-  const sub = [original, author !== "" ? `โดย ${author}` : ""].filter((part) => part !== "").join(" · ")
+  const sub = [original, author !== "" ? m.hero.by(author) : ""].filter((part) => part !== "").join(" · ")
   const synopsis = novel.synopsisShort.trim()
   const home = `/novel/${novel.id}`
   const ongoing = novel.status === "ongoing"
@@ -37,31 +40,33 @@ export function Hero({ novel, resume }: { novel: NovelCardDto; resume: ResumeInf
         <div className="hero-text">
           <span className="hero-tag">
             <Sparkles aria-hidden="true" size={14} />
-            {novel.featured ? "เรื่องแนะนำ" : "อัปเดตล่าสุด"}
+            {novel.featured ? m.hero.featured : m.hero.latest}
           </span>
-          <h2 className="hero-title" id={headingId}>
+          <h2 className="hero-title" id={headingId} lang={CONTENT_LANG}>
             {title}
           </h2>
-          {sub !== "" ? <div className="hero-sub">{sub}</div> : null}
+          {sub !== "" ? <div className="hero-sub" lang={CONTENT_LANG}>
+              {sub}
+            </div> : null}
           <div className="hero-facts">
-            <span className={ongoing ? "pill st" : "pill"}>{ongoing ? "ยังไม่จบ" : "จบแล้ว"}</span>
-            {novel.chapterCount > 0 ? <span className="pill">{novel.chapterCount} ตอน</span> : null}
+            <span className={ongoing ? "pill st" : "pill"}>{ongoing ? m.hero.ongoing : m.hero.completed}</span>
+            {novel.chapterCount > 0 ? <span className="pill">{m.hero.chapters(novel.chapterCount)}</span> : null}
             {novel.tags.slice(0, HERO_TAGS).map((tag) => (
-              <span className="pill" key={tag}>
+              <span className="pill" key={tag} lang={CONTENT_LANG}>
                 {tag}
               </span>
             ))}
             {novel.published ? null : <DraftBadge />}
           </div>
-          {synopsis !== "" ? <p className="hero-syn">{synopsis}</p> : null}
+          {synopsis !== "" ? <p className="hero-syn" lang={CONTENT_LANG}>{synopsis}</p> : null}
           <div className="hero-cta">
             <Link to={primaryHref} className="btn primary">
               <Play aria-hidden="true" size={16} />
-              {resume?.label ?? "เริ่มอ่าน"}
+              {resume?.label ?? m.hero.start}
             </Link>
             {primaryHref !== home ? (
               <Link to={home} className="btn ghost">
-                รายละเอียด
+                {m.hero.details}
               </Link>
             ) : null}
           </div>

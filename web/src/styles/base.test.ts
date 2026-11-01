@@ -22,12 +22,13 @@ function body(selector: string): string {
   return m[1]
 }
 
-test("ฟอนต์: นำเข้าจาก @fontsource เฉพาะ subset ไทย+ละติน และเฉพาะน้ำหนักที่ใช้ (Prompt 500/600/700 · Sarabun 400/500/600 · Noto Serif Thai 400/600/700)", () => {
+test("ฟอนต์: นำเข้าจาก @fontsource เฉพาะ subset ไทย+ละติน และเฉพาะน้ำหนักที่ใช้ (Prompt 500/600/700 · Sarabun 400/500/600 · Noto Serif Thai 400/600/700 · Noto Sans Lao ลาว 400/500/600/700)", () => {
   const imports = [...stripped.matchAll(/@import\s+(?:url\()?["']([^"']+)["']\)?\s*;/g)].map((m) => m[1]).sort()
   const expected = [
     ...[500, 600, 700].flatMap((w) => ["thai", "latin"].map((s) => `@fontsource/prompt/${s}-${w}.css`)),
     ...[400, 500, 600].flatMap((w) => ["thai", "latin"].map((s) => `@fontsource/sarabun/${s}-${w}.css`)),
     ...[400, 600, 700].flatMap((w) => ["thai", "latin"].map((s) => `@fontsource/noto-serif-thai/${s}-${w}.css`)),
+    ...[400, 500, 600, 700].map((w) => `@fontsource/noto-sans-lao/lao-${w}.css`),
   ].sort()
   assert.deepEqual(imports, expected)
 })
@@ -95,7 +96,7 @@ function declarations(selector: string): Record<string, string> {
  * ข้อความไทยพึ่ง Sarabun กับ line-height 1.6 (สระบน/วรรณยุกต์ต้องมีที่ว่าง) · .sr-only คือสูตรมาตรฐานที่ทุกบรรทัดมีหน้าที่
  */
 const RULES: Record<string, Record<string, string>> = {
-  ":root": { "--font-body": '"Sarabun", "Prompt", system-ui, sans-serif', "--font-serif": '"Noto Serif Thai", "Sarabun", serif' },
+  ":root": { "--font-body": '"Sarabun", "Prompt", "Noto Sans Lao", system-ui, sans-serif', "--font-serif": '"Noto Serif Thai", "Sarabun", serif' },
   "*, *::before, *::after": { "box-sizing": "border-box" },
   "*": { margin: "0", padding: "0" },
   html: { "-webkit-text-size-adjust": "100%", "text-size-adjust": "100%", "-webkit-font-smoothing": "antialiased" },

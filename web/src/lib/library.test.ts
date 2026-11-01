@@ -4,8 +4,8 @@ import {
   CONTINUE_MAX,
   INITIAL_LIBRARY,
   PAGE_SIZE,
-  SORT_OPTIONS,
-  STATUS_OPTIONS,
+  sortOptions,
+  statusOptions,
   TAG_CHIPS_MAX,
   UPDATES_COUNT,
   continueItems,
@@ -21,8 +21,11 @@ import {
   tagCounts,
   visibleTags,
 } from "./library"
+import { MESSAGES } from "../i18n/messages"
 import { FINISHED_PCT, type Progress } from "./progress"
 import type { NovelCardDto } from "./types"
+
+const { th, en, lo } = MESSAGES
 
 const novel = (over: Partial<NovelCardDto> = {}): NovelCardDto => ({
   id: 1,
@@ -292,61 +295,61 @@ describe("resumeInfo (ปุ่ม/การ์ดอ่านต่อ)", () =>
   const n = novel({ id: 7, latestNumber: 30 })
 
   test("อ่านค้างกลางตอน → กลับตอนเดิม; แถบ = ตอนที่อ่านถึง ÷ ตอนล่าสุด", () => {
-    assert.deepEqual(resumeInfo(n, progress({ number: 12, pct: 40 })), { href: "/novel/7/12", label: "อ่านต่อ ตอนที่ 12", chapter: 12, percent: 40 })
+    assert.deepEqual(resumeInfo(n, progress({ number: 12, pct: 40 }), th), { href: "/novel/7/12", label: "อ่านต่อ ตอนที่ 12", chapter: 12, percent: 40 })
   })
 
   test("อ่านถึง 95% ขึ้นไปและรู้ตอนถัดไป → พาไปตอนถัดไป", () => {
-    const info = resumeInfo(n, progress({ number: 12, pct: 95, next: 14 }))
+    const info = resumeInfo(n, progress({ number: 12, pct: 95, next: 14 }), th)
     assert.equal(info.href, "/novel/7/14")
     assert.equal(info.label, "อ่านต่อ ตอนที่ 14")
     assert.equal(info.chapter, 12)
     assert.equal(info.percent, 40)
-    assert.equal(resumeInfo(n, progress({ number: 12, pct: 94, next: 14 })).href, "/novel/7/12")
+    assert.equal(resumeInfo(n, progress({ number: 12, pct: 94, next: 14 }), th).href, "/novel/7/12")
   })
 
   test("ขอบเขต 95% พอดีที่ตอนสุดท้าย (ไม่รู้ตอนถัดไป) นับว่าอ่านจบ → ไปหน้าเรื่อง ไม่ใช่กลับไปตอนเดิม", () => {
     const last = novel({ id: 7, latestNumber: 12 })
-    const done = resumeInfo(last, progress({ number: 12, pct: FINISHED_PCT, next: null }))
+    const done = resumeInfo(last, progress({ number: 12, pct: FINISHED_PCT, next: null }), th)
     assert.equal(done.href, "/novel/7")
     assert.equal(done.label, "อ่านทันตอนล่าสุดแล้ว")
-    assert.equal(resumeInfo(last, progress({ number: 12, pct: FINISHED_PCT - 1, next: null })).href, "/novel/7/12")
+    assert.equal(resumeInfo(last, progress({ number: 12, pct: FINISHED_PCT - 1, next: null }), th).href, "/novel/7/12")
   })
 
   test("ตอนที่ 0 (บทนำ) เป็นตอนจริง", () => {
-    const info = resumeInfo(novel({ id: 7, latestNumber: 30 }), progress({ number: 0, pct: 10 }))
+    const info = resumeInfo(novel({ id: 7, latestNumber: 30 }), progress({ number: 0, pct: 10 }), th)
     assert.equal(info.href, "/novel/7/0")
     assert.equal(info.label, "อ่านต่อ ตอนที่ 0")
     assert.equal(info.percent, 0)
-    assert.equal(resumeInfo(n, progress({ number: 5, pct: 99, next: 0 })).href, "/novel/7/0")
+    assert.equal(resumeInfo(n, progress({ number: 5, pct: 99, next: 0 }), th).href, "/novel/7/0")
   })
 
   test("อ่านจบตอนล่าสุดตอนนั้นแต่ตอนนี้มีตอนใหม่ → ไปหน้าเรื่อง (ไม่รู้เลขตอนถัดไป) ป้าย 'มีตอนใหม่'", () => {
-    const info = resumeInfo(n, progress({ number: 28, pct: 100, next: null }))
+    const info = resumeInfo(n, progress({ number: 28, pct: 100, next: null }), th)
     assert.equal(info.href, "/novel/7")
     assert.equal(info.label, "มีตอนใหม่")
     assert.equal(info.percent, 93)
   })
 
   test("อ่านจบตอนล่าสุดและยังไม่มีตอนใหม่ → ไปหน้าเรื่อง ป้าย 'อ่านทันตอนล่าสุดแล้ว' แถบเต็ม", () => {
-    const info = resumeInfo(n, progress({ number: 30, pct: 97, next: null }))
+    const info = resumeInfo(n, progress({ number: 30, pct: 97, next: null }), th)
     assert.equal(info.href, "/novel/7")
     assert.equal(info.label, "อ่านทันตอนล่าสุดแล้ว")
     assert.equal(info.percent, 100)
   })
 
   test("ยังอ่านไม่จบตอนสุดท้าย (pct ต่ำกว่า 95) → อ่านต่อตอนเดิมตามปกติ แม้ไม่มีตอนถัดไป", () => {
-    assert.equal(resumeInfo(n, progress({ number: 30, pct: 50, next: null })).href, "/novel/7/30")
+    assert.equal(resumeInfo(n, progress({ number: 30, pct: 50, next: null }), th).href, "/novel/7/30")
   })
 
   test("เรื่องที่ตอนนี้ไม่มีตอนให้อ่านเลย (latestNumber เป็น null) → ไปหน้าเรื่อง แถบ 0%", () => {
-    const info = resumeInfo(novel({ id: 7, latestNumber: null }), progress({ number: 3, pct: 20 }))
+    const info = resumeInfo(novel({ id: 7, latestNumber: null }), progress({ number: 3, pct: 20 }), th)
     assert.equal(info.href, "/novel/7")
     assert.equal(info.label, "ดูเรื่องนี้")
     assert.equal(info.percent, 0)
   })
 
   test("อ่านถึงตอนที่เกินตอนล่าสุด (ตอนถูกลบ) → แถบไม่เกิน 100%", () => {
-    assert.equal(resumeInfo(novel({ id: 7, latestNumber: 10 }), progress({ number: 12, pct: 20 })).percent, 100)
+    assert.equal(resumeInfo(novel({ id: 7, latestNumber: 10 }), progress({ number: 12, pct: 20 }), th).percent, 100)
   })
 })
 
@@ -356,30 +359,30 @@ describe("continueItems (แถว 'อ่านต่อจากที่ค�
   const read = (id: number) => store[id] ?? null
 
   test("เรียงตามประวัติ (ล่าสุดก่อน) ได้ไม่เกิน 3 เรื่อง", () => {
-    const out = continueItems(list, [5, 3, 1, 2, 4], read)
+    const out = continueItems(list, [5, 3, 1, 2, 4], read, th)
     assert.deepEqual(out.map((item) => item.novel.id), [5, 3, 1])
     assert.equal(out.length, CONTINUE_MAX)
   })
 
   test("ข้ามเรื่องที่ไม่อยู่ในรายการแล้ว (ซ่อน/ลบ) และเรื่องที่ไม่มีความคืบหน้า แล้วเติมด้วยเรื่องถัดไปในประวัติ", () => {
-    const out = continueItems(list, [99, 5, 3, 1, 2], (id) => (id === 3 ? null : read(id)))
+    const out = continueItems(list, [99, 5, 3, 1, 2], (id) => (id === 3 ? null : read(id)), th)
     assert.deepEqual(out.map((item) => item.novel.id), [5, 1, 2])
   })
 
   test("แต่ละรายการมีข้อมูลอ่านต่อของตัวเอง", () => {
-    const [first] = continueItems(list, [2], read)
+    const [first] = continueItems(list, [2], read, th)
     assert.equal(first.info.href, "/novel/2/2")
     assert.equal(first.info.chapter, 2)
   })
 
   test("ไม่มีประวัติ / ไม่มีเรื่องที่ใช้ได้ → ว่าง (ซ่อนทั้งส่วน)", () => {
-    assert.deepEqual(continueItems(list, [], read), [])
-    assert.deepEqual(continueItems(list, [99, 98], read), [])
-    assert.deepEqual(continueItems([], [1, 2], read), [])
+    assert.deepEqual(continueItems(list, [], read, th), [])
+    assert.deepEqual(continueItems(list, [99, 98], read, th), [])
+    assert.deepEqual(continueItems([], [1, 2], read, th), [])
   })
 
   test("id ซ้ำในประวัติไม่ทำให้การ์ดซ้ำ", () => {
-    const out = continueItems(list, [2, 2, 1], read)
+    const out = continueItems(list, [2, 2, 1], read, th)
     assert.deepEqual(out.map((item) => item.novel.id), [2, 1])
   })
 })
@@ -432,7 +435,7 @@ describe("libraryReducer / shownCount", () => {
 
 describe("ตัวเลือกบนแถบกรอง", () => {
   test("สถานะ: ทั้งหมด / กำลังอัปเดต / จบแล้ว ตามลำดับ", () => {
-    assert.deepEqual(STATUS_OPTIONS, [
+    assert.deepEqual(statusOptions(th), [
       { key: "all", label: "ทั้งหมด" },
       { key: "ongoing", label: "กำลังอัปเดต" },
       { key: "completed", label: "จบแล้ว" },
@@ -440,16 +443,48 @@ describe("ตัวเลือกบนแถบกรอง", () => {
   })
 
   test("การเรียง: อัปเดตล่าสุด (ค่าเริ่มต้น) / ชื่อเรื่อง", () => {
-    assert.deepEqual(SORT_OPTIONS, [
+    assert.deepEqual(sortOptions(th), [
       { key: "latest", label: "อัปเดตล่าสุด" },
       { key: "title", label: "ชื่อเรื่อง ก–ฮ" },
     ])
-    assert.equal(SORT_OPTIONS[0].key, INITIAL_LIBRARY.sort)
+    assert.equal(sortOptions(th)[0].key, INITIAL_LIBRARY.sort)
   })
 
   test("isSortKey รับเฉพาะค่าที่มีในรายการ (ค่าจากฟอร์มเป็นข้อความอะไรก็ได้)", () => {
     assert.equal(isSortKey("latest"), true)
     assert.equal(isSortKey("title"), true)
     for (const bad of ["", "Latest", "oldest", "constructor", "toString", "__proto__"]) assert.equal(isSortKey(bad), false, bad)
+  })
+})
+
+describe("ข้อความของตัวเลือกและปุ่มอ่านต่อ (หลายภาษา)", () => {
+  test("ตัวเลือกสถานะ/การเรียง: คีย์เดิม ป้ายตามภาษา ไม่ซ้ำกัน", () => {
+    for (const m of [en, lo]) {
+      assert.deepEqual(statusOptions(m).map((o) => o.key), ["all", "ongoing", "completed"])
+      assert.deepEqual(sortOptions(m).map((o) => o.key), ["latest", "title"])
+      assert.equal(new Set(statusOptions(m).map((o) => o.label)).size, 3)
+      assert.equal(new Set(sortOptions(m).map((o) => o.label)).size, 2)
+    }
+    assert.notDeepEqual(statusOptions(lo).map((o) => o.label), statusOptions(th).map((o) => o.label))
+    assert.equal(statusOptions(en)[1]!.label, "Ongoing")
+  })
+
+  test("resumeInfo: ป้ายทุกกรณีตามภาษา (ปลายทางและตัวเลขไม่เปลี่ยน)", () => {
+    for (const m of [en, lo]) {
+      const mid = resumeInfo(novel({ id: 7, latestNumber: 30 }), progress({ number: 12, pct: 40 }), m)
+      assert.equal(mid.label, m.library.resumeContinue(12))
+      assert.equal(mid.href, "/novel/7/12")
+      assert.equal(resumeInfo(novel({ id: 7, latestNumber: 30 }), progress({ number: 28, pct: 100, next: null }), m).label, m.library.resumeNew)
+      assert.equal(resumeInfo(novel({ id: 7, latestNumber: 30 }), progress({ number: 30, pct: 100, next: null }), m).label, m.library.resumeCaughtUp)
+      assert.equal(resumeInfo(novel({ id: 7, latestNumber: null }), progress({ number: 3, pct: 20 }), m).label, m.library.resumeView)
+    }
+    assert.match(en.library.resumeContinue(12), /12/)
+    assert.doesNotMatch(lo.library.resumeContinue(12), /[\u0E00-\u0E7F]/)
+  })
+
+  test("continueItems ใส่ป้ายตามภาษา", () => {
+    const list = [novel({ id: 1, latestNumber: 10 })]
+    const [item] = continueItems(list, [1], () => progress({ number: 3, pct: 20 }), lo)
+    assert.equal(item!.info.label, lo.library.resumeContinue(3))
   })
 })

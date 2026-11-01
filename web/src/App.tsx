@@ -8,6 +8,8 @@ import { useLocation, useRoutes, type RouteObject } from "react-router"
 import { AppErrorBoundary } from "./components/AppErrorBoundary"
 import { Layout } from "./components/Layout"
 import { Skeleton } from "./components/Skeleton"
+import { localeForPath } from "./i18n/apply"
+import { I18nProvider } from "./i18n/I18nProvider"
 import { SiteProvider } from "./lib/SiteContext"
 import { About } from "./pages/About"
 import { Contact } from "./pages/Contact"
@@ -50,8 +52,10 @@ export function App() {
   const { pathname } = useLocation()
   const page = useRoutes(routes)
   return (
-    <AppErrorBoundary resetKey={pathname}>
-      <SiteProvider>{page}</SiteProvider>
-    </AppErrorBoundary>
+    <I18nProvider fixedLocale={localeForPath(pathname)}>
+      <AppErrorBoundary resetKey={pathname}>
+        <SiteProvider>{page}</SiteProvider>
+      </AppErrorBoundary>
+    </I18nProvider>
   )
 }

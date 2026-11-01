@@ -4,7 +4,9 @@ import type { ResumeInfo } from "../lib/library"
 import type { NovelCardDto } from "../lib/types"
 import { all, one, text } from "../testing/dom"
 import { renderPage } from "../testing/render"
-import { DRAFT_LABEL } from "./DraftBadge"
+import { MESSAGES } from "../i18n/messages"
+
+const DRAFT_LABEL = MESSAGES.th.draft.label
 import { Hero } from "./Hero"
 
 const dto = (over: Partial<NovelCardDto> = {}): NovelCardDto => ({

@@ -5,6 +5,8 @@
  */
 import { Clock, User } from "lucide-react"
 import { Link } from "react-router"
+import { useI18n } from "../i18n/I18nProvider"
+import { CONTENT_LANG } from "../i18n/types"
 import { timeAgo } from "../lib/format"
 import { displayTitle } from "../lib/novel"
 import type { NovelCardDto } from "../lib/types"
@@ -22,7 +24,8 @@ export interface NovelCardProps {
 export function NovelCard({ novel, badge = null, chip = null, now }: NovelCardProps) {
   const title = displayTitle(novel)
   const author = novel.author.trim()
-  const updated = timeAgo(novel.updatedAt, now)
+  const { m } = useI18n()
+  const updated = timeAgo(novel.updatedAt, m, now)
   return (
     <Link to={`/novel/${novel.id}`} className="card">
       <div className="box">
@@ -33,18 +36,18 @@ export function NovelCard({ novel, badge = null, chip = null, now }: NovelCardPr
             {chip ? <span className="b-ep">{chip}</span> : null}
           </div>
         ) : null}
-        {novel.status === "completed" ? <span className="b-done">จบแล้ว</span> : null}
+        {novel.status === "completed" ? <span className="b-done">{m.card.completed}</span> : null}
         {novel.published ? null : (
           <span className="b-draft">
             <DraftBadge compact />
           </span>
         )}
       </div>
-      <h3>{title}</h3>
+      <h3 lang={CONTENT_LANG}>{title}</h3>
       {author !== "" ? (
         <div className="meta">
           <User aria-hidden="true" size={13} />
-          {author}
+          <span lang={CONTENT_LANG}>{author}</span>
         </div>
       ) : null}
       {updated !== "" ? (

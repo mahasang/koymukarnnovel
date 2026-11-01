@@ -4,55 +4,55 @@
  */
 import { Bot, ExternalLink } from "lucide-react"
 import { Link } from "react-router"
+import { useI18n } from "../i18n/I18nProvider"
+import { CONTENT_LANG } from "../i18n/types"
 import { sourceOf } from "../lib/source"
 
-export const AI_BADGE = "แปลโดย AI (Claude) — อาจมีข้อผิดพลาด"
-
 const HEADING_ID = "credit-title"
-const NOT_SPECIFIED = "ไม่ระบุ"
 
 export function CreditBox({ author, sourceUrl, licenseNote }: { author: string; sourceUrl: string; licenseNote: string }) {
+  const { m } = useI18n()
   const source = sourceOf(sourceUrl)
   const license = licenseNote.trim()
   return (
     <section className="nv-sec credit" aria-labelledby={HEADING_ID}>
       <h2 className="nv-h" id={HEADING_ID}>
-        เครดิตและที่มา
+        {m.credit.title}
       </h2>
       <dl className="credit-list">
         <div className="credit-row">
-          <dt>ผู้แต่ง</dt>
-          <dd>{author.trim() || NOT_SPECIFIED}</dd>
+          <dt>{m.credit.author}</dt>
+          <dd>{author.trim() !== "" ? <span lang={CONTENT_LANG}>{author.trim()}</span> : m.credit.notSpecified}</dd>
         </div>
         <div className="credit-row">
-          <dt>ต้นฉบับ</dt>
+          <dt>{m.credit.source}</dt>
           <dd>
             {source.kind === "link" ? (
               <a href={source.href} title={source.href} target="_blank" rel="noopener noreferrer nofollow">
-                {source.label}
+                <span lang={CONTENT_LANG}>{source.label}</span>
                 <ExternalLink aria-hidden="true" size={14} />
-                <span className="sr-only"> (เปิดในแท็บใหม่)</span>
+                <span className="sr-only"> {m.credit.newTab}</span>
               </a>
             ) : source.kind === "text" ? (
-              source.text
+              <span lang={CONTENT_LANG}>{source.text}</span>
             ) : (
-              NOT_SPECIFIED
+              m.credit.notSpecified
             )}
           </dd>
         </div>
         {license !== "" ? (
           <div className="credit-row">
-            <dt>บันทึกสิทธิ์</dt>
-            <dd className="credit-license">{license}</dd>
+            <dt>{m.credit.license}</dt>
+            <dd className="credit-license" lang={CONTENT_LANG}>{license}</dd>
           </div>
         ) : null}
       </dl>
       <p className="ai-badge">
         <Bot aria-hidden="true" size={16} />
-        {AI_BADGE}
+        {m.credit.aiBadge}
       </p>
       <Link to="/contact" className="credit-report">
-        แจ้งลบเนื้อหา
+        {m.credit.report}
       </Link>
     </section>
   )

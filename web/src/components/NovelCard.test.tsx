@@ -3,7 +3,9 @@ import { describe, test } from "node:test"
 import type { NovelCardDto } from "../lib/types"
 import { all, one, text, type El } from "../testing/dom"
 import { renderPage } from "../testing/render"
-import { DRAFT_LABEL } from "./DraftBadge"
+import { MESSAGES } from "../i18n/messages"
+
+const DRAFT_LABEL = MESSAGES.th.draft.label
 import { NovelCard } from "./NovelCard"
 
 const NOW = Date.UTC(2026, 9, 22, 12, 0, 0) // 22 ต.ค. 2026 12:00 UTC

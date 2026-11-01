@@ -7,7 +7,8 @@
 import { X } from "lucide-react"
 import { useEffect, useRef, type Ref, type RefObject } from "react"
 import { FONTS, clampFontSize, type FontId } from "../lib/reader-prefs"
-import { THEMES, THEME_LABELS, type ThemeId } from "../lib/theme"
+import { MESSAGES, type Messages } from "../i18n/messages"
+import { THEMES, type ThemeId } from "../lib/theme"
 
 export const FONT_LABELS: Record<FontId, string> = { sarabun: "Sarabun", serif: "Noto Serif Thai" }
 
@@ -23,30 +24,33 @@ export interface ReaderSettingsViewProps {
   onFont: (font: FontId) => void
   onClose: () => void
   panelRef?: Ref<HTMLElement>
+  /** ชุดข้อความ — ไม่ส่ง = ภาษาไทย (ไม่ใช้ hook เพื่อให้เทสต์เรียกเป็นฟังก์ชันตรงๆ ได้; หน้าอ่านส่งให้) */
+  m?: Messages
 }
 
-export function ReaderSettingsView({ id, theme, fontSize, font, voiceMissing, onTheme, onFontSize, onFont, onClose, panelRef }: ReaderSettingsViewProps) {
+export function ReaderSettingsView({ id, theme, fontSize, font, voiceMissing, onTheme, onFontSize, onFont, onClose, panelRef, m = MESSAGES.th }: ReaderSettingsViewProps) {
+  const t = m.settings
   const sizeId = `${id}-size`
   return (
     <>
       <div className="rs-scrim" aria-hidden="true" />
-      <section id={id} className="rs" role="dialog" aria-label="ตั้งค่าการอ่าน" ref={panelRef}>
+      <section id={id} className="rs" role="dialog" aria-label={t.title} ref={panelRef}>
         <div className="rs-head">
-          <h2 className="rs-title">ตั้งค่าการอ่าน</h2>
-          <button type="button" className="iconbtn" aria-label="ปิดการตั้งค่า" onClick={onClose}>
+          <h2 className="rs-title">{t.title}</h2>
+          <button type="button" className="iconbtn" aria-label={t.close} onClick={onClose}>
             <X aria-hidden="true" size={18} />
           </button>
         </div>
 
         <div className="rs-row" role="group" aria-labelledby={`${id}-theme`}>
           <span className="rs-label" id={`${id}-theme`}>
-            ธีม
+            {t.theme}
           </span>
           <div className="rs-options">
             {THEMES.map((option) => (
               <button key={option} type="button" className={option === theme ? "rs-opt rs-theme on" : "rs-opt rs-theme"} data-t={option} aria-pressed={option === theme} onClick={() => onTheme(option)}>
                 <span className="rs-swatch" aria-hidden="true" />
-                {THEME_LABELS[option]}
+                {m.theme.labels[option]}
               </button>
             ))}
           </div>
@@ -54,11 +58,11 @@ export function ReaderSettingsView({ id, theme, fontSize, font, voiceMissing, on
 
         <div className="rs-row">
           <label className="rs-label" htmlFor={sizeId}>
-            ขนาดตัวอักษร
+            {t.fontSize}
           </label>
           <div className="rs-size">
             <span className="rs-size-small" aria-hidden="true">
-              ก
+              {t.sizeGlyph}
             </span>
             <input
               id={sizeId}
@@ -68,11 +72,11 @@ export function ReaderSettingsView({ id, theme, fontSize, font, voiceMissing, on
               max={26}
               step={2}
               value={fontSize}
-              aria-valuetext={`${fontSize} พิกเซล`}
+              aria-valuetext={t.sizeValue(fontSize)}
               onChange={(event) => onFontSize(clampFontSize(Number(event.currentTarget.value)))}
             />
             <span className="rs-size-big" aria-hidden="true">
-              ก
+              {t.sizeGlyph}
             </span>
             <output className="rs-value" htmlFor={sizeId}>
               {fontSize}
@@ -82,7 +86,7 @@ export function ReaderSettingsView({ id, theme, fontSize, font, voiceMissing, on
 
         <div className="rs-row" role="group" aria-labelledby={`${id}-font`}>
           <span className="rs-label" id={`${id}-font`}>
-            ฟอนต์
+            {t.font}
           </span>
           <div className="rs-options">
             {FONTS.map((option) => (
@@ -93,7 +97,7 @@ export function ReaderSettingsView({ id, theme, fontSize, font, voiceMissing, on
           </div>
         </div>
 
-        {voiceMissing ? <p className="rs-note">เครื่องหรือเบราว์เซอร์นี้ยังไม่มีเสียงอ่านภาษาไทย จึงไม่มีปุ่มฟัง — ลองเปิดจากอุปกรณ์ที่ติดตั้งเสียงภาษาไทยไว้</p> : null}
+        {voiceMissing ? <p className="rs-note">{t.voiceMissing}</p> : null}
       </section>
     </>
   )

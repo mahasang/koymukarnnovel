@@ -69,7 +69,7 @@ html[data-theme="midnight"] {
   --accent-2: var(--a2-dark, #ff6f91);
   --accent-ink: #0b0b14;
   --shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-  --display: "Prompt", "Sarabun", sans-serif;
+  --display: "Prompt", "Sarabun", "Noto Sans Lao", sans-serif;
 }
 
 html[data-theme="paper"] {
@@ -85,7 +85,7 @@ html[data-theme="paper"] {
   --accent-2: var(--a2-light, #0f766e);
   --accent-ink: #fff7ed;
   --shadow: 0 10px 26px rgba(80, 56, 20, 0.18);
-  --display: "Noto Serif Thai", "Prompt", serif;
+  --display: "Noto Serif Thai", "Prompt", "Noto Sans Lao", serif;
 }
 
 html[data-theme="sepia"] {
@@ -101,7 +101,7 @@ html[data-theme="sepia"] {
   --accent-2: var(--a2-light, #0d6e66);
   --accent-ink: #fff7ed;
   --shadow: 0 10px 26px rgba(80, 56, 20, 0.18);
-  --display: "Prompt", "Sarabun", sans-serif;
+  --display: "Prompt", "Sarabun", "Noto Sans Lao", sans-serif;
 }
 
 /* Black — พื้นดำสนิท (เหมาะกับจอ OLED) ค่าเสริมที่ spec ไม่ได้ระบุกำหนดในงานนี้ */
@@ -118,5 +118,5 @@ html[data-theme="black"] {
   --accent-2: var(--a2-dark, #ff6f91);
   --accent-ink: #0b0b14;
   --shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
-  --display: "Prompt", "Sarabun", sans-serif;
+  --display: "Prompt", "Sarabun", "Noto Sans Lao", sans-serif;
 }

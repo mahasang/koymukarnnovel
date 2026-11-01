@@ -10,6 +10,8 @@ export const KEYS = {
   reader: "koymukarnnovel.reader",
   progress: "koymukarnnovel.progress",
   history: "koymukarnnovel.history",
+  /** ภาษา UI ที่ผู้อ่านเลือกเอง (JSON ของ "th" | "en" | "lo") */
+  lang: "koymukarnnovel.lang",
   /** ตัวเลือกหน้า "เพิ่มตอน" ของเจ้าของ (แปลทันที / เผยแพร่เอง) — อยู่ในเบราว์เซอร์ของเจ้าของ ไม่ใช่ของผู้อ่าน */
   addOptions: "koymukarnnovel.admin.add",
 } as const

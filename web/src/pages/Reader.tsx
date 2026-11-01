@@ -8,6 +8,9 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { memo, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type Ref } from "react"
 import { Link, useNavigate, useParams } from "react-router"
+import { useI18n } from "../i18n/I18nProvider"
+import { MESSAGES, type Messages } from "../i18n/messages"
+import { CONTENT_LANG } from "../i18n/types"
 import { DraftBadge } from "../components/DraftBadge"
 import { ErrorState } from "../components/ErrorState"
 import { ReaderBar } from "../components/ReaderBar"
@@ -56,9 +59,11 @@ export interface ReaderBodyViewProps {
   font: FontId
   /** กรอบของย่อหน้าทั้งหมด — ลูกลำดับที่ i = ย่อหน้าที่ i เสมอ (เส้นคั่นฉากก็นับเป็นหนึ่งลูก) */
   textRef?: Ref<HTMLDivElement>
+  /** ชุดข้อความ — ไม่ส่ง = ภาษาไทย (ไม่ใช้ hook เพื่อให้เทสต์เรียกเป็นฟังก์ชันตรงๆ ได้) */
+  m?: Messages
 }
 
-export function ReaderBodyView({ heading, draft, paragraphs, activeIndex, fontSize, font, textRef }: ReaderBodyViewProps) {
+export function ReaderBodyView({ heading, draft, paragraphs, activeIndex, fontSize, font, textRef, m = MESSAGES.th }: ReaderBodyViewProps) {
   const serif = font === "serif"
   return (
     <article className={serif ? "rd rd-serif" : "rd"} style={{ fontSize }}>
@@ -68,7 +73,7 @@ export function ReaderBodyView({ heading, draft, paragraphs, activeIndex, fontSi
           <DraftBadge />
         </div>
       ) : null}
-      <div className="rd-text" ref={textRef}>
+      <div className="rd-text" ref={textRef} lang={CONTENT_LANG}>
         {paragraphs.map((paragraph, index) =>
           isSceneBreak(paragraph) ? (
             <div key={index} className="rd-scene" role="separator">
@@ -83,7 +88,7 @@ export function ReaderBodyView({ heading, draft, paragraphs, activeIndex, fontSi
           ),
         )}
       </div>
-      {paragraphs.length === 0 ? <p className="rd-empty">ตอนนี้ยังไม่มีเนื้อหา</p> : null}
+      {paragraphs.length === 0 ? <p className="rd-empty">{m.reader.empty}</p> : null}
     </article>
   )
 }
@@ -92,27 +97,28 @@ export function ReaderBodyView({ heading, draft, paragraphs, activeIndex, fontSi
 const ReaderBody = memo(ReaderBodyView)
 
 export function ReaderNavView({ novelId, prev, next }: { novelId: number; prev: number | null; next: number | null }) {
+  const { m } = useI18n()
   const base = `/novel/${novelId}`
   return (
-    <nav className="rd-nav" aria-label="เปลี่ยนตอน">
+    <nav className="rd-nav" aria-label={m.reader.navLabel}>
       {prev !== null ? (
         <Link to={`${base}/${prev}`} className="btn ghost rd-prev" rel="prev">
           <ChevronLeft aria-hidden="true" size={18} />
-          ตอนก่อนหน้า
+          {m.reader.prev}
         </Link>
       ) : (
-        <span className="btn ghost rd-prev off">ไม่มีตอนก่อนหน้า</span>
+        <span className="btn ghost rd-prev off">{m.reader.noPrev}</span>
       )}
       <Link to={base} className="btn ghost rd-toc">
-        สารบัญ
+        {m.reader.toc}
       </Link>
       {next !== null ? (
         <Link to={`${base}/${next}`} className="btn primary rd-next" rel="next">
-          ตอนถัดไป
+          {m.reader.next}
           <ChevronRight aria-hidden="true" size={18} />
         </Link>
       ) : (
-        <span className="btn ghost rd-next off">ยังไม่มีตอนถัดไป</span>
+        <span className="btn ghost rd-next off">{m.reader.noNext}</span>
       )}
     </nav>
   )
@@ -121,6 +127,7 @@ export function ReaderNavView({ novelId, prev, next }: { novelId: number; prev: 
 export function ReaderPage({ page }: { page: ChapterPageDto }) {
   const { novel, chapter, prev, next } = page
   const navigate = useNavigate()
+  const { m } = useI18n()
   const novelTitle = displayTitle(novel)
   const paragraphs = useMemo(() => splitParagraphs(chapter.text), [chapter.text])
   const [prefs, setPrefs] = useState<ReaderPrefs>(getReaderPrefs)
@@ -263,7 +270,7 @@ export function ReaderPage({ page }: { page: ChapterPageDto }) {
     if (rect.top < barBottom || rect.bottom > window.innerHeight) window.scrollBy({ top: rect.top - barBottom - FOLLOW_GAP, left: 0, behavior: "auto" })
   }, [speech.index, speech.state])
 
-  useDocumentTitle(chapterTitle(novel, chapter))
+  useDocumentTitle(chapterTitle(novel, chapter, m))
 
   const hasSpeakable = paragraphs.some((paragraph) => !isSceneBreak(paragraph))
   const listenAvailable = speech.supported && speech.hasThaiVoice && hasSpeakable
@@ -310,6 +317,7 @@ export function ReaderPage({ page }: { page: ChapterPageDto }) {
         onRate={changeRate}
         rootRef={barRef}
         settingsButtonRef={settingsButtonRef}
+        m={m}
       />
       <ReaderSettings
         open={settingsOpen}
@@ -323,16 +331,18 @@ export function ReaderPage({ page }: { page: ChapterPageDto }) {
         onFontSize={(fontSize) => updatePrefs({ fontSize })}
         onFont={(font) => updatePrefs({ font })}
         onClose={closeSettings}
+        m={m}
       />
       <main className="rd-main">
         <ReaderBody
-          heading={chapterHeading(chapter)}
+          heading={chapterHeading(chapter, m)}
           draft={!chapter.published}
           paragraphs={paragraphs}
           activeIndex={listening ? speech.index : null}
           fontSize={prefs.fontSize}
           font={prefs.font}
           textRef={textRef}
+          m={m}
         />
         <ReaderNavView novelId={novel.id} prev={prev} next={next} />
       </main>

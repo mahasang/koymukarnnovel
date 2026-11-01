@@ -5,11 +5,13 @@
  */
 import { useEffect, useRef } from "react"
 import { Outlet, useLocation, useNavigationType } from "react-router"
+import { useI18n } from "../i18n/I18nProvider"
 import { shouldResetScroll } from "../lib/scroll"
 import { Footer } from "./Footer"
 import { Header } from "./Header"
 
 export function Layout() {
+  const { m } = useI18n()
   const mainRef = useRef<HTMLElement>(null)
   const { pathname } = useLocation()
   const navigationType = useNavigationType()
@@ -26,7 +28,7 @@ export function Layout() {
   return (
     <>
       <a className="skip-link" href="#main">
-        ข้ามไปยังเนื้อหาหลัก
+        {m.layout.skip}
       </a>
       <Header />
       <main id="main" className="wrap main" tabIndex={-1} ref={mainRef}>
