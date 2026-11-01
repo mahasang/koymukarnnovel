@@ -1,0 +1,122 @@
+/*
+ * design tokens ของหน้าเว็บ — ค่าสีตามตาราง spec 6.5 (tokens.test.ts ตรวจค่าตรงตารางและความต่างสี WCAG ≥ 4.5:1 ทุกธีม × ทุก accent)
+ *
+ * ธีม:    <html data-theme="midnight|paper|sepia|black">  (ไม่มี = Midnight)
+ * accent: <html data-accent="violet|pink|teal|amber|blue">  (ไม่มี = ใช้สี accent ของแต่ละธีมตาม spec)
+ *
+ * (ปุ่มเลือกสีในหน้าตั้งค่าหลังบ้าน `.ad-swatch[data-accent=…]` อยู่ในกลุ่มตัวเลือกเดียวกัน เพื่อให้แสดงสีของชุดนั้นๆ ได้โดยไม่เขียนค่าซ้ำ)
+ * ชุด accent แค่ตั้งตัวแปรช่วย --a-dark / --a2-dark (ใช้กับธีมมืด) และ --a-light / --a2-light (ใช้กับธีมสว่าง)
+ * บล็อกธีมหยิบไปใช้ด้วย var(--a-dark, <สีของธีม>) จึงได้ "ไม่เลือก accent = สีของธีม" โดยไม่ต้องเขียนค่าซ้ำ
+ *
+ * พื้นที่ใช้วางข้อความได้ (ตรวจใน tokens.test.ts):
+ *   --text, --muted             วางได้บน --bg --bg-2 --surface --surface-2
+ *   --accent, --accent-2        วางได้บน --bg --surface --surface-2  (ห้ามบน --bg-2: เป็นพื้นแถบ เช่น footer/แถบข้าง/หัวตาราง ที่เข้มกว่า --bg ในธีมสว่าง)
+ *   --accent-ink                ข้อความบนพื้นที่ระบายด้วย --accent / --accent-2 (ปุ่ม ป้าย โลโก้ไล่สี)
+ */
+
+html[data-accent="violet"],
+.ad-swatch[data-accent="violet"] {
+  --a-dark: #8b7bff;
+  --a2-dark: #ff6f91;
+  --a-light: #6d28d9;
+  --a2-light: #be185d;
+}
+
+html[data-accent="pink"],
+.ad-swatch[data-accent="pink"] {
+  --a-dark: #ff7aa8;
+  --a2-dark: #ffb36b;
+  --a-light: #be185d;
+  --a2-light: #9a3412;
+}
+
+html[data-accent="teal"],
+.ad-swatch[data-accent="teal"] {
+  --a-dark: #2dd4bf;
+  --a2-dark: #60a5fa;
+  --a-light: #0d6e66;
+  --a2-light: #1d4ed8;
+}
+
+html[data-accent="amber"],
+.ad-swatch[data-accent="amber"] {
+  --a-dark: #fbbf24;
+  --a2-dark: #fb7185;
+  --a-light: #92400e;
+  --a2-light: #9f1239;
+}
+
+html[data-accent="blue"],
+.ad-swatch[data-accent="blue"] {
+  --a-dark: #60a5fa;
+  --a2-dark: #a78bfa;
+  --a-light: #1d4ed8;
+  --a2-light: #6d28d9;
+}
+
+/* Midnight — ธีมเริ่มต้น (ใช้เมื่อไม่มี data-theme) */
+:root,
+html[data-theme="midnight"] {
+  color-scheme: dark;
+  --bg: #0a0c12;
+  --bg-2: #0f121a;
+  --surface: #141824;
+  --surface-2: #1b2132;
+  --line: #252c40;
+  --text: #eceef5;
+  --muted: #8f98ae;
+  --accent: var(--a-dark, #8b7bff);
+  --accent-2: var(--a2-dark, #ff6f91);
+  --accent-ink: #0b0b14;
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  --display: "Prompt", "Sarabun", sans-serif;
+}
+
+html[data-theme="paper"] {
+  color-scheme: light;
+  --bg: #f4efe6;
+  --bg-2: #efe8db;
+  --surface: #fffcf6;
+  --surface-2: #f6efe1;
+  --line: #e3d8c3;
+  --text: #2a2118;
+  --muted: #6b5d4a;
+  --accent: var(--a-light, #c2410c);
+  --accent-2: var(--a2-light, #0f766e);
+  --accent-ink: #fff7ed;
+  --shadow: 0 10px 26px rgba(80, 56, 20, 0.18);
+  --display: "Noto Serif Thai", "Prompt", serif;
+}
+
+html[data-theme="sepia"] {
+  color-scheme: light;
+  --bg: #f2e8d2;
+  --bg-2: #ecdfc3;
+  --surface: #f8efdb;
+  --surface-2: #efe3c8;
+  --line: #dccfae;
+  --text: #3b2f20;
+  --muted: #6e604a;
+  --accent: var(--a-light, #9a4508);
+  --accent-2: var(--a2-light, #0d6e66);
+  --accent-ink: #fff7ed;
+  --shadow: 0 10px 26px rgba(80, 56, 20, 0.18);
+  --display: "Prompt", "Sarabun", sans-serif;
+}
+
+/* Black — พื้นดำสนิท (เหมาะกับจอ OLED) ค่าเสริมที่ spec ไม่ได้ระบุกำหนดในงานนี้ */
+html[data-theme="black"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --bg-2: #05060a;
+  --surface: #0d0f14;
+  --surface-2: #161a22;
+  --line: #1f232e;
+  --text: #e6e8ee;
+  --muted: #8a92a6;
+  --accent: var(--a-dark, #8b7bff);
+  --accent-2: var(--a2-dark, #ff6f91);
+  --accent-ink: #0b0b14;
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  --display: "Prompt", "Sarabun", sans-serif;
+}

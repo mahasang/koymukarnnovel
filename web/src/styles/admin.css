@@ -1,0 +1,2124 @@
+/*
+ * สไตล์หลังบ้าน (/admin) — โหลดเฉพาะตอนเปิดหลังบ้าน (AdminApp.tsx เป็นคนนำเข้า) · token สี/ฟอนต์ชุดเดียวกับหน้าบ้าน (tokens.css, base.css)
+ * ใช้ปุ่ม .btn โลโก้ .logo และสถานะ .state / .skeleton ของ public.css (โหลดอยู่แล้วทั้งแอป) · คลาสของหลังบ้านขึ้นต้นด้วย ad- ไม่ชนกับหน้าบ้าน
+ * กติกาที่ admin.test.ts ตรวจให้: คลาสในโค้ดตรงกับสไตล์ทั้งสองทิศ, สีมาจากตัวแปรเท่านั้น (ค่าตายตัวอยู่ที่ตัวแปร --ad-* ด้านล่าง), ไม่มี !important,
+ * ข้อความสี accent ไม่วางบน --bg-2 (พื้นเมนูข้าง), สีแดงผ่านความต่างสี ≥ 4.5:1 ทุกธีม, จุดตัดจอเดียวคือ 899px (เมนูข้าง ↔ แถบบน + ลิ้นชัก)
+ */
+
+/* ---------- ตัวแปรเฉพาะหลังบ้าน ---------- */
+
+:root {
+  /* พื้นปุ่มอันตราย + ตัวอักษรบนพื้นนั้น (ขาวบน #dc2626 = 4.83:1) */
+  --ad-danger: #dc2626;
+  --ad-danger-ink: #ffffff;
+  /* ข้อความสีแดงบนพื้นของธีม: ธีมมืดใช้แดงอ่อน ธีมสว่างใช้แดงเข้ม */
+  --ad-danger-text: #f87171;
+  /* ข้อความสีเตือน (อำพัน) และสีสำเร็จ (เขียว) บนพื้นของธีม — ธีมมืดใช้สีอ่อน ธีมสว่างใช้สีเข้ม (ผ่าน 4.5:1 ทั้งบนพื้นธีมและบนพื้นป้ายที่ผสมสีนั้นเอง 14%) */
+  --ad-warn-text: #fbbf24;
+  --ad-ok-text: #4ade80;
+  /* ฉากหลังของลิ้นชัก/กล่องยืนยัน */
+  --ad-scrim: rgba(0, 0, 0, 0.55);
+}
+
+html[data-theme="paper"],
+html[data-theme="sepia"] {
+  --ad-danger-text: #991b1b;
+  --ad-warn-text: #92400e;
+  --ad-ok-text: #166534;
+}
+
+/* ---------- โครงหน้า ---------- */
+
+.ad-shell {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.ad-main {
+  min-width: 0;
+  padding: 28px 36px 40px;
+}
+
+.ad-main:focus {
+  outline: none;
+}
+
+.ad-solo {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 56px 16px;
+}
+
+.ad-ph {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.ad-ph-text {
+  min-width: 0;
+}
+
+.ad-eyebrow {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-ph-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.ad-ph h1 {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 27px;
+  line-height: 1.2;
+}
+
+/* ---------- เมนูข้าง ---------- */
+
+.ad-side {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100vh;
+  height: 100dvh;
+  padding: 22px 16px;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: var(--bg-2);
+}
+
+/* ชื่อเว็บเริ่มต้น (koymukarnnovel) ต้องแสดงครบในเมนูกว้าง 248px: ตัวอักษรเล็กลงเล็กน้อยและขอบข้างแคบลง */
+.ad-side .logo {
+  padding: 4px 8px 20px;
+  font-size: 18px;
+}
+
+.ad-side-label {
+  padding: 6px 14px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.ad-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ad-it {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ad-it:hover:not(.on):not(:disabled) {
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+  color: var(--text);
+}
+
+.ad-it.on {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.ad-it.on svg {
+  color: var(--accent);
+}
+
+.ad-it:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ad-add {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.ad-grow {
+  flex: 1;
+}
+
+.ad-queue {
+  margin: 0 6px 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ad-side-error {
+  margin: 4px 14px 0;
+  color: var(--ad-danger-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ---------- แถบบน + ลิ้นชัก (จอแคบ) ---------- */
+
+.ad-topbar {
+  display: none;
+}
+
+.ad-drawer-scrim {
+  display: none;
+}
+
+.ad-menu-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* ---------- แถบเตือนคิวหยุด ---------- */
+
+.ad-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--text);
+}
+
+.ad-banner svg {
+  color: var(--accent);
+}
+
+.ad-banner-text {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14.5px;
+  overflow-wrap: anywhere;
+}
+
+.ad-banner-text strong {
+  font-family: var(--font-ui);
+  font-weight: 600;
+}
+
+.ad-banner-error {
+  flex-basis: 100%;
+  color: var(--ad-danger-text);
+  font-size: 13.5px;
+}
+
+/* ---------- หน้าล็อกอิน ---------- */
+
+.ad-login {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  background: var(--bg);
+}
+
+.ad-login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+  padding: 30px 28px 26px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ad-login-title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.ad-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ad-field label,
+.ad-label {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ad-field input,
+.ad-field select,
+.ad-tag-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+.ad-field textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.ad-field input::placeholder,
+.ad-tag-input::placeholder,
+.ad-field textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.ad-field input[aria-invalid="true"],
+.ad-tag-input[aria-invalid="true"],
+.ad-field textarea[aria-invalid="true"] {
+  border-color: var(--ad-danger-text);
+}
+
+.ad-login-error {
+  color: var(--ad-danger-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ad-login-back {
+  align-self: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-login-back:hover {
+  color: var(--text);
+}
+
+/* ---------- กล่องยืนยัน ---------- */
+
+.ad-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--ad-scrim);
+}
+
+.ad-dialog {
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  padding: 24px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.ad-dialog:focus {
+  outline: none;
+}
+
+.ad-dialog-title {
+  margin-bottom: 8px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.ad-dialog-body {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.ad-dialog-error {
+  margin-top: 12px;
+  color: var(--ad-danger-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ad-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+/* ---------- แดชบอร์ด ---------- */
+
+.ad-panel {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.ad-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 16px;
+}
+
+.ad-panel-head h2 {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 19px;
+}
+
+.ad-panel-sub {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-dash-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.ad-dash-top {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+}
+
+.ad-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid color-mix(in srgb, var(--ad-ok-text) 40%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ad-ok-text) 12%, var(--surface));
+  color: var(--text);
+  font-size: 15px;
+}
+
+.ad-notice-close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ad-notice-close:hover {
+  color: var(--text);
+}
+
+.ad-note {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ad-main > .ad-note {
+  margin-bottom: 18px;
+}
+
+.ad-link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ad-inline-error {
+  color: var(--ad-danger-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ad-empty {
+  padding: 6px 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* ป้ายสถานะ (รอคิว / ทำแล้ว / เชื่อมต่อ ฯลฯ): สีตาม data-tone · ไม่ระบุ = กลางๆ */
+.ad-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.ad-pill[data-tone="idle"] {
+  color: var(--muted);
+}
+
+.ad-pill[data-tone="warn"] {
+  border-color: color-mix(in srgb, var(--ad-warn-text) 40%, var(--surface));
+  background: color-mix(in srgb, var(--ad-warn-text) 14%, var(--surface));
+  color: var(--ad-warn-text);
+}
+
+.ad-pill[data-tone="ok"] {
+  border-color: color-mix(in srgb, var(--ad-ok-text) 40%, var(--surface));
+  background: color-mix(in srgb, var(--ad-ok-text) 14%, var(--surface));
+  color: var(--ad-ok-text);
+}
+
+.ad-pill[data-tone="fail"] {
+  border-color: color-mix(in srgb, var(--ad-danger-text) 40%, var(--surface));
+  background: color-mix(in srgb, var(--ad-danger-text) 14%, var(--surface));
+  color: var(--ad-danger-text);
+}
+
+/* ---------- เริ่มต้นใช้งาน ---------- */
+
+.ad-onboard {
+  margin-bottom: 20px;
+}
+
+.ad-onboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ad-onboard-item {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.ad-onboard-item[data-state="warn"] {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+.ad-onboard-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  padding: 12px 16px;
+  border-radius: 14px;
+}
+
+.ad-onboard-mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.ad-onboard-item[data-state="done"] .ad-onboard-mark {
+  color: var(--ad-ok-text);
+}
+
+.ad-onboard-item[data-state="warn"] .ad-onboard-mark {
+  border-color: color-mix(in srgb, var(--ad-warn-text) 50%, var(--surface));
+  color: var(--ad-warn-text);
+}
+
+.ad-onboard-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ad-onboard-text strong {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15.5px;
+}
+
+.ad-onboard-item[data-state="done"] .ad-onboard-text strong {
+  color: var(--muted);
+}
+
+.ad-onboard-hint {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.ad-onboard-item[data-state="warn"] .ad-onboard-hint {
+  color: var(--text);
+}
+
+/* ---------- การ์ดตัวเลข ---------- */
+
+.ad-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+}
+
+.ad-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.ad-stat[data-tone="fail"] {
+  border-color: color-mix(in srgb, var(--ad-danger-text) 45%, var(--line));
+}
+
+.ad-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-stat[data-tone="fail"] .ad-stat-label,
+.ad-stat[data-tone="fail"] .ad-stat-value {
+  color: var(--ad-danger-text);
+}
+
+.ad-stat-value {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.ad-stat-of {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.ad-stat-hint {
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.ad-stat-action {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* ---------- คิวแปลสด ---------- */
+
+.ad-queue-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ad-queue-panel .ad-panel-head {
+  margin-bottom: 0;
+}
+
+.ad-cur {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-2);
+}
+
+.ad-spin {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: ad-spin 0.9s linear infinite;
+}
+
+@keyframes ad-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ad-cur-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ad-cur-title {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 16.5px;
+  overflow-wrap: anywhere;
+}
+
+.ad-cur-title a:hover {
+  text-decoration: underline;
+}
+
+.ad-cur-sub {
+  margin: 2px 0 10px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* แถบความคืบหน้า: รางจางๆ + แถบไล่สี accent (ความกว้างตามเปอร์เซ็นต์ที่ส่วนแสดงผลใส่ให้) */
+.ad-meter {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, var(--surface));
+}
+
+.ad-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: var(--accent-ink);
+}
+
+.ad-live {
+  max-height: 150px;
+  padding: 4px 0 4px 16px;
+  overflow-y: auto;
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ad-rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ตอนผิดพลาดต่อจากรายการรอคิว: เว้นจากรายการด้านบนเล็กน้อย */
+.ad-rows-errors {
+  margin-top: 4px;
+}
+
+.ad-row {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 12px 4px;
+  border-top: 1px solid var(--line);
+}
+
+.ad-row-num {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.ad-row-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.ad-row-title a:hover {
+  color: var(--text);
+}
+
+.ad-row-err {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--ad-danger-text);
+  font-size: 13px;
+}
+
+.ad-row-fail {
+  grid-column: 1 / -1;
+}
+
+.ad-more {
+  padding: 12px 4px 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 14px;
+  border: 1px solid color-mix(in srgb, var(--ad-danger-text) 40%, var(--surface));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ad-danger-text) 14%, var(--surface));
+  color: var(--ad-danger-text);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ad-retry:hover:not(:disabled) {
+  border-color: var(--ad-danger-text);
+}
+
+.ad-retry:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- กราฟยอดอ่าน ---------- */
+
+.ad-chart {
+  min-width: 0;
+}
+
+.ad-chart-svg {
+  display: block;
+  width: 100%;
+  height: 180px;
+}
+
+.ad-chart-base {
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.ad-bar {
+  fill: url(#ad-bar-fill);
+}
+
+.ad-bar:hover {
+  opacity: 0.85;
+}
+
+.ad-bar-top {
+  stop-color: var(--accent);
+}
+
+.ad-bar-bottom {
+  stop-color: color-mix(in srgb, var(--accent) 35%, var(--surface));
+}
+
+.ad-chart-days {
+  display: grid;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.ad-chart-empty {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ---------- ความคืบหน้า / การใช้ AI ---------- */
+
+.ad-prog {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ad-prog-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.ad-prog-title {
+  min-width: 0;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ad-prog-title:hover {
+  text-decoration: underline;
+}
+
+.ad-prog-count {
+  flex: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ad-prog-sub {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ad-usage {
+  margin-bottom: 20px;
+}
+
+.ad-usage-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+}
+
+.ad-usage-head h3 {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.ad-usage-est {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-usage-est strong {
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 600;
+}
+
+.ad-usage-est a {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.ad-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.ad-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ad-table th,
+.ad-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+}
+
+.ad-table th:first-child {
+  text-align: left;
+}
+
+.ad-table thead th {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.ad-table tbody th {
+  font-weight: 500;
+}
+
+.ad-table-total th,
+.ad-table-total td {
+  border-bottom: 0;
+  font-weight: 600;
+}
+
+.ad-api {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.ad-api-label {
+  font-family: var(--font-ui);
+  font-weight: 600;
+}
+
+.ad-api-detail {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- ฟอร์มนิยาย ---------- */
+
+.ad-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* สองคอลัมน์เมื่อกว้างพอ (ข้อมูลหลัก + ปก/การแสดงผล) · แคบลงแล้วคอลัมน์ข้างลงไปอยู่ใต้ข้อมูลหลักเองโดยไม่ต้องใช้จุดตัดจอ */
+.ad-form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.ad-form-main {
+  display: flex;
+  flex: 1000 1 440px;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.ad-form-side {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.ad-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ad-req {
+  color: var(--ad-danger-text);
+}
+
+.ad-hint {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.ad-field-error {
+  color: var(--ad-danger-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ad-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.ad-chips .fchip {
+  min-height: 40px;
+}
+
+/* ปุ่ม AI ช่วยกรอก: กล่องประขอบแยกจากช่องกรอกจริง (ผลลัพธ์เป็นแค่ร่างจนกว่าจะบันทึก) */
+.ad-ai {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: var(--bg-2);
+}
+
+.ad-ai > .btn {
+  max-width: 100%;
+  text-align: left;
+}
+
+.ad-ai-note {
+  color: var(--ad-ok-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ad-form-bar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ad-form-bar-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  min-width: 0;
+}
+
+.ad-form-note {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-form-ok {
+  color: var(--ad-ok-text);
+}
+
+.btn.ghost.ad-danger-ghost {
+  border-color: color-mix(in srgb, var(--ad-danger-text) 40%, var(--line));
+  color: var(--ad-danger-text);
+}
+
+.btn.ghost.ad-danger-ghost:hover:not(:disabled) {
+  border-color: var(--ad-danger-text);
+}
+
+/* ---------- แท็บของหน้าเรื่อง ---------- */
+
+.ad-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.ad-tab {
+  flex: none;
+  margin-bottom: -1px;
+  padding: 12px 16px;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.ad-tab:hover {
+  color: var(--text);
+}
+
+.ad-tab[aria-current="page"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ad-tab-n {
+  display: inline-block;
+  min-width: 24px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- ช่องแท็ก ---------- */
+
+.ad-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ad-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ad-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 3px 4px 3px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 14.5px;
+  overflow-wrap: anywhere;
+}
+
+.ad-tag-x {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ad-tag-x:hover {
+  background: var(--line);
+  color: var(--text);
+}
+
+/* ---------- ช่องปก ---------- */
+
+.ad-cover-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px 18px;
+}
+
+.ad-cover-preview {
+  flex: 0 0 160px;
+  width: 160px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.ad-cover-side {
+  display: flex;
+  flex: 1 1 140px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ad-cover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ปุ่มเลือกไฟล์คือป้ายกำกับของช่องไฟล์ที่ซ่อนไว้ (sr-only): โฟกัสด้วยแป้นพิมพ์ต้องเห็นที่ปุ่ม */
+.ad-file {
+  position: relative;
+  cursor: pointer;
+}
+
+.ad-file:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ad-file:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- รายการนิยาย ---------- */
+
+/* position: relative = ที่อ้างอิงของป้ายสวิตช์ที่ซ่อน (absolute) — ไม่งั้นมันหลุดออกนอกกรอบเลื่อน .ad-scroll แล้วดันทั้งหน้าให้เลื่อนแนวนอนบนจอแคบ */
+.ad-ntable {
+  position: relative;
+  background: var(--surface);
+}
+
+.ad-ntable th,
+.ad-ntable td {
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+.ad-ntable thead th {
+  white-space: nowrap;
+}
+
+.ad-ntable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ad-ncell {
+  min-width: 240px;
+}
+
+.ad-nlink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: var(--text);
+}
+
+.ad-nlink:hover strong {
+  text-decoration: underline;
+}
+
+.ad-thumb {
+  flex: none;
+  width: 44px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.ad-ntext {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ad-ntext strong {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.ad-nsub {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.ad-ncell > .ad-pill {
+  margin-top: 8px;
+}
+
+.ad-ncount {
+  display: block;
+  font-weight: 600;
+}
+
+/* ป้ายของสวิตช์ในตารางมีชื่อเรื่องเพื่อโปรแกรมอ่านหน้าจอ — ไม่แสดงซ้ำในทุกแถว */
+.ad-ntable .switch-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ad-nact {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- ปุ่ม (ส่วนเพิ่มของ .btn ใน public.css) ---------- */
+
+.btn.sm {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 13px;
+  font-size: 14.5px;
+}
+
+.btn.danger {
+  background: var(--ad-danger);
+  color: var(--ad-danger-ink);
+}
+
+.btn.danger:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* ---------- จอแคบ: แถบบน + ลิ้นชัก ---------- */
+
+/* ---------- เพิ่มตอน (วางแล้วแปล) ---------- */
+
+.ad-add {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 980px;
+}
+
+.ad-add-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ad-add-actions .btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--text);
+}
+
+.ad-found {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 19px;
+}
+
+/* ตารางตอนที่แยกได้: ช่องกรอกในเซลล์ย่อให้เล็กกว่าฟอร์มปกติ · ตารางเลื่อนแนวนอนในกรอบ .ad-scroll บนจอแคบ */
+.ad-atable th,
+.ad-atable td {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.ad-atable th:nth-child(4),
+.ad-atable td:nth-child(4) {
+  text-align: right;
+}
+
+.ad-atable input[type="text"] {
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+.ad-atable input[aria-invalid="true"] {
+  border-color: var(--ad-danger-text);
+}
+
+.ad-anum {
+  width: 84px;
+}
+
+.ad-atitle {
+  width: 100%;
+  min-width: 220px;
+}
+
+.ad-acheck {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+}
+
+.ad-akind {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ad-add-opts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ad-add-submit {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---------- ตารางตอน (แท็บ "ตอน") ---------- */
+
+.ad-chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ad-cbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.ad-csummary {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-cbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* แถบคำสั่งหลายตอน: โผล่เมื่อมีแถวที่เลือก */
+.ad-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.ad-bulk-count {
+  margin-right: 6px;
+  font-weight: 600;
+}
+
+.ad-ctable {
+  position: relative;
+  background: var(--surface);
+}
+
+.ad-ctable th,
+.ad-ctable td {
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+.ad-ctable thead th {
+  white-space: nowrap;
+}
+
+.ad-ctable tbody tr:last-child th,
+.ad-ctable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ad-ctable tbody th {
+  font-weight: 600;
+}
+
+.ad-clink {
+  color: var(--text);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.ad-clink:hover {
+  text-decoration: underline;
+}
+
+.ad-csub,
+.ad-cerr,
+.ad-cwhy {
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.ad-csub,
+.ad-cwhy {
+  color: var(--muted);
+}
+
+.ad-cerr {
+  color: var(--ad-danger-text);
+}
+
+.ad-ctable .ad-ctime {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ป้ายของสวิตช์ในตารางซ่อนจากสายตาแต่ยังอยู่ให้โปรแกรมอ่านหน้าจอ (เหตุผลที่ปิดสวิตช์เขียนไว้ใต้สวิตช์แทน) */
+.ad-ctable .switch-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ad-pill[data-tone="live"] {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--surface));
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--text);
+}
+
+/* ---------- หน้าแก้ตอน ---------- */
+
+.ad-ce-nav {
+  flex-wrap: nowrap;
+}
+
+.ad-ce-stat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ad-ce-error {
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--ad-danger-text) 40%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ad-danger-text) 8%, var(--surface));
+  color: var(--ad-danger-text);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+/* ต้นฉบับ | คำแปล สองคอลัมน์เท่ากัน (แคบลงเป็นคอลัมน์เดียวที่จุดตัดจอเดียวของหลังบ้าน) */
+.ad-ce-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.ad-ce-cols .ad-field textarea {
+  min-height: 420px;
+}
+
+.ad-field input:disabled,
+.ad-field textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- อภิธานศัพท์ ---------- */
+
+.ad-glossary {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ad-gadd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr) auto;
+  gap: 12px 14px;
+  align-items: start;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.ad-gadd-go {
+  align-self: end;
+}
+
+.ad-gadd-error {
+  grid-column: 1 / -1;
+}
+
+.ad-gtable {
+  background: var(--surface);
+}
+
+.ad-gtable th,
+.ad-gtable td {
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+.ad-gtable thead th {
+  white-space: nowrap;
+}
+
+.ad-gtable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ad-gword {
+  margin-right: 8px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ad-gnote {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.ad-gcell {
+  width: 100%;
+  min-width: 120px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+.ad-gcell[aria-invalid="true"] {
+  border-color: var(--ad-danger-text);
+}
+
+/* ---------- ตั้งค่า ---------- */
+
+.ad-st {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ad-st .ad-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ad-st .ad-panel-head {
+  margin-bottom: 0;
+}
+
+/* ปุ่มเลือกชุดสี: จุดสีสองโทน (สีเน้น + สีเสริม) ตามธีมปัจจุบัน · ตัวแปร --a-* ของแต่ละปุ่มมาจาก tokens.css (กลุ่มตัวเลือกเดียวกับ html[data-accent]) */
+.ad-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ad-swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 6px 16px 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.ad-swatch:hover {
+  border-color: var(--muted);
+}
+
+.ad-swatch[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+
+.ad-swatch-dot {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--a-dark) 50%, var(--a2-dark) 50%);
+  box-shadow: 0 0 0 1px var(--line);
+  color: var(--muted);
+}
+
+html[data-theme="paper"] .ad-swatch-dot,
+html[data-theme="sepia"] .ad-swatch-dot {
+  background: linear-gradient(135deg, var(--a-light) 50%, var(--a2-light) 50%);
+}
+
+.ad-swatch[data-accent="default"] .ad-swatch-dot {
+  border: 1px dashed var(--muted);
+  background: var(--surface-2);
+  box-shadow: none;
+}
+
+.ad-ptable th,
+.ad-ptable td {
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+}
+
+.ad-pmodel {
+  overflow-wrap: anywhere;
+}
+
+.ad-pmodel .ad-field-error {
+  display: block;
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+.ad-pcell {
+  width: 100%;
+  min-width: 110px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ad-pcell[aria-invalid="true"] {
+  border-color: var(--ad-danger-text);
+}
+
+.ad-st-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  line-height: 1.55;
+}
+
+.ad-st-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.ad-st-howto {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: var(--bg-2);
+}
+
+.ad-st-step {
+  font-weight: 600;
+}
+
+.ad-st-steps {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+
+.ad-code-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ad-code-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ad-code-label {
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.ad-code {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+@media (max-width: 899px) {
+  .ad-shell {
+    display: block;
+  }
+
+  /* แถบบนอยู่เหนือลิ้นชักและฉากหลัง: ปุ่มเมนู (ตอนเปิดเป็น X) ยังกดปิดได้ ลิ้นชักเลื่อนออกมาใต้แถบบน */
+  .ad-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 58px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  .ad-drawer-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: block;
+    background: var(--ad-scrim);
+  }
+
+  .ad-side {
+    position: fixed;
+    top: 58px;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    width: min(300px, 86vw);
+    height: auto;
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition:
+      transform 0.22s ease,
+      visibility 0s linear 0.22s;
+  }
+
+  /* โลโก้อยู่ที่แถบบนแล้ว */
+  .ad-side .logo {
+    display: none;
+  }
+
+  .menu-open .ad-side {
+    visibility: visible;
+    transform: none;
+    box-shadow: var(--shadow);
+    transition:
+      transform 0.22s ease,
+      visibility 0s;
+  }
+
+  .ad-main {
+    padding: 20px 16px 32px;
+  }
+
+  .ad-ph h1 {
+    font-size: 23px;
+  }
+
+  .ad-login-card {
+    padding: 26px 20px 22px;
+  }
+
+  .ad-panel {
+    padding: 18px 16px;
+  }
+
+  .ad-ph-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .ad-dash-row,
+  .ad-dash-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* ป้าย "ควรทำก่อนเผยแพร่" ลงไปอยู่บรรทัดใต้ข้อความ ไม่ใช่นั่งข้างๆ จนข้อความถูกบีบเหลือคำเดียวต่อบรรทัด */
+  .ad-onboard-link {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 8px 14px;
+  }
+
+  .ad-onboard-link > .ad-pill {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .ad-stat-value {
+    font-size: 28px;
+  }
+
+  .ad-live {
+    max-height: 130px;
+  }
+
+  .ad-chart-svg {
+    height: 150px;
+  }
+
+  .ad-form-bar {
+    bottom: 0;
+    padding: 10px 12px;
+  }
+
+  .ad-form-bar-main .btn.primary {
+    flex: 1 1 100%;
+  }
+
+  .ad-ai > .btn {
+    align-self: stretch;
+  }
+
+  /* ตารางนิยายกว้างกว่าจอ: เลื่อนแนวนอนในกรอบของมันเอง (ไม่ดันทั้งหน้า) */
+  .ad-ntable {
+    min-width: 640px;
+  }
+
+  .ad-add-submit .btn {
+    width: 100%;
+  }
+
+  /* ตารางตอนกว้างกว่าจอ: เลื่อนแนวนอนในกรอบของมันเอง (ไม่ดันทั้งหน้า) */
+  .ad-ctable {
+    min-width: 760px;
+  }
+
+  .ad-ce-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ad-ce-cols .ad-field textarea {
+    min-height: 300px;
+  }
+
+  .ad-ce-nav {
+    width: 100%;
+  }
+
+  .ad-ce-nav .btn {
+    flex: 1 1 0;
+  }
+
+  .ad-gadd {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ad-gadd-go .btn {
+    width: 100%;
+  }
+
+  .ad-gtable {
+    min-width: 640px;
+  }
+
+  .ad-ptable {
+    min-width: 560px;
+  }
+}

@@ -1,0 +1,121 @@
+/*
+ * ฟอนต์ self-host ผ่าน @fontsource (ไม่พึ่ง Google Fonts) เฉพาะ subset ไทย + ละติน และเฉพาะน้ำหนักที่ใช้:
+ * Prompt = หัวข้อ · Sarabun = เนื้อหา · Noto Serif Thai = ตัวเลือกอ่านนิยาย
+ * @import ต้องอยู่บนสุดของไฟล์ · Vite คัดลอกไฟล์ฟอนต์เป็นไฟล์ (build.assetsInlineLimit = 0) เพราะ CSP font-src 'self' ห้ามฟอนต์แบบ data:
+ */
+@import "@fontsource/prompt/thai-500.css";
+@import "@fontsource/prompt/latin-500.css";
+@import "@fontsource/prompt/thai-600.css";
+@import "@fontsource/prompt/latin-600.css";
+@import "@fontsource/prompt/thai-700.css";
+@import "@fontsource/prompt/latin-700.css";
+@import "@fontsource/sarabun/thai-400.css";
+@import "@fontsource/sarabun/latin-400.css";
+@import "@fontsource/sarabun/thai-500.css";
+@import "@fontsource/sarabun/latin-500.css";
+@import "@fontsource/sarabun/thai-600.css";
+@import "@fontsource/sarabun/latin-600.css";
+@import "@fontsource/noto-serif-thai/thai-400.css";
+@import "@fontsource/noto-serif-thai/latin-400.css";
+@import "@fontsource/noto-serif-thai/thai-600.css";
+@import "@fontsource/noto-serif-thai/latin-600.css";
+@import "@fontsource/noto-serif-thai/thai-700.css";
+@import "@fontsource/noto-serif-thai/latin-700.css";
+
+:root {
+  --font-body: "Sarabun", "Prompt", system-ui, sans-serif;
+  --font-serif: "Noto Serif Thai", "Sarabun", serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--display);
+  line-height: 1.25;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, svg, video {
+  max-width: 100%;
+}
+
+svg {
+  flex: none;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* โฟกัสด้วยคีย์บอร์ดต้องเห็นชัดทุกธีม (--accent ผ่านความต่างสี ≥ 4.5:1 กับพื้นทุกแบบ) */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ซ่อนจากสายตาแต่ยังให้โปรแกรมอ่านหน้าจออ่านได้ (ป้ายของปุ่มไอคอน) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

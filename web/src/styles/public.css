@@ -1,0 +1,2132 @@
+/*
+ * สไตล์หน้าเว็บสาธารณะ — CSS ธรรมดาบน design tokens (tokens.css) ไม่ใช้ UI framework
+ * พอร์ตคลาสหลักมาจากต้นแบบ design-reference/build.mjs (.top .logo .nav .search .iconbtn .btn .cv .card .chips .fchip .foot) แล้วเติมสถานะที่ต้นแบบไม่มี
+ *
+ * กติกาสีที่ public.test.ts ตรวจให้ (อ้างอิง tokens.css):
+ *   - ข้อความสี --accent / --accent-2 วางบน --bg --surface --surface-2 เท่านั้น ห้ามบน --bg-2 (พื้นท้ายเว็บ)
+ *   - พื้นที่ระบายด้วย --accent / --accent-2 ใช้ข้อความสี --accent-ink
+ *   - น้ำหนักตัวอักษรที่โหลดไว้ (base.css): Prompt 500/600/700 · Sarabun 400/500/600 — น้ำหนัก 700 ต้องระบุฟอนต์ Prompt/display ไว้ในกฎเดียวกัน
+ * จุดตัดจอ: 960 (เมนูแคบลง) · 720 (ซ่อนเมนูหัวเว็บ ตาราง 3 คอลัมน์) · 520 (เหลือแค่ตัว K ที่โลโก้) · 360 (ตาราง 2 คอลัมน์)
+ */
+
+:root {
+  --font-ui: "Prompt", "Sarabun", system-ui, sans-serif;
+  --header-h: 64px;
+}
+
+/* ---------- โครงหน้า ---------- */
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 1160px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+/* เนื้อหาดันท้ายเว็บลงล่างสุดแม้หน้าสั้น · tabindex=-1 รับโฟกัสจากโปรแกรม (ลิงก์ข้ามเนื้อหา/เปลี่ยนหน้า) ไม่ต้องมีกรอบ */
+.main {
+  flex: 1 0 auto;
+  padding-top: 28px;
+  scroll-margin-top: var(--header-h);
+}
+
+.main:focus {
+  outline: none;
+}
+
+.skip-link {
+  position: absolute;
+  top: -64px;
+  left: 12px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ---------- แถบบน ---------- */
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+
+.top .in {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  height: var(--header-h);
+}
+
+.logo {
+  --mark: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+
+/* ในแถบบน: เมื่อที่ไม่พอ ช่องค้นหาหดก่อน (flex-shrink 100, ต่ำสุด 150px) แล้วชื่อเว็บค่อยหดตัดด้วย … — ไม่เล็กกว่าตัว K เพื่อไม่ให้ช่องค้นหาทับตัว K */
+.top .logo {
+  flex: 0 1 auto;
+  min-width: var(--mark);
+}
+
+.logo .mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--mark);
+  height: var(--mark);
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--accent-ink);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.logo .logo-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  gap: 4px;
+}
+
+.nav a {
+  padding: 8px 15px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.nav a:hover {
+  color: var(--text);
+}
+
+.nav a.on {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 100 330px;
+  min-width: 150px;
+  height: 42px;
+  margin-left: auto;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 14.5px;
+}
+
+.search:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: inherit;
+  text-overflow: ellipsis;
+}
+
+.search input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.iconbtn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.iconbtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  height: 42px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.admin-link:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+/* ---------- เมนูธีม ---------- */
+
+.theme-menu {
+  position: relative;
+  flex: none;
+}
+
+.theme-list {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 190px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.theme-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.theme-item:hover {
+  background: var(--surface-2);
+}
+
+.theme-item.on {
+  font-weight: 600;
+}
+
+.theme-check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+}
+
+/* ---------- ท้ายเว็บ ---------- */
+
+.foot {
+  margin-top: 64px;
+  padding: 38px 0 30px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--muted);
+  font-size: 14.5px;
+}
+
+/* minmax(0, …): คอลัมน์หดได้ ชื่อเว็บยาว (เซิร์ฟเวอร์อนุญาต 80 ตัวอักษร) จึงถูกตัดด้วย … ไม่ดันหน้าให้ล้นจอ */
+.foot .cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 2fr);
+  gap: 40px;
+}
+
+.foot .logo {
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.foot-note {
+  max-width: 46ch;
+}
+
+.foot-nav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.foot-h {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.foot ul {
+  list-style: none;
+}
+
+.foot li {
+  margin: 5px 0;
+}
+
+.foot a:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.foot .cr {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+/* ---------- ปกนิยาย ---------- */
+
+.cv {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  container-type: inline-size;
+}
+
+.cv-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cv svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* เงาจางด้านล่างให้ชื่อเรื่องสีขาวอ่านออกบนทุกสีพื้น (เฉพาะปกอัตโนมัติ — รูปปกจริงไม่ถูกบัง) */
+.cv-placeholder::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 42%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+.cv-title {
+  position: absolute;
+  z-index: 2;
+  right: 8%;
+  bottom: 8%;
+  left: 8%;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  color: #fff;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 15px;
+  font-size: max(10px, 11.5cqw);
+  line-height: 1.22;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- การ์ดนิยาย ---------- */
+
+/* ป้าย "จบแล้ว" / "ร่าง" นั่งที่มุมล่างของปก (bottom 9px สูงไม่เกิน 26px) — ยกชื่อบนปกอัตโนมัติให้พ้นแถบนั้นเสมอ ชื่อในทุกการ์ดจึงอยู่ระดับเดียวกัน */
+.card .cv-title {
+  bottom: 42px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 26px 20px;
+}
+
+.card {
+  display: block;
+  min-width: 0;
+}
+
+.card .box {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  transition: transform 0.18s ease;
+}
+
+@media (hover: hover) {
+  .card:hover .box {
+    transform: translateY(-3px);
+  }
+
+  .rcard:hover {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  }
+
+  .ch-row:hover {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  }
+}
+
+.card:hover h3 {
+  color: var(--accent);
+}
+
+.card h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 11px 0 3px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.38;
+  overflow-wrap: anywhere;
+}
+
+.card .meta {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card .meta svg {
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: -2px;
+}
+
+.b-top,
+.b-done,
+.b-draft {
+  position: absolute;
+  z-index: 3;
+  font-family: var(--font-ui);
+}
+
+/* ป้ายบน (ใหม่ / ตอน N) เรียงในแถบ flex: ปกแคบวางข้างกันไม่พอ ชิปจะห่อลงบรรทัดที่สอง (ยังชิดขวา) แทนการทับป้ายใหม่ */
+.b-top {
+  top: 9px;
+  right: 9px;
+  left: 9px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4px 6px;
+}
+
+.b-new {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-2);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: 11.5px;
+}
+
+.b-ep {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 9px;
+  background: rgba(8, 8, 14, 0.72);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-weight: 500;
+  font-size: 11.5px;
+}
+
+.b-done {
+  bottom: 9px;
+  left: 9px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.b-draft {
+  right: 9px;
+  bottom: 9px;
+}
+
+/* ป้ายร่าง (เห็นเฉพาะผู้ดูแล) — พื้นทึบ อ่านออกทั้งบนปกและบนพื้นหน้าเว็บ */
+.draft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 11px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 55%, var(--line));
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--accent-2);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.draft-compact {
+  padding: 2px 9px;
+  font-size: 11px;
+}
+
+/* ---------- ปุ่ม ชิป สวิตช์ ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 8px 24px;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 15.5px;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+.btn.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.btn.ghost {
+  border-color: var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.btn.ghost:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.btn.full {
+  flex: 1;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+}
+
+.fchip {
+  max-width: 100%;
+  padding: 8px 17px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 14.5px;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.fchip:hover {
+  color: var(--text);
+}
+
+.fchip.on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.switch-track {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 26px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  transition: background 0.18s ease;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.18s ease;
+}
+
+.switch.on .switch-track {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.switch.on .switch-thumb {
+  background: var(--accent-ink);
+  transform: translateX(18px);
+}
+
+/* ---------- สถานะ: ว่าง / ผิดพลาด / กำลังโหลด ---------- */
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 520px;
+  margin: 24px auto;
+  padding: 52px 24px;
+  border: 1px dashed var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.state-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 6px;
+  border-radius: 18px;
+  background: var(--surface-2);
+  color: var(--accent);
+}
+
+.state-error .state-icon {
+  color: var(--accent-2);
+}
+
+.state-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.state-message {
+  max-width: 42ch;
+  color: var(--text);
+}
+
+.state-hint {
+  max-width: 42ch;
+  color: var(--muted);
+}
+
+.state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.sk {
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--surface) 0%, var(--surface-2) 50%, var(--surface) 100%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes sk-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 26px 20px;
+}
+
+.sk-cover {
+  aspect-ratio: 2 / 3;
+  border-radius: 14px;
+}
+
+.sk-line {
+  height: 14px;
+  margin-top: 11px;
+}
+
+.sk-short {
+  width: 60%;
+}
+
+.skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
+}
+
+.skeleton-lines .sk-line {
+  height: 16px;
+  margin-top: 0;
+}
+
+/* ---------- หน้าข้อความ / หัวข้อส่วน ---------- */
+
+.sec-h {
+  margin-bottom: 18px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 25px;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.prose {
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.prose h1 {
+  margin-bottom: 18px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 30px;
+}
+
+.prose-text {
+  font-size: 16.5px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* ---------- หน้าแรก ---------- */
+
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 46px;
+}
+
+/* Hero: พื้นหลังเป็นปกเบลอ + ฉากเฟดเข้าสีพื้นของธีม (ข้อความอ่านง่ายบนปกสีสดทุกใบ) + โปสเตอร์เอียงด้านข้าง */
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 410px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 26px;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: -40px;
+  overflow: hidden;
+  filter: blur(30px) saturate(1.25);
+  transform: scale(1.15);
+}
+
+.hero-bg .cv {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.hero-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--bg) 97%, transparent) 0%, color-mix(in srgb, var(--bg) 80%, transparent) 48%, color-mix(in srgb, var(--bg) 20%, transparent) 100%),
+    linear-gradient(0deg, var(--bg) 0%, transparent 30%);
+}
+
+.hero-body {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 48px;
+  align-items: center;
+  width: 100%;
+  padding: 46px 58px;
+}
+
+.hero-text {
+  min-width: 0;
+}
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.hero-title {
+  margin: 16px 0 4px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 46px;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.hero-sub {
+  color: var(--muted);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 14px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.pill.st {
+  border-color: color-mix(in srgb, var(--accent-2) 40%, var(--line));
+  color: var(--accent-2);
+}
+
+.hero-syn {
+  display: -webkit-box;
+  max-width: 560px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: color-mix(in srgb, var(--text) 82%, transparent);
+  font-size: 16.5px;
+  overflow-wrap: anywhere;
+}
+
+.hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.poster {
+  justify-self: center;
+  width: 270px;
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: 0 34px 70px rgba(0, 0, 0, 0.5);
+  transform: rotate(3deg);
+}
+
+/* อ่านต่อจากที่ค้างไว้ */
+.resume {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.rcard {
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.rcard-th {
+  flex: none;
+  align-self: flex-start;
+  width: 68px;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.rcard-tx {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rcard h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.rcard-meta {
+  margin: 3px 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.bar {
+  height: 6px;
+  margin-top: auto;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--surface-2);
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+.go {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+/* อัปเดตล่าสุด: แถวเดียวเลื่อนข้างได้ — ความกว้างการ์ดเท่าช่องของตาราง (6 คอลัมน์) เพื่อให้แนวตรงกับตารางด้านล่าง */
+.row {
+  display: flex;
+  gap: 20px;
+  margin-inline: -24px;
+  padding: 6px 24px 30px;
+  margin-bottom: -16px;
+  overflow-x: auto;
+  scroll-padding-inline: 24px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.row > .card {
+  flex: none;
+  width: calc((100% - 100px) / 6);
+  scroll-snap-align: start;
+}
+
+/* นิยายทั้งหมด */
+.lib-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin-bottom: 14px;
+}
+
+.lib-bar .chips {
+  margin-bottom: 0;
+}
+
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.sort-label {
+  white-space: nowrap;
+}
+
+.sort select {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14.5px;
+  cursor: pointer;
+}
+
+.lib-count {
+  margin-bottom: 18px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.more {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.more-left {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ---------- หน้าเรื่อง ---------- */
+
+.novel {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  width: 100%;
+  max-width: 960px;
+  margin-inline: auto;
+}
+
+.nv-head {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 34px;
+  align-items: start;
+}
+
+.nv-cover {
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.nv-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nv-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 38px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.nv-orig {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.nv-author {
+  margin-top: 10px;
+  color: color-mix(in srgb, var(--text) 82%, transparent);
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.nv-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 12px;
+}
+
+.nv-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nv-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.nv-sec {
+  min-width: 0;
+}
+
+.nv-h {
+  scroll-margin-top: calc(var(--header-h) + 16px);
+  margin-bottom: 14px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.nv-count {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 16px;
+}
+
+/* เรื่องย่อพับที่ 5 บรรทัด (ค่าเดียวกับ SYNOPSIS_LINES) — ขึ้นบรรทัดตามที่เจ้าของพิมพ์ ตัดคำยาวติดกัน */
+.nv-syn {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  color: color-mix(in srgb, var(--text) 88%, transparent);
+  font-size: 16.5px;
+  line-height: 1.8;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.nv-syn.open {
+  display: block;
+  overflow: visible;
+}
+
+.nv-more {
+  min-height: 40px;
+  margin-top: 12px;
+  padding-inline: 18px;
+  font-size: 14.5px;
+}
+
+.credit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.credit .nv-h {
+  margin-bottom: 0;
+}
+
+.credit-list {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.credit-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.credit-row dt {
+  color: var(--muted);
+  font-size: 14.5px;
+}
+
+.credit-row dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.credit-row a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.credit-license {
+  white-space: pre-line;
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 40%, var(--line));
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--accent-2);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.credit-report {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14.5px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* รายการตอน: ทั้งแถวเป็นลิงก์เดียว (พื้นที่กดสูง ≥ 52px) */
+.ch-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  margin-bottom: 14px;
+}
+
+.ch-orders {
+  margin-bottom: 0;
+}
+
+.ch-jump {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ch-jump label {
+  color: var(--muted);
+  font-size: 14.5px;
+  white-space: nowrap;
+}
+
+.ch-jump input {
+  width: 96px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14.5px;
+}
+
+.ch-jump input[aria-invalid="true"] {
+  border-color: var(--accent-2);
+}
+
+.ch-jump .btn {
+  min-height: 40px;
+  padding-inline: 18px;
+  font-size: 14.5px;
+}
+
+.ch-err {
+  margin-bottom: 12px;
+  color: var(--accent-2);
+  font-size: 14.5px;
+}
+
+.ch-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ch-row {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.ch-row.last {
+  border-color: var(--accent);
+}
+
+.ch-row.jump {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.ch-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 10px 16px;
+}
+
+.ch-num {
+  flex: none;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.ch-title {
+  display: -webkit-box;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: color-mix(in srgb, var(--text) 82%, transparent);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.ch-meta {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.ch-date {
+  font-variant-numeric: tabular-nums;
+}
+
+.ch-tag {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.ch-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.ch-pager .btn {
+  min-height: 44px;
+  padding-inline: 18px;
+  font-size: 14.5px;
+}
+
+.ch-page {
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.ch-empty {
+  padding: 28px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---------- หน้าอ่าน (/novel/:id/:number — อยู่นอก Layout) ---------- */
+
+.reader {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* แถบบน: ตรึงบนสุด · ซ่อนด้วยการเลื่อนขึ้นพ้นจอ + visibility (ไม่ให้ Tab ไปโฟกัสปุ่มที่มองไม่เห็น) */
+.rb {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition: transform 0.25s ease;
+}
+
+.rb.hidden {
+  transform: translateY(-100%);
+  visibility: hidden;
+  transition:
+    transform 0.25s ease,
+    visibility 0s linear 0.25s;
+}
+
+/* เส้นความคืบหน้าห้อยใต้แถบ 3px — แถบซ่อนแล้วเหลือเส้นนี้เกาะขอบบนของจอ (visible ชนะ hidden ของแม่) */
+.rb-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 3px;
+  background: color-mix(in srgb, var(--line) 70%, transparent);
+  visibility: visible;
+}
+
+.rb-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.15s linear;
+}
+
+.rb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 1160px;
+  margin-inline: auto;
+  padding: 8px 16px;
+}
+
+.rb-info {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.rb-novel {
+  overflow: hidden;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rb-chapter {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.rb-actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+.iconbtn.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* แถวควบคุมเสียงอ่าน (ขณะฟัง) */
+.rb-player {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: 1160px;
+  margin-inline: auto;
+  padding: 0 16px 10px;
+}
+
+.iconbtn.rb-play {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.rb-rate {
+  display: flex;
+  flex: 1 1 200px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rb-rate-label {
+  flex: none;
+}
+
+.rb-range {
+  flex: 1 1 80px;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.rb-rate-value {
+  flex: none;
+  min-width: 3.4ch;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* เนื้อหาตอน: คอลัมน์ ~680px · บรรทัดห่าง 1.9 · ย่อหน้าจากบรรทัดว่าง (บรรทัดใหม่ในย่อหน้าคงไว้ด้วย pre-line) */
+.rd-main {
+  max-width: 680px;
+  margin-inline: auto;
+  padding: 92px 20px 64px;
+}
+
+.rd {
+  font-family: var(--font-body);
+  line-height: 1.9;
+}
+
+.rd-serif {
+  font-family: var(--font-serif);
+}
+
+.rd-heading {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.35em;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.rd-draft {
+  margin-top: 12px;
+}
+
+.rd-text {
+  margin-top: 28px;
+}
+
+/* ช่องไฟข้าง 12px มีไว้ให้ไฮไลต์ตอนอ่านออกเสียงยื่นออกนอกตัวอักษร โดยตัวอักษรไม่ขยับ (margin ติดลบหักล้างกับ padding) */
+.rd-p {
+  margin: 0 -12px 1.1em;
+  padding: 2px 12px;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.rd-p.speaking {
+  background: var(--surface-2);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.rd-scene {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 1.8em 0;
+}
+
+.rd-scene i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.rd-empty {
+  padding: 40px 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.rd-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 48px;
+}
+
+.rd-nav .btn {
+  padding-inline: 12px;
+  text-align: center;
+}
+
+.rd-prev,
+.rd-toc,
+.rd-next {
+  min-width: 0;
+}
+
+.rd-nav .off {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* แผงตั้งค่า: จอกว้างเป็นป๊อปโอเวอร์ใต้แถบบน (ชิดขอบขวาของคอลัมน์แถบบน) · จอแคบเป็นแผ่นล่าง (ดูส่วนจอเล็กลง) */
+.rs-scrim {
+  display: none;
+}
+
+.rs {
+  position: fixed;
+  top: 66px;
+  right: max(16px, calc((100vw - 1160px) / 2 + 16px));
+  z-index: 40;
+  width: 340px;
+  max-height: calc(100vh - 90px);
+  max-height: calc(100dvh - 90px);
+  padding: 16px 18px 6px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.rs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.rs-title {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.rs-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.rs-label {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 13.5px;
+}
+
+.rs-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rs-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14.5px;
+  cursor: pointer;
+}
+
+.rs-opt:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.rs-opt.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ตัวหมายสีธีม: ครึ่งบนสีพื้น ครึ่งล่างสี accent เริ่มต้นของธีม (ค่าตรงกับ tokens.css — public.test.ts ตรวจ) */
+.rs-swatch {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sw-bg) 55%, var(--sw-ac) 55%);
+}
+
+.rs-theme[data-t="midnight"] {
+  --sw-bg: #0a0c12;
+  --sw-ac: #8b7bff;
+}
+
+.rs-theme[data-t="paper"] {
+  --sw-bg: #f4efe6;
+  --sw-ac: #c2410c;
+}
+
+.rs-theme[data-t="sepia"] {
+  --sw-bg: #f2e8d2;
+  --sw-ac: #9a4508;
+}
+
+.rs-theme[data-t="black"] {
+  --sw-bg: #000000;
+  --sw-ac: #8b7bff;
+}
+
+.rs-font[data-f="sarabun"] {
+  font-family: var(--font-body);
+}
+
+.rs-font[data-f="serif"] {
+  font-family: var(--font-serif);
+}
+
+.rs-size {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rs-range {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.rs-size-small {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.rs-size-big {
+  color: var(--muted);
+  font-size: 24px;
+}
+
+.rs-value {
+  min-width: 2ch;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.rs-note {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* ---------- จอเล็กลง ---------- */
+
+@media (max-width: 1099px) {
+  .grid,
+  .skeleton-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .row > .card {
+    width: calc((100% - 60px) / 4);
+  }
+}
+
+@media (max-width: 959px) {
+  .nv-head {
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 26px;
+  }
+
+  .nv-title {
+    font-size: 32px;
+  }
+
+  /* แท็บเล็ตแนวตั้ง (720–959px) ใส่เมนูไม่พอเมื่อมีปุ่มหลังบ้าน → ซ่อนเมนูเหมือนมือถือ (ลิงก์เดียวกันอยู่ท้ายเว็บ) แล้วให้ช่องค้นหากินที่ที่เหลือ */
+  .nav {
+    display: none;
+  }
+
+  .top .in {
+    gap: 12px;
+  }
+
+  .search {
+    flex: 1 100 auto;
+    margin-left: 0;
+  }
+
+  .foot .cols {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .hero-body {
+    grid-template-columns: minmax(0, 1fr) 200px;
+    gap: 32px;
+    padding: 38px 40px;
+  }
+
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .poster {
+    width: 200px;
+  }
+
+  .resume {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 719px) {
+  :root {
+    --header-h: 58px;
+  }
+
+  .wrap {
+    padding-inline: 18px;
+  }
+
+  .nv-head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .nv-cover {
+    width: 168px;
+    margin-inline: auto;
+  }
+
+  .nv-title {
+    font-size: 28px;
+  }
+
+  .nv-cta .btn {
+    flex: 1 1 220px;
+  }
+
+  .ch-bar {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+  }
+
+  .ch-jump input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .search {
+    padding: 0 14px;
+  }
+
+  /* ปุ่มหลังบ้านเหลือแค่ไอคอน (ข้อความยังอ่านออกเสียงได้) */
+  .admin-link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .admin-link {
+    justify-content: center;
+    width: 42px;
+    padding: 0;
+  }
+
+  .grid,
+  .skeleton-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px 12px;
+  }
+
+  .home {
+    gap: 36px;
+  }
+
+  .hero {
+    min-height: 0;
+    border-radius: 20px;
+  }
+
+  .hero-body {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 28px 22px;
+  }
+
+  .hero-title {
+    font-size: 30px;
+  }
+
+  .hero-syn {
+    font-size: 15.5px;
+  }
+
+  .poster {
+    display: none;
+  }
+
+  .row {
+    gap: 12px;
+    margin-inline: -18px;
+    padding-inline: 18px;
+    scroll-padding-inline: 18px;
+  }
+
+  .row > .card {
+    width: calc((100% - 36px) / 3.25);
+  }
+
+  .sec-h {
+    font-size: 22px;
+  }
+
+  .card h3 {
+    font-size: 14px;
+  }
+
+  .main {
+    padding-top: 20px;
+  }
+
+  .foot {
+    margin-top: 48px;
+  }
+
+  .rd-main {
+    padding-top: 84px;
+  }
+
+  .rs-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .rs {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    max-height: 82vh;
+    max-height: 82dvh;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+    border-bottom: 0;
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+@media (max-width: 519px) {
+  .wrap {
+    padding-inline: 16px;
+  }
+
+  .novel {
+    gap: 28px;
+  }
+
+  .credit {
+    padding: 18px 16px;
+  }
+
+  .credit-row {
+    grid-template-columns: 92px minmax(0, 1fr);
+  }
+
+  .ch-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+  }
+
+  .ch-num {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .ch-meta {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .ch-title {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .ch-pager .btn {
+    padding-inline: 12px;
+  }
+
+  .row {
+    margin-inline: -16px;
+    padding-inline: 16px;
+    scroll-padding-inline: 16px;
+  }
+
+  /* โลโก้เหลือแค่ตัว K (ชื่อเว็บยังอ่านออกเสียงได้) ช่องค้นหาจึงหดได้เต็มที่ในพื้นที่ที่เหลือ */
+  .top .logo-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .search {
+    min-width: 0;
+  }
+
+  .foot-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .state {
+    padding: 40px 16px;
+  }
+
+  .rd-main {
+    padding-inline: 16px;
+  }
+
+  .rd-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rd-next {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .rb-row {
+    padding-inline: 12px;
+  }
+
+  .rb-player {
+    padding-inline: 12px;
+  }
+}
+
+@media (max-width: 359px) {
+  .grid,
+  .skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .row > .card {
+    width: calc((100% - 24px) / 2.25);
+  }
+
+  .top .in {
+    gap: 8px;
+  }
+
+  .rb-row {
+    gap: 6px;
+  }
+
+  .rb-actions {
+    gap: 6px;
+  }
+}

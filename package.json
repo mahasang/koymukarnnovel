@@ -1,5 +1,5 @@
 {
-  "name": "novel-99",
+  "name": "koymukarnnovel",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -8,11 +8,14 @@
   ],
   "scripts": {
     "dev": "concurrently -n server,web -c blue,green \"npm run dev -w server\" \"npm run dev -w web\"",
-    "build": "npm run build -w web && npm run build -w server",
+    "build": "npm run build -w server && npm run build -w web",
     "start": "npm run start -w server",
-    "typecheck": "npm run typecheck -w server && npm run typecheck -w web"
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web && tsc --noEmit -p e2e",
+    "test": "npm test -w server && npm test -w web",
+    "seed:demo": "npm run seed:demo -w server"
   },
   "devDependencies": {
-    "concurrently": "^9.2.4"
+    "concurrently": "^9.2.1",
+    "playwright-core": "^1.64.1"
   }
 }

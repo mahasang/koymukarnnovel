@@ -1,0 +1,5 @@
+# ออกใบรับรอง HTTPS ให้อัตโนมัติสำหรับโดเมนใน DOMAIN (ตั้งในไฟล์ .env ข้าง docker-compose.yml) แล้วส่งต่อให้แอป
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:8787
+}

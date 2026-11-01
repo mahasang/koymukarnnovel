@@ -1,18 +1,21 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App";
-import "./styles.css";
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import { BrowserRouter } from "react-router"
+import { App } from "./App"
+import { registerServiceWorker } from "./lib/register-sw"
+import "./styles/tokens.css"
+import "./styles/base.css"
+import "./styles/public.css"
 
-createRoot(document.getElementById("root")!).render(
+const container = document.getElementById("root")
+if (container === null) throw new Error("ไม่พบ #root ใน index.html")
+
+createRoot(container).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>,
-);
+)
 
-if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      /* ไม่รองรับก็ใช้งานต่อได้ตามปกติ */
-    });
-  });
-}
+registerServiceWorker(import.meta.env.PROD)

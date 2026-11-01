@@ -1,0 +1,11 @@
+.git
+.superpowers
+node_modules
+**/node_modules
+**/dist
+.env
+**/.env
+server/data
+*.db*
+docs
+e2e
