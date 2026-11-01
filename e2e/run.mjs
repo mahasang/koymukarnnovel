@@ -304,6 +304,96 @@ async function main() {
     check("ผู้อ่านเปิดหน้าบ้านทุกหน้า (หน้าแรก เรื่อง ตอน เมนู ออฟไลน์ ลิงก์หลังบ้าน) แล้วไม่มีการเรียก AI เลย", publicCalls.total === 0, JSON.stringify(publicCalls))
 
     // ═════════════════ หลังบ้าน ═════════════════
+    section("หน้าบ้าน: ภาษา UI (ไทย / English / ລາວ) · จำภาษา · หลังบ้านยังเป็นไทย")
+    {
+      const LANG_KEY = "koymukarnnovel.lang"
+      const htmlLang = (page) => page.evaluate(() => document.documentElement.lang)
+      const saved = (page) => page.evaluate((key) => localStorage.getItem(key), LANG_KEY)
+      const navTexts = (page) => page.locator("header.top nav.nav a").allInnerTexts().then((list) => list.map((t) => t.trim()))
+      const hasThai = (t) => /[\u0E00-\u0E7F]/.test(t)
+      const hasLao = (t) => /[\u0E80-\u0EFF]/.test(t)
+      const LO_NAV = ["ໜ້າຫຼັກ", "ກ່ຽວກັບ", "ຕິດຕໍ່"]
+      const EN_NAV = ["Home", "About", "Contact"]
+      const TH_NAV = ["หน้าแรก", "เกี่ยวกับ", "ติดต่อ"]
+      const langMenu = (page) => page.locator("header.top .lang-menu")
+      const chooseLanguage = async (page, label) => {
+        await langMenu(page).locator("button[aria-haspopup]").click()
+        await langMenu(page).locator('[role="menuitemradio"]', { hasText: label }).click()
+      }
+
+      // เบราว์เซอร์ภาษาลาว (ไม่เคยเลือกเอง) → UI ลาว · <html lang="lo"> · ยังไม่บันทึกอะไรลงเครื่อง · ไม่มีแถบเลื่อนแนวนอนทุกหน้า/ทุกความกว้าง
+      for (const width of WIDTHS) {
+        const ctx = await newContext({ locale: "lo-LA", viewport: { width, height: width === 390 ? 844 : 900 } })
+        const page = await ctx.newPage()
+        watch(page, `lang lo ${width}`)
+        const pages = [
+          ["home", "/", ".hero, .card, .poster"],
+          ["novel", `/novel/${DEMO}`, "h1.nv-title"],
+          ["reader", `/novel/${DEMO}/1`, "p.rd-p"],
+        ]
+        for (const [name, route, ready] of pages) {
+          await page.goto(url + route, { waitUntil: "load" })
+          await page.waitForSelector(ready, { timeout: 10_000 })
+          await page.evaluate(() => document.fonts.load("16px 'Noto Sans Lao'", "ກ"))
+          const m = await page.evaluate(() => ({
+            scroll: document.documentElement.scrollWidth,
+            inner: window.innerWidth,
+            lang: document.documentElement.lang,
+            lao: document.fonts.check("16px 'Noto Sans Lao'", "ກ"),
+          }))
+          check(`ลาว · ${name} · ${width}px: <html lang="lo"> · ฟอนต์ Noto Sans Lao โหลดจริง · ไม่มีแถบเลื่อนแนวนอน`, m.lang === "lo" && m.lao === true && m.scroll <= m.inner, JSON.stringify(m))
+          await shot(page, `i18n-lo-${name}-${width}`)
+        }
+        await page.goto(url + "/", { waitUntil: "load" })
+        await page.waitForSelector("header.top")
+        const nav = await navTexts(page)
+        if (width === 1280) check("เบราว์เซอร์ลาว → เมนูหัวเว็บเป็นลาว และยังไม่บันทึกภาษา (ตรวจจากเบราว์เซอร์ ไม่เขียนลงเครื่อง)", JSON.stringify(nav) === JSON.stringify(LO_NAV) && (await saved(page)) === null, `${nav.join(" | ")} saved=${await saved(page)}`)
+        await ctx.close()
+      }
+
+      // เลือกภาษาจากเมนู → เปลี่ยนทันที · บันทึก · โหลดใหม่แล้วยังอยู่ · หลังบ้านยังเป็นไทย · กลับหน้าบ้านยังเป็นภาษาที่เลือก
+      {
+        const ctx = await newContext({ locale: "lo-LA", viewport: { width: 1280, height: 900 } })
+        const page = await ctx.newPage()
+        watch(page, "lang menu")
+        await page.goto(url + "/", { waitUntil: "load" })
+        await page.waitForSelector("header.top")
+        await chooseLanguage(page, "English")
+        check("เมนูภาษา → English: เมนูเปลี่ยนเป็นอังกฤษทันที · <html lang=\"en\"> · บันทึกภาษา", JSON.stringify(await navTexts(page)) === JSON.stringify(EN_NAV) && (await htmlLang(page)) === "en" && JSON.parse((await saved(page)) ?? "null") === "en", `${(await navTexts(page)).join("|")} ${await htmlLang(page)} ${await saved(page)}`)
+        await page.reload({ waitUntil: "load" })
+        await page.waitForSelector("header.top")
+        check("โหลดใหม่ → ยังเป็น English (จำภาษาที่เลือกแม้เบราว์เซอร์เป็นลาว)", JSON.stringify(await navTexts(page)) === JSON.stringify(EN_NAV) && (await htmlLang(page)) === "en")
+        await chooseLanguage(page, "ລາວ")
+        check("เมนูภาษา → ລາວ: เมนูเป็นลาว · <html lang=\"lo\"> · บันทึกเป็น lo", JSON.stringify(await navTexts(page)) === JSON.stringify(LO_NAV) && (await htmlLang(page)) === "lo" && JSON.parse((await saved(page)) ?? "null") === "lo")
+        await page.goto(url + "/admin", { waitUntil: "load" })
+        const card = await page.waitForSelector("form.ad-login-card", { timeout: 10_000 }).then((el) => el, () => null)
+        const cardText = card === null ? "" : await card.innerText()
+        check("หลังบ้าน (/admin) ยังเป็นภาษาไทยทั้งที่ผู้อ่านเลือกลาว · ค่าที่บันทึกยังเป็น lo", card !== null && hasThai(cardText) && !hasLao(cardText) && JSON.parse((await saved(page)) ?? "null") === "lo", cardText.slice(0, 80))
+        await page.goto(url + "/", { waitUntil: "load" })
+        await page.waitForSelector("header.top")
+        check("กลับหน้าบ้าน → ยังเป็นลาว", JSON.stringify(await navTexts(page)) === JSON.stringify(LO_NAV))
+        await ctx.close()
+      }
+
+      // ค่าที่บันทึกไว้เสีย / เบราว์เซอร์ภาษาอื่น → ตกไปที่ภาษาของเบราว์เซอร์แล้วจึงไทย
+      const detect = async (name, opts, expected, expectedNav) => {
+        const ctx = await newContext({ viewport: { width: 1280, height: 900 }, ...opts.context })
+        if (opts.stored !== undefined) await ctx.addInitScript(([key, value]) => { if (!localStorage.getItem(key)) localStorage.setItem(key, value) }, [LANG_KEY, opts.stored])
+        const page = await ctx.newPage()
+        watch(page, `lang detect ${name}`)
+        await page.goto(url + "/", { waitUntil: "load" })
+        await page.waitForSelector("header.top")
+        const got = await htmlLang(page)
+        check(`ภาษาเริ่มต้น: ${name} → ${expected}`, got === expected && JSON.stringify(await navTexts(page)) === JSON.stringify(expectedNav), `${got} ${(await navTexts(page)).join("|")}`)
+        await ctx.close()
+      }
+      await detect('ค่าที่บันทึก "fr" (ใช้ไม่ได้) บนเบราว์เซอร์ไทย', { context: { locale: "th-TH" }, stored: '"fr"' }, "th", TH_NAV)
+      await detect('ค่าที่บันทึก "fr" (ใช้ไม่ได้) บนเบราว์เซอร์อังกฤษ → ข้ามไปใช้ภาษาเบราว์เซอร์', { context: { locale: "en-US" }, stored: '"fr"' }, "en", EN_NAV)
+      await detect("ค่าที่บันทึกไม่ใช่ JSON บนเบราว์เซอร์ไทย", { context: { locale: "th-TH" }, stored: "fr" }, "th", TH_NAV)
+      await detect("เบราว์เซอร์ en-US ไม่เคยเลือก", { context: { locale: "en-US" } }, "en", EN_NAV)
+      await detect("เบราว์เซอร์ fr-FR ไม่เคยเลือก (ไม่รองรับ)", { context: { locale: "fr-FR" } }, "th", TH_NAV)
+    }
+
     section("หลังบ้าน: ล็อกอิน · Dashboard · สร้างเรื่อง")
     const ctx = await newContext({ viewport: { width: 1280, height: 900 } })
     const page = await ctx.newPage()
