@@ -4,6 +4,8 @@
  * แยกเป็น `HomeView` (ไม่ดึงข้อมูล ไม่อ่าน localStorage ทดสอบง่าย) กับ `Home` (ดึงข้อมูล อ่านประวัติ/ความคืบหน้าในเครื่อง ตั้งชื่อแท็บ)
  */
 import { Link, useLocation } from "react-router"
+import { useI18n } from "../i18n/I18nProvider"
+import { MESSAGES, type Messages } from "../i18n/messages"
 import { ContinueRow } from "../components/ContinueRow"
 import { EmptyState } from "../components/EmptyState"
 import { ErrorState } from "../components/ErrorState"
@@ -31,20 +33,22 @@ export interface HomeViewProps {
   history: number[]
   progressOf: (id: number) => Progress | null
   now?: number
+  /** ชุดข้อความ — ไม่ส่ง = ภาษาไทย (ไม่ใช้ hook เพื่อให้เทสต์เรียกเป็นฟังก์ชันตรงๆ ได้) */
+  m?: Messages
 }
 
-export function HomeView({ novels, query, isAdmin, siteName, history, progressOf, now }: HomeViewProps) {
+export function HomeView({ novels, query, isAdmin, siteName, history, progressOf, now, m = MESSAGES.th }: HomeViewProps) {
   if (novels.length === 0) {
     return (
       <div className="home">
         <h1 className="sr-only">{siteName}</h1>
         <EmptyState
-          title="ยังไม่มีนิยายให้อ่าน"
-          hint="กลับมาใหม่เร็วๆ นี้"
+          title={m.home.emptyTitle}
+          hint={m.home.emptyHint}
           action={
             isAdmin ? (
               <Link to="/admin" className="btn primary">
-                ไปหลังบ้านเพื่อเพิ่มนิยาย
+                {m.home.goAdmin}
               </Link>
             ) : undefined
           }
@@ -68,22 +72,23 @@ export function HomeView({ novels, query, isAdmin, siteName, history, progressOf
   return (
     <div className="home">
       <h1 className="sr-only">{siteName}</h1>
-      {hero !== null ? <Hero novel={hero} resume={heroProgress === null ? null : resumeInfo(hero, heroProgress)} /> : null}
-      <ContinueRow items={continueItems(novels, history, progressOf)} />
-      <NovelRow title="อัปเดตล่าสุด" novels={latestUpdates(novels)} now={now} />
+      {hero !== null ? <Hero novel={hero} resume={heroProgress === null ? null : resumeInfo(hero, heroProgress, m)} /> : null}
+      <ContinueRow items={continueItems(novels, history, progressOf, m)} />
+      <NovelRow title={m.home.latest} novels={latestUpdates(novels)} now={now} />
       <Library key="" novels={novels} query="" asPageHeading={false} now={now} />
     </div>
   )
 }
 
 export function Home() {
+  const { m } = useI18n()
   const { pathname, search } = useLocation()
   const query = queryOf(pathname, search).trim()
   const status = useSite()
   const { data, error, reload } = useFetch("novels", (signal) => publicApi.novels(signal))
-  useDocumentTitle(query === "" ? null : `ค้นหา “${query}”`)
+  useDocumentTitle(query === "" ? null : m.home.searchTitle(query))
 
   if (error !== null) return <ErrorState error={error} onRetry={reload} />
   if (data === null) return <Skeleton variant="grid" />
-  return <HomeView novels={data} query={query} isAdmin={status.site?.isAdmin ?? false} siteName={shownSiteName(status) ?? FALLBACK_SITE_NAME} history={getHistory()} progressOf={getProgress} />
+  return <HomeView novels={data} query={query} isAdmin={status.site?.isAdmin ?? false} siteName={shownSiteName(status) ?? FALLBACK_SITE_NAME} history={getHistory()} progressOf={getProgress} m={m} />
 }

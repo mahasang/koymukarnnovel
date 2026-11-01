@@ -2,6 +2,7 @@
  * ตรรกะของหน้าแรก (ล้วนๆ ไม่แตะ DOM/localStorage): ค้นหา กรอง เรียง เลือกเรื่องเด่น และข้อมูลแถว "อ่านต่อ"
  * ข้อมูลที่ได้จาก `GET /api/public/novels` (การ์ดนิยายทุกเรื่องในครั้งเดียว) — ค้นหา/กรองทำที่ฝั่งผู้อ่าน
  */
+import type { Messages } from "../i18n/messages"
 import { parseSqlTime, resumePercent } from "./format"
 import { displayTitle } from "./novel"
 import { FINISHED_PCT, resumeTarget, type Progress } from "./progress"
@@ -19,22 +20,28 @@ export const TAG_CHIPS_MAX = 10
 export type StatusFilter = "all" | NovelStatus
 export type SortKey = "latest" | "title"
 
-/** ชิปกรองสถานะ ตามลำดับที่แสดง */
-export const STATUS_OPTIONS: ReadonlyArray<{ key: StatusFilter; label: string }> = [
-  { key: "all", label: "ทั้งหมด" },
-  { key: "ongoing", label: "กำลังอัปเดต" },
-  { key: "completed", label: "จบแล้ว" },
-]
+/** ชิปกรองสถานะ ตามลำดับที่แสดง (ป้ายตามภาษา) */
+export function statusOptions(m: Messages): ReadonlyArray<{ key: StatusFilter; label: string }> {
+  return [
+    { key: "all", label: m.library.statusAll },
+    { key: "ongoing", label: m.library.statusOngoing },
+    { key: "completed", label: m.library.statusCompleted },
+  ]
+}
 
-/** ตัวเลือกการเรียง ตัวแรกคือค่าเริ่มต้น */
-export const SORT_OPTIONS: ReadonlyArray<{ key: SortKey; label: string }> = [
-  { key: "latest", label: "อัปเดตล่าสุด" },
-  { key: "title", label: "ชื่อเรื่อง ก–ฮ" },
-]
+/** ตัวเลือกการเรียง ตัวแรกคือค่าเริ่มต้น (ป้ายตามภาษา) */
+export function sortOptions(m: Messages): ReadonlyArray<{ key: SortKey; label: string }> {
+  return [
+    { key: "latest", label: m.library.sortLatest },
+    { key: "title", label: m.library.sortTitle },
+  ]
+}
+
+const SORT_KEYS: readonly string[] = ["latest", "title"]
 
 /** ค่าจากช่องเลือก (ข้อความอะไรก็ได้) เป็นวิธีเรียงที่รู้จักหรือไม่ */
 export function isSortKey(value: string): value is SortKey {
-  return SORT_OPTIONS.some((option) => option.key === value)
+  return SORT_KEYS.includes(value)
 }
 
 // ───────────────────────── ค้นหา ─────────────────────────
@@ -147,17 +154,17 @@ export interface ResumeInfo {
  *   (ผู้อ่านนิยายที่ยังไม่จบอ่านทันแล้วกลับมาอีกทีตอนที่ผู้เขียนลงตอนใหม่ — ไม่ควรพาไปอ่านตอนเดิมซ้ำ)
  * - เรื่องที่ตอนนี้ไม่มีตอนให้อ่านเลย → ไปหน้าเรื่อง
  */
-export function resumeInfo(novel: NovelCardDto, progress: Progress): ResumeInfo {
+export function resumeInfo(novel: NovelCardDto, progress: Progress, m: Messages): ResumeInfo {
   const home = `/novel/${novel.id}`
   const latest = novel.latestNumber
   const percent = latest === null ? 0 : resumePercent(progress.number, latest)
   const base = { chapter: progress.number, percent }
-  if (latest === null) return { ...base, href: home, label: "ดูเรื่องนี้" }
+  if (latest === null) return { ...base, href: home, label: m.library.resumeView }
   if (progress.pct >= FINISHED_PCT && progress.next === null) {
-    return latest > progress.number ? { ...base, href: home, label: "มีตอนใหม่" } : { ...base, href: home, label: "อ่านทันตอนล่าสุดแล้ว" }
+    return latest > progress.number ? { ...base, href: home, label: m.library.resumeNew } : { ...base, href: home, label: m.library.resumeCaughtUp }
   }
   const target = resumeTarget(progress)
-  return { ...base, href: `${home}/${target.number}`, label: `อ่านต่อ ตอนที่ ${target.number}` }
+  return { ...base, href: `${home}/${target.number}`, label: m.library.resumeContinue(target.number) }
 }
 
 export interface ContinueItem {
@@ -169,7 +176,7 @@ export interface ContinueItem {
  * การ์ดแถว "อ่านต่อจากที่ค้างไว้": ไล่ตามประวัติ (ล่าสุดก่อน) ข้ามเรื่องที่ไม่อยู่ในรายการแล้ว (ถูกซ่อน/ลบ) หรือไม่มีความคืบหน้าที่ใช้ได้
  * ได้ไม่เกิน `max` เรื่อง — ไม่มี → อาร์เรย์ว่าง (หน้าแรกซ่อนทั้งส่วน)
  */
-export function continueItems(novels: NovelCardDto[], history: number[], progressOf: (id: number) => Progress | null, max: number = CONTINUE_MAX): ContinueItem[] {
+export function continueItems(novels: NovelCardDto[], history: number[], progressOf: (id: number) => Progress | null, m: Messages, max: number = CONTINUE_MAX): ContinueItem[] {
   const byId = new Map(novels.map((novel) => [novel.id, novel]))
   const items: ContinueItem[] = []
   const seen = new Set<number>()
@@ -179,7 +186,7 @@ export function continueItems(novels: NovelCardDto[], history: number[], progres
     seen.add(id)
     const novel = byId.get(id)
     const progress = novel === undefined ? null : progressOf(id)
-    if (novel !== undefined && progress !== null) items.push({ novel, info: resumeInfo(novel, progress) })
+    if (novel !== undefined && progress !== null) items.push({ novel, info: resumeInfo(novel, progress, m) })
   }
   return items
 }

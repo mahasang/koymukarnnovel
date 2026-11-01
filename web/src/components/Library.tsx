@@ -6,10 +6,13 @@
 import { ArrowDownUp } from "lucide-react"
 import { useEffect, useReducer, useRef, type Ref } from "react"
 import { useNavigate } from "react-router"
+import { useI18n } from "../i18n/I18nProvider"
+import { MESSAGES, type Messages } from "../i18n/messages"
+import { CONTENT_LANG } from "../i18n/types"
 import {
   INITIAL_LIBRARY,
-  SORT_OPTIONS,
-  STATUS_OPTIONS,
+  sortOptions,
+  statusOptions,
   filterNovels,
   isSortKey,
   libraryReducer,
@@ -41,17 +44,19 @@ export interface LibraryViewProps {
   now?: number
   /** ตัวอ้างอิงถึงตารางปก — `Library` ใช้ย้ายโฟกัสไปเรื่องแรกที่เพิ่งโผล่หลังกด "แสดงเพิ่ม" */
   gridRef?: Ref<HTMLDivElement>
+  /** ชุดข้อความ — ไม่ส่ง = ภาษาไทย (ไม่ใช้ hook เพื่อให้เทสต์เรียกเป็นฟังก์ชันตรงๆ ได้) */
+  m?: Messages
 }
 
-export function LibraryView({ novels, query, state, dispatch, onClear, asPageHeading, now, gridRef }: LibraryViewProps) {
+export function LibraryView({ novels, query, state, dispatch, onClear, asPageHeading, now, gridRef, m = MESSAGES.th }: LibraryViewProps) {
   const matched = sortNovels(filterNovels(novels, { query, status: state.status, tag: state.tag }), state.sort)
   const shown = shownCount(matched.length, state.pages)
   const remaining = matched.length - shown
   // ชิปแท็กนับจากเรื่องที่ตรงคำค้น (ไม่รวมสถานะ/แท็กที่เลือก — ชิปจะไม่กระโดดทุกครั้งที่สลับตัวกรอง): ระหว่างค้นหาไม่มีชิปที่กดแล้วว่างเปล่า
   const tags = visibleTags(tagCounts(filterNovels(novels, { query, status: "all", tag: null })), state.tag)
   const Heading = asPageHeading ? "h1" : "h2"
-  const heading = query !== "" ? `ผลการค้นหา “${query}”` : "นิยายทั้งหมด"
-  const count = matched.length === 0 ? "ไม่พบเรื่อง" : remaining > 0 ? `แสดง ${shown} จาก ${matched.length} เรื่อง` : `${matched.length} เรื่อง`
+  const heading = query !== "" ? m.library.headingSearch(query) : m.library.headingAll
+  const count = matched.length === 0 ? m.library.countNone : remaining > 0 ? m.library.countPartial(shown, matched.length) : m.library.countAll(matched.length)
 
   return (
     <section aria-labelledby={HEADING_ID}>
@@ -59,8 +64,8 @@ export function LibraryView({ novels, query, state, dispatch, onClear, asPageHea
         {heading}
       </Heading>
       <div className="lib-bar">
-        <div className="chips" role="group" aria-label="สถานะ">
-          {STATUS_OPTIONS.map((option) => (
+        <div className="chips" role="group" aria-label={m.library.statusGroup}>
+          {statusOptions(m).map((option) => (
             <Chip key={option.key} selected={state.status === option.key} onClick={() => dispatch({ type: "status", status: option.key })}>
               {option.label}
             </Chip>
@@ -68,7 +73,7 @@ export function LibraryView({ novels, query, state, dispatch, onClear, asPageHea
         </div>
         <label className="sort">
           <ArrowDownUp aria-hidden="true" size={15} />
-          <span className="sort-label">เรียงตาม</span>
+          <span className="sort-label">{m.library.sortBy}</span>
           <select
             value={state.sort}
             onChange={(event) => {
@@ -76,7 +81,7 @@ export function LibraryView({ novels, query, state, dispatch, onClear, asPageHea
               if (isSortKey(value)) dispatch({ type: "sort", sort: value })
             }}
           >
-            {SORT_OPTIONS.map((option) => (
+            {sortOptions(m).map((option) => (
               <option key={option.key} value={option.key}>
                 {option.label}
               </option>
@@ -85,9 +90,9 @@ export function LibraryView({ novels, query, state, dispatch, onClear, asPageHea
         </label>
       </div>
       {tags.length > 0 ? (
-        <div className="chips" role="group" aria-label="แท็ก">
+        <div className="chips" role="group" aria-label={m.library.tagGroup}>
           {tags.map(({ tag }) => (
-            <Chip key={tag} selected={state.tag === tag} onClick={() => dispatch({ type: "tag", tag })}>
+            <Chip key={tag} lang={CONTENT_LANG} selected={state.tag === tag} onClick={() => dispatch({ type: "tag", tag })}>
               {tag}
             </Chip>
           ))}
@@ -99,25 +104,25 @@ export function LibraryView({ novels, query, state, dispatch, onClear, asPageHea
       </p>
       {matched.length === 0 ? (
         <EmptyState
-          title={query !== "" ? `ไม่พบนิยายที่ตรงกับ “${query}”` : "ไม่พบนิยายที่ตรงกับตัวกรอง"}
-          hint="ลองใช้คำอื่น หรือล้างตัวกรองเพื่อดูนิยายทั้งหมด"
+          title={query !== "" ? m.library.emptySearchTitle(query) : m.library.emptyFilterTitle}
+          hint={m.library.emptyHint}
           action={
             <button type="button" className="btn ghost" onClick={onClear}>
-              {query !== "" ? "ล้างการค้นหา" : "ล้างตัวกรอง"}
+              {query !== "" ? m.library.clearSearch : m.library.clearFilters}
             </button>
           }
         />
       ) : (
         <div className="grid" ref={gridRef}>
           {matched.slice(0, shown).map((novel) => (
-            <NovelCard key={novel.id} novel={novel} now={now} chip={novel.latestNumber !== null ? `ตอน ${novel.latestNumber}` : null} />
+            <NovelCard key={novel.id} novel={novel} now={now} chip={novel.latestNumber !== null ? m.card.chapterChip(novel.latestNumber) : null} />
           ))}
         </div>
       )}
       {remaining > 0 ? (
         <div className="more">
           <button type="button" className="btn ghost" onClick={() => dispatch({ type: "more" })}>
-            แสดงเพิ่ม <span className="more-left">(อีก {remaining} เรื่อง)</span>
+            {m.library.more} <span className="more-left">{m.library.moreLeft(remaining)}</span>
           </button>
         </div>
       ) : null}
@@ -129,6 +134,7 @@ export function Library({ novels, query, asPageHeading, now }: { novels: NovelCa
   const [state, dispatch] = useReducer(libraryReducer, INITIAL_LIBRARY)
   const navigate = useNavigate()
   const gridRef = useRef<HTMLDivElement>(null)
+  const { m } = useI18n()
   /** จำนวนการ์ดก่อนกด "แสดงเพิ่ม" = ตำแหน่งของการ์ดใบแรกที่จะโผล่ (null = ไม่ได้รอย้ายโฟกัส) */
   const revealFrom = useRef<number | null>(null)
   useEffect(() => {
@@ -145,5 +151,5 @@ export function Library({ novels, query, asPageHeading, now }: { novels: NovelCa
     if (action.type === "more") revealFrom.current = gridRef.current?.children.length ?? null
     dispatch(action)
   }
-  return <LibraryView novels={novels} query={query} state={state} dispatch={act} onClear={clear} asPageHeading={asPageHeading} now={now} gridRef={gridRef} />
+  return <LibraryView novels={novels} query={query} state={state} dispatch={act} onClear={clear} asPageHeading={asPageHeading} now={now} gridRef={gridRef} m={m} />
 }
