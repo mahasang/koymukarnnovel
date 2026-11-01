@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { afterEach, describe, test } from "node:test"
 import { installFetch, jsonResponse, restoreGlobals } from "../testing/helpers"
-import { attemptLogin } from "./login"
+import { attemptLogin } from "./login-logic"
 
 /** ล็อกอินจริงผ่าน admin.login (fetch ปลอม): ข้อความที่ผู้ใช้เห็นของแต่ละผลลัพธ์ */
 

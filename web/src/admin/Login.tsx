@@ -4,7 +4,7 @@ import { Link } from "react-router"
 import { useDocumentTitle } from "../lib/useDocumentTitle"
 import { useSite } from "../lib/SiteContext"
 import { AdminBrand } from "./AdminBrand"
-import { attemptLogin } from "./login"
+import { attemptLogin } from "./login-logic"
 
 export interface LoginViewProps {
   siteName: string
