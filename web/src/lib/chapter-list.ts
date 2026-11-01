@@ -2,6 +2,7 @@
  * รายการตอนบนหน้าเรื่อง (spec 6.2) + ปุ่มหลัก "เริ่มอ่าน"/"อ่านต่อ ตอนที่ N" — ตรรกะล้วน ไม่ผูกกับ React
  * ลำดับตอนไม่เชื่อที่เซิร์ฟเวอร์ส่งมา: เรียงตามเลขตอนเองเสมอ · ตอนที่ 0 เป็นตอนจริง (ใช้ `=== null` ไม่ใช่ตรวจว่าเป็นเท็จ)
  */
+import type { Messages } from "../i18n/messages"
 import { resumeTarget, FINISHED_PCT, type Progress } from "./progress"
 import type { ChapterItemDto } from "./types"
 
@@ -13,10 +14,13 @@ export type ChapterOrder = "desc" | "asc"
 /** ค่าเริ่มต้น: ตอนใหม่อยู่บน (ผู้อ่านที่ตามเรื่องอยู่เห็นตอนล่าสุดทันที ส่วนคนอ่านใหม่มีปุ่ม "เริ่มอ่าน") */
 export const DEFAULT_ORDER: ChapterOrder = "desc"
 
-export const ORDER_OPTIONS: readonly { key: ChapterOrder; label: string }[] = [
-  { key: "desc", label: "ใหม่ → เก่า" },
-  { key: "asc", label: "เก่า → ใหม่" },
-]
+/** ตัวเลือกการเรียงตอน (ป้ายตามภาษา) */
+export function orderOptions(m: Messages): readonly { key: ChapterOrder; label: string }[] {
+  return [
+    { key: "desc", label: m.chapters.orderNewest },
+    { key: "asc", label: m.chapters.orderOldest },
+  ]
+}
 
 /** สำเนาของรายการที่เรียงตามเลขตอน (ไม่แก้อาร์เรย์เดิม) */
 export function orderedChapters(chapters: readonly ChapterItemDto[], order: ChapterOrder): ChapterItemDto[] {
@@ -65,24 +69,27 @@ function cleanInput(raw: string): string {
 /** เลขอารบิก 1–9 หลัก: ยาวกว่านี้ไม่ใช่เลขตอนที่เป็นไปได้ (ไม่ปัดเป็นเลขเพี้ยน) */
 const CHAPTER_NUMBER = /^\d{1,9}$/
 
-/** ข้อความ → เลขตอน (จำนวนเต็มไม่ติดลบ รับเลขไทยด้วย); ไม่ใช่ → null */
+/** ข้อความ → เลขตอน (จำนวนเต็มไม่ติดลบ รับเลขไทยและเลขลาวด้วย); ไม่ใช่ → null */
 export function parseChapterNumber(raw: string): number | null {
-  const ascii = cleanInput(raw).replace(/[๐-๙]/g, (digit) => String(digit.charCodeAt(0) - "๐".charCodeAt(0)))
+  // เลขไทย (U+0E50–0E59) และเลขลาว (U+0ED0–0ED9) → เลขอารบิก
+  const ascii = cleanInput(raw)
+    .replace(/[\u0E50-\u0E59]/g, (digit) => String(digit.charCodeAt(0) - 0x0e50))
+    .replace(/[\u0ED0-\u0ED9]/g, (digit) => String(digit.charCodeAt(0) - 0x0ed0))
   return CHAPTER_NUMBER.test(ascii) ? Number(ascii) : null
 }
 
 export type JumpResult = { ok: true; number: number; page: number } | { ok: false; message: string }
 
-/** ช่อง "ไปตอนที่ …": เจอตอน → เลขตอน + หน้าที่มีตอนนั้น · ไม่เจอ → ข้อความบอกสาเหตุ (ภาษาไทย) */
-export function resolveJump(chapters: readonly ChapterItemDto[], order: ChapterOrder, raw: string): JumpResult {
+/** ช่อง "ไปตอนที่ …": เจอตอน → เลขตอน + หน้าที่มีตอนนั้น · ไม่เจอ → ข้อความบอกสาเหตุ (ตามภาษาของผู้อ่าน) */
+export function resolveJump(chapters: readonly ChapterItemDto[], order: ChapterOrder, raw: string, m: Messages): JumpResult {
   const first = firstChapter(chapters)
   const latest = latestChapter(chapters)
-  if (first === null || latest === null) return { ok: false, message: "ยังไม่มีตอนให้ไป" }
-  if (cleanInput(raw) === "") return { ok: false, message: "กรอกเลขตอนที่ต้องการ" }
+  if (first === null || latest === null) return { ok: false, message: m.chapters.jumpNone }
+  if (cleanInput(raw) === "") return { ok: false, message: m.chapters.jumpEmpty }
   const number = parseChapterNumber(raw)
-  if (number === null) return { ok: false, message: "กรอกเลขตอนเป็นตัวเลข เช่น 12" }
+  if (number === null) return { ok: false, message: m.chapters.jumpNotNumber }
   const page = pageOf(chapters, order, number)
-  if (page === null) return { ok: false, message: `ไม่พบตอนที่ ${number} (มีตั้งแต่ตอนที่ ${first} ถึง ${latest})` }
+  if (page === null) return { ok: false, message: m.chapters.jumpMissing(number, first, latest) }
   return { ok: true, number, page }
 }
 
@@ -101,14 +108,14 @@ export interface ReadAction {
  *   (หน้าแรกบอก "มีตอนใหม่" แล้วพามาที่นี่ ปุ่มต้องไปตอนใหม่จริง ไม่ใช่ให้อ่านตอนเดิมซ้ำ)
  * - ไม่มีตอนไหนเลขมากกว่าอีกแล้ว → ชวนอ่านซ้ำตอนล่าสุดที่มี (ซึ่งคือตอนที่อ่านนั้นเอง ถ้ายังอยู่)
  */
-export function readAction(chapters: readonly ChapterItemDto[], progress: Progress | null): ReadAction | null {
+export function readAction(chapters: readonly ChapterItemDto[], progress: Progress | null, m: Messages): ReadAction | null {
   const first = firstChapter(chapters)
   const latest = latestChapter(chapters)
   if (first === null || latest === null) return null
-  if (progress === null) return { kind: "start", number: first, label: "เริ่มอ่าน" }
+  if (progress === null) return { kind: "start", number: first, label: m.chapters.readStart }
 
   const has = (number: number) => chapters.some((chapter) => chapter.number === number)
-  const resume = (number: number): ReadAction => ({ kind: "resume", number, label: `อ่านต่อ ตอนที่ ${number}` })
+  const resume = (number: number): ReadAction => ({ kind: "resume", number, label: m.chapters.readResume(number) })
 
   const target = resumeTarget(progress).number
   // อ่านจบแล้วและไม่มีตอนถัดไปในบันทึก: `resumeTarget` จะชี้ตอนเดิม แต่ตอนนี้อาจมีตอนใหม่แล้ว จึงต้องดูรายการจริง
@@ -119,7 +126,7 @@ export function readAction(chapters: readonly ChapterItemDto[], progress: Progre
   if (after !== null) return resume(after)
 
   // ไม่มีตอนไหนเลขมากกว่าตอนที่อ่านแล้ว → ตอนล่าสุดที่มีคือตอนที่อ่านนั้นเอง (ถ้ายังอยู่) หรือตอนท้ายสุดที่เหลือ (ถ้าตอนท้ายๆ ถูกลบไป)
-  return { kind: "reread", number: latest, label: `อ่านซ้ำ ตอนที่ ${latest}` }
+  return { kind: "reread", number: latest, label: m.chapters.readReread(latest) }
 }
 
 export interface ListState {

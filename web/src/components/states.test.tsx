@@ -5,7 +5,10 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { ApiError } from "../lib/api"
 import { all, one, parse, text } from "../testing/dom"
 import { findTag, handlerOf } from "../testing/elements"
-import { DRAFT_LABEL, DraftBadge } from "./DraftBadge"
+import { MESSAGES as DRAFT_MESSAGES } from "../i18n/messages"
+import { DraftBadge } from "./DraftBadge"
+
+const DRAFT_LABEL = DRAFT_MESSAGES.th.draft.label
 import { EmptyState } from "./EmptyState"
 import { ErrorState, ErrorStateView } from "./ErrorState"
 import { Skeleton } from "./Skeleton"

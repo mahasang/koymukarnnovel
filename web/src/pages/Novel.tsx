@@ -17,6 +17,7 @@ import { Synopsis } from "../components/Synopsis"
 import { publicApi, type ApiError } from "../lib/api"
 import { latestChapter, readAction } from "../lib/chapter-list"
 import { useI18n } from "../i18n/I18nProvider"
+import { CONTENT_LANG } from "../i18n/types"
 import { timeAgo } from "../lib/format"
 import { displayTitle, parseNovelId } from "../lib/novel"
 import { getProgress, type Progress } from "../lib/progress"
@@ -34,7 +35,7 @@ export function NovelView({ novel, progress, now }: { novel: NovelDetailDto; pro
   const { m } = useI18n()
   const updated = timeAgo(novel.updatedAt, m, now)
   const base = `/novel/${novel.id}`
-  const action = readAction(novel.chapters, progress)
+  const action = readAction(novel.chapters, progress, m)
   const latest = latestChapter(novel.chapters)
   // ปุ่ม "ตอนล่าสุด" ซ้ำกับปุ่มหลักเมื่อทั้งสองพาไปตอนเดียวกัน (เรื่องที่มีตอนเดียว หรืออ่านทันแล้ว) — เหลือปุ่มเดียว
   const showLatest = latest !== null && latest !== action?.number
@@ -46,19 +47,21 @@ export function NovelView({ novel, progress, now }: { novel: NovelDetailDto; pro
           <Cover novel={{ id: novel.id, title, hasCover: novel.hasCover, coverV: novel.coverV }} alt={title} />
         </div>
         <div className="nv-info">
-          <h1 className="nv-title">{title}</h1>
+          <h1 className="nv-title" lang={CONTENT_LANG}>
+            {title}
+          </h1>
           {original !== "" ? <p className="nv-orig">{original}</p> : null}
-          {author !== "" ? <p className="nv-author">โดย {author}</p> : null}
+          {author !== "" ? <p className="nv-author">{m.novel.by} <span lang={CONTENT_LANG}>{author}</span></p> : null}
           <div className="nv-facts">
-            <span className={ongoing ? "pill st" : "pill"}>{ongoing ? "ยังไม่จบ" : "จบแล้ว"}</span>
-            {novel.chapters.length > 0 ? <span className="pill">{novel.chapters.length} ตอน</span> : null}
-            {updated !== "" ? <span className="pill">อัปเดต {updated}</span> : null}
+            <span className={ongoing ? "pill st" : "pill"}>{ongoing ? m.novel.ongoing : m.novel.completed}</span>
+            {novel.chapters.length > 0 ? <span className="pill">{m.novel.chapters(novel.chapters.length)}</span> : null}
+            {updated !== "" ? <span className="pill">{m.novel.updated(updated)}</span> : null}
             {novel.published ? null : <DraftBadge />}
           </div>
           {novel.tags.length > 0 ? (
             <div className="nv-tags">
               {novel.tags.map((tag) => (
-                <span className="pill" key={tag}>
+                <span className="pill" key={tag} lang={CONTENT_LANG}>
                   {tag}
                 </span>
               ))}
@@ -73,7 +76,8 @@ export function NovelView({ novel, progress, now }: { novel: NovelDetailDto; pro
             ) : null}
             {showLatest ? (
               <Link to={`${base}/${latest}`} className="btn ghost">
-                ตอนล่าสุด<span className="sr-only"> (ตอนที่ {latest})</span>
+                {m.novel.latest}
+                <span className="sr-only"> {m.novel.latestSr(latest)}</span>
               </Link>
             ) : null}
           </div>

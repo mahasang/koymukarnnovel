@@ -2,7 +2,10 @@ import assert from "node:assert/strict"
 import { describe, test } from "node:test"
 import { all, one, text, type El } from "../testing/dom"
 import { renderPage } from "../testing/render"
-import { AI_BADGE, CreditBox } from "./CreditBox"
+import { MESSAGES } from "../i18n/messages"
+import { CreditBox } from "./CreditBox"
+
+const AI_BADGE = MESSAGES.th.credit.aiBadge
 
 type Props = Parameters<typeof CreditBox>[0]
 const props = (over: Partial<Props> = {}): Props => ({ author: "Elmer Quill", sourceUrl: "https://www.royalroad.com/fiction/1/x", licenseNote: "", ...over })

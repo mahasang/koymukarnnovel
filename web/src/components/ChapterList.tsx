@@ -6,7 +6,7 @@ import { useEffect, useReducer, useRef, useState, type Ref } from "react"
 import { Link } from "react-router"
 import {
   INITIAL_LIST,
-  ORDER_OPTIONS,
+  orderOptions,
   clampPage,
   listReducer,
   pageCount,
@@ -16,7 +16,8 @@ import {
   type ListState,
 } from "../lib/chapter-list"
 import { useI18n } from "../i18n/I18nProvider"
-import type { Locale } from "../i18n/types"
+import { MESSAGES, type Messages } from "../i18n/messages"
+import { CONTENT_LANG } from "../i18n/types"
 import { formatDate } from "../lib/format"
 import { displayTitle } from "../lib/novel"
 import type { ChapterItemDto } from "../lib/types"
@@ -42,19 +43,19 @@ export interface ChapterListViewProps {
   listRef?: Ref<HTMLOListElement>
   /** ตัวอ้างอิงถึงหัวข้อ — `ChapterList` เลื่อนกลับมาที่หัวรายการหลังกดเปลี่ยนหน้า */
   headingRef?: Ref<HTMLHeadingElement>
-  /** ภาษาของวันที่ — ผู้ทดสอบเรียกฟังก์ชันนี้ตรงๆ (ไม่ผ่านการเรนเดอร์) จึงใช้ hook ในนี้ไม่ได้: ตัวห่อส่งมาให้ ไม่ส่ง = ไทย */
-  locale?: Locale
+  /** ชุดข้อความ (รวมภาษาของวันที่) — ผู้ทดสอบเรียกฟังก์ชันนี้ตรงๆ (ไม่ผ่านการเรนเดอร์) จึงใช้ hook ในนี้ไม่ได้: ตัวห่อส่งมาให้ ไม่ส่ง = ไทย */
+  m?: Messages
 }
 
-export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue, jumpError, onJumpValue, onJumpSubmit, dispatch, listRef, headingRef, locale = "th" }: ChapterListViewProps) {
+export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue, jumpError, onJumpValue, onJumpSubmit, dispatch, listRef, headingRef, m = MESSAGES.th }: ChapterListViewProps) {
   const total = chapters.length
   if (total === 0) {
     return (
       <section className="nv-sec" aria-labelledby={HEADING_ID}>
         <h2 className="nv-h" id={HEADING_ID} ref={headingRef}>
-          รายการตอน
+          {m.chapters.title}
         </h2>
-        <p className="ch-empty">ยังไม่มีตอนให้อ่าน</p>
+        <p className="ch-empty">{m.chapters.empty}</p>
       </section>
     )
   }
@@ -68,11 +69,12 @@ export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue,
   return (
     <section className="nv-sec" aria-labelledby={HEADING_ID}>
       <h2 className="nv-h" id={HEADING_ID} ref={headingRef}>
-        รายการตอน<span className="nv-count"> ({total})</span>
+        {m.chapters.title}
+        <span className="nv-count"> ({total})</span>
       </h2>
       <div className="ch-bar">
-        <div className="ch-orders chips" role="group" aria-label="เรียงตอน">
-          {ORDER_OPTIONS.map((option) => (
+        <div className="ch-orders chips" role="group" aria-label={m.chapters.orderGroup}>
+          {orderOptions(m).map((option) => (
             <Chip key={option.key} selected={state.order === option.key} onClick={() => dispatch({ type: "order", order: option.key })}>
               {option.label}
             </Chip>
@@ -86,7 +88,7 @@ export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue,
             onJumpSubmit()
           }}
         >
-          <label htmlFor={JUMP_ID}>ไปตอนที่</label>
+          <label htmlFor={JUMP_ID}>{m.chapters.jumpLabel}</label>
           <input
             id={JUMP_ID}
             type="text"
@@ -98,7 +100,7 @@ export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue,
             onChange={(event) => onJumpValue(event.target.value)}
           />
           <button type="submit" className="btn ghost">
-            ไป
+            {m.chapters.jumpGo}
           </button>
         </form>
       </div>
@@ -110,16 +112,18 @@ export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue,
       <ol className="ch-list" ref={listRef}>
         {rows.map((chapter) => {
           const title = displayTitle(chapter)
-          const date = chapter.publishedAt !== null ? formatDate(chapter.publishedAt, locale) : ""
+          const date = chapter.publishedAt !== null ? formatDate(chapter.publishedAt, m.locale) : ""
           const isLast = chapter.number === lastRead
           const isJump = chapter.number === state.jump
           return (
             <li key={chapter.number} className={["ch-row", isLast ? "last" : "", isJump ? "jump" : ""].filter((name) => name !== "").join(" ")}>
               <Link to={`/novel/${novelId}/${chapter.number}`} className="ch-link">
-                <span className="ch-num">ตอนที่ {chapter.number}</span>
-                {title !== "" ? <span className="ch-title">{title}</span> : null}
+                <span className="ch-num">{m.chapters.chapterN(chapter.number)}</span>
+                {title !== "" ? <span className="ch-title" lang={CONTENT_LANG}>
+                    {title}
+                  </span> : null}
                 <span className="ch-meta">
-                  {isLast ? <span className="ch-tag">อ่านล่าสุด</span> : null}
+                  {isLast ? <span className="ch-tag">{m.chapters.lastRead}</span> : null}
                   {chapter.published ? date !== "" ? <span className="ch-date">{date}</span> : null : <DraftBadge compact />}
                 </span>
               </Link>
@@ -128,15 +132,15 @@ export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue,
         })}
       </ol>
       {pages > 1 ? (
-        <nav className="ch-pager" aria-label="หน้ารายการตอน">
+        <nav className="ch-pager" aria-label={m.chapters.pagerLabel}>
           <button type="button" className="btn ghost" disabled={page <= 1} onClick={() => dispatch({ type: "page", page: page - 1, count: total })}>
-            ก่อนหน้า
+            {m.chapters.prev}
           </button>
           <span className="ch-page" aria-live="polite">
-            หน้า {page} จาก {pages} · ตอนที่ {range}
+            {m.chapters.pageInfo(page, pages, range)}
           </span>
           <button type="button" className="btn ghost" disabled={page >= pages} onClick={() => dispatch({ type: "page", page: page + 1, count: total })}>
-            ถัดไป
+            {m.chapters.next}
           </button>
         </nav>
       ) : null}
@@ -145,7 +149,7 @@ export function ChapterListView({ novelId, chapters, state, lastRead, jumpValue,
 }
 
 export function ChapterList({ novelId, chapters, lastRead }: { novelId: number; chapters: ChapterItemDto[]; lastRead: number | null }) {
-  const { locale } = useI18n()
+  const { m } = useI18n()
   const [state, dispatch] = useReducer(listReducer, INITIAL_LIST)
   const [jumpValue, setJumpValue] = useState("")
   const [jumpError, setJumpError] = useState<string | null>(null)
@@ -174,7 +178,7 @@ export function ChapterList({ novelId, chapters, lastRead }: { novelId: number; 
     dispatch(action)
   }
   const submit = () => {
-    const result = resolveJump(chapters, state.order, jumpValue)
+    const result = resolveJump(chapters, state.order, jumpValue, m)
     if (!result.ok) {
       setJumpError(result.message)
       return
@@ -200,7 +204,7 @@ export function ChapterList({ novelId, chapters, lastRead }: { novelId: number; 
       dispatch={act}
       listRef={listRef}
       headingRef={headingRef}
-      locale={locale}
+      m={m}
     />
   )
 }

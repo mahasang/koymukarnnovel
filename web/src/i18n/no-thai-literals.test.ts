@@ -14,17 +14,11 @@ const LIB_FILES = ["format.ts", "errors.ts", "api.ts", "useFetch.ts", "chapter-l
 
 /** ไฟล์ (เทียบจาก web/src) ที่ยังมีข้อความไทยในโค้ดและรอการย้าย */
 export const PENDING: string[] = [
-  "components/ChapterList.tsx",
-  "components/CreditBox.tsx",
-  "components/DraftBadge.tsx",
   "components/ReaderBar.tsx",
   "components/ReaderSettings.tsx",
-  "components/Synopsis.tsx",
-  "lib/chapter-list.ts",
   "lib/reader.ts",
   "pages/About.tsx",
   "pages/Contact.tsx",
-  "pages/Novel.tsx",
   "pages/Reader.tsx",
 ]
 

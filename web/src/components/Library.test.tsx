@@ -5,7 +5,9 @@ import type { NovelCardDto } from "../lib/types"
 import { all, one, text, type El } from "../testing/dom"
 import { findAll, findTag, handlerOf } from "../testing/elements"
 import { renderPage } from "../testing/render"
-import { DRAFT_LABEL } from "./DraftBadge"
+import { MESSAGES } from "../i18n/messages"
+
+const DRAFT_LABEL = MESSAGES.th.draft.label
 import type { ReactNode } from "react"
 import { Chip } from "./Chip"
 import { EmptyState } from "./EmptyState"
