@@ -59,7 +59,7 @@ export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
     text = await response.text()
   } catch (error) {
     if (signal?.aborted) throw error
-    throw new ApiError(0, NETWORK_ERROR)
+    throw new ApiError(0, NETWORK_ERROR, "network")
   }
 
   let parsed: { value: unknown } | null = null
@@ -72,10 +72,13 @@ export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
 
   if (!ok) {
     const fields = (value ?? {}) as { error?: unknown; code?: unknown }
-    const message = typeof fields.error === "string" && fields.error !== "" ? fields.error : `เซิร์ฟเวอร์ตอบผิดพลาด (${status})`
-    throw new ApiError(status, message, typeof fields.code === "string" ? fields.code : undefined, value)
+    const given = typeof fields.error === "string" && fields.error !== ""
+    const message = given ? (fields.error as string) : `เซิร์ฟเวอร์ตอบผิดพลาด (${status})`
+    // ไม่มีข้อความจากเซิร์ฟเวอร์เลย (เช่น หน้า 502 ของ proxy) → รหัสที่เว็บตั้งเองเพื่อให้แปลได้
+    const code = typeof fields.code === "string" ? fields.code : given ? undefined : "http_error"
+    throw new ApiError(status, message, code, value)
   }
-  if (parsed === null) throw new ApiError(status, UNKNOWN_REPLY)
+  if (parsed === null) throw new ApiError(status, UNKNOWN_REPLY, "unknown_reply")
   return parsed.value as T
 }
 

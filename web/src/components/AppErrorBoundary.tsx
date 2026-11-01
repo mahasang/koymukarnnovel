@@ -5,20 +5,29 @@
  */
 import { RotateCw, TriangleAlert } from "lucide-react"
 import { Component, type ReactNode } from "react"
+import { useI18n } from "../i18n/I18nProvider"
+import { MESSAGES } from "../i18n/messages"
+import type { Messages } from "../i18n/messages"
 
 export function CrashFallback({ onReload }: { onReload: () => void }) {
+  const { m } = useI18n()
+  return <CrashView onReload={onReload} m={m} />
+}
+
+/** ส่วนแสดงผลล้วน (ไม่ใช้ hook — เทสต์เรียกเป็นฟังก์ชันตรงๆ ได้; ไม่ส่ง `m` = ภาษาไทย) */
+export function CrashView({ onReload, m = MESSAGES.th }: { onReload: () => void; m?: Messages }) {
   return (
     <div className="wrap">
       <div className="state state-error" role="alert">
         <div className="state-icon" aria-hidden="true">
           <TriangleAlert size={26} />
         </div>
-        <h2 className="state-title">หน้านี้แสดงผลไม่สำเร็จ</h2>
-        <p className="state-message">เกิดข้อผิดพลาดที่ไม่คาดคิด ลองโหลดหน้านี้ใหม่อีกครั้ง</p>
+        <h2 className="state-title">{m.errors.crash.title}</h2>
+        <p className="state-message">{m.errors.crash.message}</p>
         <div className="state-actions">
           <button type="button" className="btn ghost" onClick={onReload}>
             <RotateCw aria-hidden="true" size={16} />
-            โหลดหน้านี้ใหม่
+            {m.errors.crash.reload}
           </button>
         </div>
       </div>

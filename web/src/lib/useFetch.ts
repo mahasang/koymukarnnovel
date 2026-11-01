@@ -50,7 +50,7 @@ function toApiError(error: unknown): ApiError {
   if (error instanceof ApiError) return error
   // ไม่ใช่ข้อผิดพลาดที่คาดไว้ (บั๊กในตัวโหลด): ผู้อ่านเห็นข้อความกลางๆ ผู้พัฒนาเห็นของจริงในคอนโซล
   console.error(error)
-  return new ApiError(0, "โหลดข้อมูลไม่สำเร็จ")
+  return new ApiError(0, "โหลดข้อมูลไม่สำเร็จ", "load_failed")
 }
 
 /**

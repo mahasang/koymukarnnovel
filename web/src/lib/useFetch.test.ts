@@ -123,6 +123,7 @@ describe("runLoad", () => {
       assert.ok(received instanceof ApiError)
       assert.equal(received.status, 0)
       assert.equal(received.message, "โหลดข้อมูลไม่สำเร็จ")
+      assert.equal(received.code, "load_failed")
       assert.deepEqual(consoleError.mock.calls.map((c) => c.arguments.includes(bug)), [true])
     } finally {
       consoleError.mock.restore()

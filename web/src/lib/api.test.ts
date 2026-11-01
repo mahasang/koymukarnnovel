@@ -122,7 +122,7 @@ describe("api: คำตอบที่สำเร็จ", () => {
       const e = await apiError(api("/api/public/site"))
       assert.equal(e.status, 200)
       assert.equal(e.message, "เซิร์ฟเวอร์ตอบกลับในรูปแบบที่ไม่รู้จัก")
-      assert.equal(e.code, undefined)
+      assert.equal(e.code, "unknown_reply")
     }
   })
 })
@@ -171,6 +171,7 @@ describe("api: คำตอบที่ไม่สำเร็จ", () => {
       const e = await apiError(api("/x"))
       assert.equal(e.status, 502)
       assert.equal(e.message, "เซิร์ฟเวอร์ตอบผิดพลาด (502)")
+      assert.equal(e.code, "http_error")
       assert.equal(e.data, undefined)
     }
   })
@@ -184,7 +185,7 @@ describe("api: เครือข่ายล่มและการยกเ�
     const e = await apiError(api("/x"))
     assert.equal(e.status, 0)
     assert.equal(e.message, "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้")
-    assert.equal(e.code, undefined)
+    assert.equal(e.code, "network")
     assert.equal(e.data, undefined)
   })
 

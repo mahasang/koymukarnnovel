@@ -7,7 +7,7 @@ import { all, one, parse, text } from "../testing/dom"
 import { findTag, handlerOf } from "../testing/elements"
 import { DRAFT_LABEL, DraftBadge } from "./DraftBadge"
 import { EmptyState } from "./EmptyState"
-import { ErrorState } from "./ErrorState"
+import { ErrorState, ErrorStateView } from "./ErrorState"
 import { Skeleton } from "./Skeleton"
 
 const render = (node: ReactNode) => parse(renderToStaticMarkup(node))
@@ -87,7 +87,7 @@ describe("ErrorState", () => {
 
   test("มี onRetry → ปุ่ม 'ลองใหม่' (type=button) และกดแล้วเรียก onRetry", () => {
     let retries = 0
-    const element = ErrorState({ error: new ApiError(0, "x"), onRetry: () => retries++ })
+    const element = ErrorStateView({ error: new ApiError(0, "x"), onRetry: () => retries++ })
     const button = findTag(element, "button")
     assert.equal(button.props.type, "button")
     handlerOf(button, "onClick")()

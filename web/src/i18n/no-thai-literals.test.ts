@@ -14,42 +14,36 @@ const LIB_FILES = ["format.ts", "errors.ts", "api.ts", "useFetch.ts", "chapter-l
 
 /** ไฟล์ (เทียบจาก web/src) ที่ยังมีข้อความไทยในโค้ดและรอการย้าย */
 export const PENDING: string[] = [
-  "components/AppErrorBoundary.tsx",
   "components/ChapterList.tsx",
   "components/ContinueRow.tsx",
   "components/CreditBox.tsx",
   "components/DraftBadge.tsx",
-  "components/ErrorState.tsx",
   "components/Footer.tsx",
   "components/Header.tsx",
   "components/Hero.tsx",
-  "components/Layout.tsx",
   "components/Library.tsx",
   "components/NovelCard.tsx",
   "components/NovelRow.tsx",
   "components/ReaderBar.tsx",
   "components/ReaderSettings.tsx",
   "components/SearchBox.tsx",
-  "components/Skeleton.tsx",
   "components/Synopsis.tsx",
   "components/ThemeMenu.tsx",
-  "lib/api.ts",
   "lib/chapter-list.ts",
-  "lib/errors.ts",
   "lib/library.ts",
   "lib/reader.ts",
   "lib/theme.ts",
-  "lib/useFetch.ts",
   "pages/About.tsx",
   "pages/Contact.tsx",
   "pages/Home.tsx",
-  "pages/NotFound.tsx",
   "pages/Novel.tsx",
   "pages/Reader.tsx",
 ]
 
 export const ALLOWED: Record<string, string> = {
   "components/ConfirmDialog.tsx": "ใช้เฉพาะหลังบ้าน (หลังบ้านเป็นไทยเสมอ)",
+  "lib/api.ts": "ข้อความไทยสำรองของ ApiError ที่เว็บสร้างเอง (message ไทยเป็นค่าตั้งต้น — ภาษาอื่นแปลจาก code ใน errorText)",
+  "lib/useFetch.ts": "ข้อความไทยสำรองของ ApiError ที่เว็บสร้างเอง (แปลจาก code ใน errorText)",
   "lib/SiteContext.tsx": "ข้อความ Error สำหรับนักพัฒนา ไม่ใช่ UI ที่ผู้อ่านเห็น",
 }
 

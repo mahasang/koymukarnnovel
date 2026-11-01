@@ -53,10 +53,10 @@ export function App() {
   const { pathname } = useLocation()
   const page = useRoutes(routes)
   return (
-    <AppErrorBoundary resetKey={pathname}>
-      <I18nProvider>
+    <I18nProvider>
+      <AppErrorBoundary resetKey={pathname}>
         <SiteProvider>{page}</SiteProvider>
-      </I18nProvider>
-    </AppErrorBoundary>
+      </AppErrorBoundary>
+    </I18nProvider>
   )
 }
