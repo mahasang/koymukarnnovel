@@ -27,8 +27,9 @@ export function I18nProvider({ children, fixedLocale }: { children: ReactNode; f
   const locale = fixedLocale ?? chosen
 
   useEffect(() => {
-    if (fixedLocale === undefined) applyLocale(document, chosen)
-  }, [chosen, fixedLocale])
+    // `<html lang>` ตามภาษาที่แสดงจริง (หลังบ้านตรึงไทย แม้ผู้อ่านเลือกลาวไว้ — โปรแกรมอ่านหน้าจอจึงไม่อ่านไทยด้วยเสียงลาว)
+    applyLocale(document, locale)
+  }, [locale])
 
   const setLocale = useCallback(
     (next: Locale) => {

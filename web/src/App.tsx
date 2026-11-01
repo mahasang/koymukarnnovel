@@ -8,6 +8,7 @@ import { useLocation, useRoutes, type RouteObject } from "react-router"
 import { AppErrorBoundary } from "./components/AppErrorBoundary"
 import { Layout } from "./components/Layout"
 import { Skeleton } from "./components/Skeleton"
+import { localeForPath } from "./i18n/apply"
 import { I18nProvider } from "./i18n/I18nProvider"
 import { SiteProvider } from "./lib/SiteContext"
 import { About } from "./pages/About"
@@ -41,9 +42,7 @@ export const routes: RouteObject[] = [
           </div>
         }
       >
-        <I18nProvider fixedLocale="th">
-          <AdminApp />
-        </I18nProvider>
+        <AdminApp />
       </Suspense>
     ),
   },
@@ -53,7 +52,7 @@ export function App() {
   const { pathname } = useLocation()
   const page = useRoutes(routes)
   return (
-    <I18nProvider>
+    <I18nProvider fixedLocale={localeForPath(pathname)}>
       <AppErrorBoundary resetKey={pathname}>
         <SiteProvider>{page}</SiteProvider>
       </AppErrorBoundary>

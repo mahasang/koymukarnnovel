@@ -368,7 +368,7 @@ async function main() {
         await page.goto(url + "/admin", { waitUntil: "load" })
         const card = await page.waitForSelector("form.ad-login-card", { timeout: 10_000 }).then((el) => el, () => null)
         const cardText = card === null ? "" : await card.innerText()
-        check("หลังบ้าน (/admin) ยังเป็นภาษาไทยทั้งที่ผู้อ่านเลือกลาว · ค่าที่บันทึกยังเป็น lo", card !== null && hasThai(cardText) && !hasLao(cardText) && JSON.parse((await saved(page)) ?? "null") === "lo", cardText.slice(0, 80))
+        check("หลังบ้าน (/admin) ยังเป็นภาษาไทยทั้งที่ผู้อ่านเลือกลาว · <html lang=\"th\"> · ค่าที่บันทึกยังเป็น lo", card !== null && (await htmlLang(page)) === "th" && hasThai(cardText) && !hasLao(cardText) && JSON.parse((await saved(page)) ?? "null") === "lo", cardText.slice(0, 80))
         await page.goto(url + "/", { waitUntil: "load" })
         await page.waitForSelector("header.top")
         check("กลับหน้าบ้าน → ยังเป็นลาว", JSON.stringify(await navTexts(page)) === JSON.stringify(LO_NAV))

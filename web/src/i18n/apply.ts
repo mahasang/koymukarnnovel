@@ -3,6 +3,11 @@ import { KEYS, readJson, writeJson } from "../lib/storage"
 import { initialLocale } from "./detect"
 import type { Locale } from "./types"
 
+/** หลังบ้านตรึงเป็นไทยเสมอ (`/admin` และหน้าลูก) · อื่นๆ ให้ผู้อ่านเลือก (undefined) */
+export function localeForPath(pathname: string): Locale | undefined {
+  return pathname === "/admin" || pathname.startsWith("/admin/") ? "th" : undefined
+}
+
 const browserLanguages = (): readonly string[] | undefined => (typeof navigator === "undefined" ? undefined : navigator.languages)
 
 /** ตั้ง `lang` ของ <html> ให้ตรงกับภาษา UI (shell จากเซิร์ฟเวอร์เป็น `lang="th"` เสมอ) */

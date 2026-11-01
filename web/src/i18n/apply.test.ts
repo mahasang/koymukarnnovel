@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { afterEach, describe, test } from "node:test"
-import { applyLocale, loadLocale, saveLocale } from "./apply"
+import { applyLocale, loadLocale, localeForPath, saveLocale } from "./apply"
 
 const g = globalThis as { localStorage?: unknown }
 const original = g.localStorage
@@ -63,5 +63,14 @@ describe("loadLocale / saveLocale", () => {
     delete g.localStorage
     assert.equal(loadLocale(["en"]), "en")
     assert.doesNotThrow(() => saveLocale("en"))
+  })
+})
+
+describe("localeForPath: หลังบ้านตรึงเป็นไทย ส่วนหน้าบ้านให้ผู้อ่านเลือก", () => {
+  test("/admin และหน้าลูกของมัน → th", () => {
+    for (const path of ["/admin", "/admin/", "/admin/novels/3", "/admin/settings"]) assert.equal(localeForPath(path), "th", path)
+  })
+  test("หน้าบ้านและชื่อที่ขึ้นต้นคล้าย admin → undefined (ใช้ที่ผู้อ่านเลือก)", () => {
+    for (const path of ["/", "/novel/1", "/novel/1/2", "/about", "/administrator", "/adminx/1"]) assert.equal(localeForPath(path), undefined, path)
   })
 })
