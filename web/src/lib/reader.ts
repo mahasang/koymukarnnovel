@@ -2,6 +2,7 @@
  * ตรรกะล้วนของหน้าอ่าน (ไม่แตะ DOM จึงทดสอบได้): แถบบนซ่อน/โผล่ตามทิศเลื่อน, เปอร์เซ็นต์ที่อ่านแล้วกับการคืนตำแหน่ง,
  * ปุ่มลูกศรเปลี่ยนตอน, ชื่อตอน/ชื่อแท็บ, ย่อหน้าที่เห็นอยู่ (จุดเริ่มอ่านออกเสียง)
  */
+import type { Messages } from "../i18n/messages"
 import { displayTitle } from "./novel"
 import { FINISHED_PCT, type Progress } from "./progress"
 
@@ -96,15 +97,15 @@ export function chapterKeyAction(event: KeyEventLike, nav: { prev: number | null
   return null
 }
 
-/** หัวตอน: "ตอนที่ N: ชื่อตอน" (ชื่อไทยก่อน ไม่มีใช้ชื่อต้นฉบับ) · ไม่มีชื่อ → "ตอนที่ N" — รูปแบบเดียวกับ `<title>` ฝั่งเซิร์ฟเวอร์ */
-export function chapterHeading(chapter: { number: number; title: string; titleTh: string }): string {
+/** หัวตอน: "ตอนที่ N: ชื่อตอน" (ชื่อไทยก่อน ไม่มีใช้ชื่อต้นฉบับ) · ไม่มีชื่อ → "ตอนที่ N" — คำนำหน้าตามภาษา รูปแบบเดียวกับ `<title>` ฝั่งเซิร์ฟเวอร์ */
+export function chapterHeading(chapter: { number: number; title: string; titleTh: string }, m: Messages): string {
   const name = displayTitle(chapter)
-  return name === "" ? `ตอนที่ ${chapter.number}` : `ตอนที่ ${chapter.number}: ${name}`
+  return name === "" ? m.reader.headingBare(chapter.number) : m.reader.headingNamed(chapter.number, name)
 }
 
 /** ชื่อหน้าของแท็บ (ก่อนต่อท้ายชื่อเว็บ): "หัวตอน — ชื่อเรื่อง" */
-export function chapterTitle(novel: { title: string; titleTh: string }, chapter: { number: number; title: string; titleTh: string }): string {
-  return `${chapterHeading(chapter)} — ${displayTitle(novel)}`
+export function chapterTitle(novel: { title: string; titleTh: string }, chapter: { number: number; title: string; titleTh: string }, m: Messages): string {
+  return `${chapterHeading(chapter, m)} — ${displayTitle(novel)}`
 }
 
 /**

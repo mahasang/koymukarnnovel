@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
+import { MESSAGES } from "../i18n/messages"
 import { FINISHED_PCT, type Progress } from "./progress"
 import {
   BAR_HIDE_AFTER,
@@ -207,20 +208,22 @@ describe("chapterKeyAction / isTypingTarget — ปุ่มลูกศรเ�
   })
 })
 
+const { th, en, lo } = MESSAGES
+
 describe("chapterHeading / chapterTitle — รูปแบบเดียวกับ <title> ที่เซิร์ฟเวอร์ใส่ให้", () => {
   const novel = { title: "Glass Season", titleTh: "ฤดูกระจก" }
 
   test("ตอนที่ N: ชื่อตอน (ชื่อไทยก่อน ไม่มีใช้ชื่อต้นฉบับ) · ไม่มีชื่อ → ตอนที่ N", () => {
-    assert.equal(chapterHeading({ number: 12, title: "The Door", titleTh: "ประตู" }), "ตอนที่ 12: ประตู")
-    assert.equal(chapterHeading({ number: 12, title: "The Door", titleTh: "" }), "ตอนที่ 12: The Door")
-    assert.equal(chapterHeading({ number: 12, title: "The Door", titleTh: "   " }), "ตอนที่ 12: The Door")
-    assert.equal(chapterHeading({ number: 12, title: "", titleTh: "" }), "ตอนที่ 12")
-    assert.equal(chapterHeading({ number: 0, title: "", titleTh: " " }), "ตอนที่ 0")
+    assert.equal(chapterHeading({ number: 12, title: "The Door", titleTh: "ประตู" }, th), "ตอนที่ 12: ประตู")
+    assert.equal(chapterHeading({ number: 12, title: "The Door", titleTh: "" }, th), "ตอนที่ 12: The Door")
+    assert.equal(chapterHeading({ number: 12, title: "The Door", titleTh: "   " }, th), "ตอนที่ 12: The Door")
+    assert.equal(chapterHeading({ number: 12, title: "", titleTh: "" }, th), "ตอนที่ 12")
+    assert.equal(chapterHeading({ number: 0, title: "", titleTh: " " }, th), "ตอนที่ 0")
   })
 
   test("ชื่อแท็บ: หัวตอน — ชื่อเรื่อง (ชื่อไทยก่อน)", () => {
-    assert.equal(chapterTitle(novel, { number: 3, title: "A", titleTh: "ก" }), "ตอนที่ 3: ก — ฤดูกระจก")
-    assert.equal(chapterTitle({ title: "Glass Season", titleTh: "" }, { number: 3, title: "", titleTh: "" }), "ตอนที่ 3 — Glass Season")
+    assert.equal(chapterTitle(novel, { number: 3, title: "A", titleTh: "ก" }, th), "ตอนที่ 3: ก — ฤดูกระจก")
+    assert.equal(chapterTitle({ title: "Glass Season", titleTh: "" }, { number: 3, title: "", titleTh: "" }, th), "ตอนที่ 3 — Glass Season")
   })
 })
 
@@ -303,5 +306,21 @@ describe("scrollPct / restoreTop — เศษทศนิยม", () => {
   test("restoreTop ปัดเศษ (round) เป็นพิกเซลเต็ม", () => {
     assert.equal(restoreTop(50, 1001, 0), 501) // 500.5 → 501
     assert.equal(restoreTop(33, 1000, 0), 330)
+  })
+})
+
+describe("chapterHeading / chapterTitle (หลายภาษา)", () => {
+  test("หัวตอนตามภาษา: มี/ไม่มีชื่อตอน และคำนำหน้าของแต่ละภาษา", () => {
+    const named = { number: 12, title: "The Door", titleTh: "ประตู" }
+    const bare = { number: 12, title: "", titleTh: "" }
+    assert.equal(chapterHeading(named, en), "Chapter 12: ประตู")
+    assert.equal(chapterHeading(bare, en), "Chapter 12")
+    assert.equal(chapterHeading(named, lo), lo.reader.headingNamed(12, "ประตู"))
+    assert.equal(chapterHeading(bare, lo), lo.reader.headingBare(12))
+    assert.doesNotMatch(chapterHeading(bare, lo), /[\u0E00-\u0E7F]/)
+  })
+
+  test("ชื่อแท็บ: หัวตอนตามภาษา — ชื่อเรื่อง", () => {
+    assert.equal(chapterTitle({ title: "Glass Season", titleTh: "ฤดูกระจก" }, { number: 3, title: "", titleTh: "" }, en), "Chapter 3 — ฤดูกระจก")
   })
 })

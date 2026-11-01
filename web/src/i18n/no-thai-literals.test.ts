@@ -14,12 +14,6 @@ const LIB_FILES = ["format.ts", "errors.ts", "api.ts", "useFetch.ts", "chapter-l
 
 /** ไฟล์ (เทียบจาก web/src) ที่ยังมีข้อความไทยในโค้ดและรอการย้าย */
 export const PENDING: string[] = [
-  "components/ReaderBar.tsx",
-  "components/ReaderSettings.tsx",
-  "lib/reader.ts",
-  "pages/About.tsx",
-  "pages/Contact.tsx",
-  "pages/Reader.tsx",
 ]
 
 export const ALLOWED: Record<string, string> = {

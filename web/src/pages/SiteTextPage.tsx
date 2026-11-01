@@ -2,6 +2,7 @@
 import { EmptyState } from "../components/EmptyState"
 import { ErrorState } from "../components/ErrorState"
 import { Skeleton } from "../components/Skeleton"
+import { CONTENT_LANG } from "../i18n/types"
 import { useSite } from "../lib/SiteContext"
 import type { SiteDto } from "../lib/types"
 import { useDocumentTitle } from "../lib/useDocumentTitle"
@@ -13,7 +14,9 @@ export function SiteTextPage({ title, pick, emptyTitle, emptyHint }: { title: st
   let body
   if (site === null) body = error !== null ? <ErrorState error={error} /> : <Skeleton variant="lines" />
   else if (pick(site).trim() === "") body = <EmptyState title={emptyTitle} hint={emptyHint} />
-  else body = <p className="prose-text">{pick(site)}</p>
+  else body = <p className="prose-text" lang={CONTENT_LANG}>
+        {pick(site)}
+      </p>
 
   return (
     <article className="prose">
